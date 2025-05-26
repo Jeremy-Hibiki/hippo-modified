@@ -1,0 +1,164 @@
+[project]
+name = "hippo-modified"
+version = "2.0.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "李世元", email = "lishiyuan@fmsh.com.cn" },
+    { name = "蒋正颀", email = "jiangzhengqi@fmsh.com.cn" },
+]
+requires-python = ">=3.10"
+dependencies = [
+    "openai==1.58.1",
+    "networkx==3.4.2",
+    "python-igraph==0.11.8",
+    "tiktoken==0.7.0",
+    "pydantic==2.10.4",
+    "tenacity==8.5.0",
+    "tqdm",
+    "transformers>=4.51",
+    "filelock",
+]
+
+[project.optional-dependencies]
+cpu = ["torch"]
+cu126 = [
+    "torch",
+    "nvidia-cublas-cu12~=12.0",
+    "nvidia-cuda-cupti-cu12~=12.0",
+    "nvidia-cuda-nvrtc-cu12~=12.0",
+    "nvidia-cuda-runtime-cu12~=12.0",
+    "nvidia-cudnn-cu12~=9.0",
+    "nvidia-cufft-cu12~=11.0",
+    "nvidia-curand-cu12~=10.0",
+    "nvidia-cusolver-cu12~=11.0",
+    "nvidia-cusparse-cu12~=12.0",
+    "nvidia-cusparselt-cu12~=0.0",
+    "nvidia-nccl-cu12~=2.0",
+    "nvidia-nvtx-cu12~=12.0",
+    "nvidia-nvjitlink-cu12~=12.0",
+]
+dev = ["ruff==0.11.0"]
+gritlm = ["gritlm==1.0.2"]
+vllm = ["vllm>=0.8", "einops"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+managed = true
+prerelease = "if-necessary-or-explicit"
+no-sources = false
+package = false
+index-strategy = "unsafe-best-match"
+environments = ["platform_machine == 'x86_64'"]
+conflicts = [
+    [
+        { extra = "cpu" },
+        { extra = "cu126" },
+    ],
+    [
+        { extra = "cpu" },
+        { extra = "nvidia" },
+    ],
+]
+
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", extra = "cpu" },
+    { index = "pytorch-cu126", extra = "cu126" },
+]
+nvidia-cuda-nvrtc-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-cuda-runtime-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-cuda-cupti-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-cudnn-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-cublas-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-cufft-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-curand-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-cusolver-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-cusparse-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-cusparselt-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-nccl-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-nvtx-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+nvidia-nvjitlink-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+llama-index-exts-fmsh = { git = "git+http://oauth2:sGHJwWuSCQfY8VyEY8z7@192.168.131.126:8089/zhoubodong/chatpdf-backend.git", subdirectory = "packages/llama-index-exts-fmsh" }
+
+[[tool.uv.index]]
+name = "tuna"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
+default = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://mirror.nju.edu.cn/pytorch/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://mirror.nju.edu.cn/pytorch/whl/cu124"
+# url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://mirror.nju.edu.cn/pytorch/whl/cu126"
+# url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.ruff]
+extend-exclude = ["*.pyi"]
+line-length = 119
+indent-width = 4
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # flake8-bugbear
+    "B",
+    # flake8-future-annotations
+    "FA",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # pyupgrade
+    "UP",
+    "RUF",
+]
+ignore = [
+    "B007",
+    "COM812",
+    "COM819",
+    "D100",
+    "D203",
+    "D213",
+    "D300",
+    "E111",
+    "E114",
+    "E117",
+    "E501",
+    "ISC001",
+    "ISC002",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "W191",
+    "SIM300",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    "RUF013",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402"]
+
+[tool.ruff.lint.isort]
+extra-standard-library = ["typing_extensions"]
