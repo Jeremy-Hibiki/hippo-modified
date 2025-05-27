@@ -114,7 +114,7 @@ class HippoRAG:
             self.global_config.azure_embedding_endpoint = azure_embedding_endpoint
 
         _print_config = ",\n  ".join([f"{k} = {v}" for k, v in asdict(self.global_config).items()])
-        logger.debug(f"HippoRAG init with config:\n  {_print_config}\n")
+        logger.info(f"HippoRAG init with config:\n  {_print_config}\n")
 
         # LLM and embedding model specific working directories are created under every specified saving directories
         llm_label = self.global_config.llm_name.replace("/", "_")
@@ -776,7 +776,7 @@ class HippoRAG:
                 prompt_dataset_name = self.global_config.dataset
             else:
                 # the dataset does not have a customized prompt template yet
-                logger.debug(
+                logger.info(
                     f"rag_qa_{self.global_config.dataset} does not have a customized prompt template. Using MUSIQUE's prompt template instead."
                 )
                 prompt_dataset_name = "musique"
@@ -1103,7 +1103,7 @@ class HippoRAG:
         self.add_new_edges()
 
         logger.info("Graph construction completed!")
-        logger.debug(self.get_graph_info())
+        logger.info(self.get_graph_info())
 
     def add_new_nodes(self):
         """
@@ -1649,8 +1649,8 @@ class HippoRAG:
             real_candidate_fact_ids = [self.fact_node_keys[idx] for idx in candidate_fact_indices]
             fact_row_dict = self.fact_embedding_store.get_rows(real_candidate_fact_ids)
             candidate_facts = [eval(fact_row_dict[id]["content"]) for id in real_candidate_fact_ids]
-            logger.debug(f"query: {query}")
-            logger.debug(f"candidate_facts: {candidate_facts}")
+            logger.info(f"query: {query}")
+            logger.info(f"candidate_facts: {candidate_facts}")
             # Rerank the facts
             top_k_fact_indices, top_k_facts, reranker_dict = self.rerank_filter(
                 query,
@@ -1659,7 +1659,7 @@ class HippoRAG:
                 len_after_rerank=link_top_k,
                 batch_num=batch_num,
             )
-            logger.debug(f"top_k_facts: {top_k_facts}")
+            logger.info(f"top_k_facts: {top_k_facts}")
             rerank_log = {"facts_before_rerank": candidate_facts, "facts_after_rerank": top_k_facts}
 
             return top_k_fact_indices, top_k_facts, rerank_log

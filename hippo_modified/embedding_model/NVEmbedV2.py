@@ -18,14 +18,14 @@ class NVEmbedV2EmbeddingModel(BaseEmbeddingModel):
 
         if embedding_model_name is not None:
             self.embedding_model_name = embedding_model_name
-            logger.debug(
+            logger.info(
                 f"Overriding {self.__class__.__name__}'s embedding_model_name with: {self.embedding_model_name}"
             )
 
         self._init_embedding_config()
 
         # Initializing the embedding model
-        logger.debug(
+        logger.info(
             f"Initializing {self.__class__.__name__}'s embedding model with params: {self.embedding_config.model_init_params}"
         )
 
@@ -61,7 +61,7 @@ class NVEmbedV2EmbeddingModel(BaseEmbeddingModel):
         }
 
         self.embedding_config = EmbeddingConfig.from_dict(config_dict=config_dict)
-        logger.debug(f"Init {self.__class__.__name__}'s embedding_config: {self.embedding_config}")
+        logger.info(f"Init {self.__class__.__name__}'s embedding_config: {self.embedding_config}")
 
     # def _add_eos(self, texts: List[str]) -> List[str]:
     #     # Adds EOS token to each text
@@ -81,7 +81,7 @@ class NVEmbedV2EmbeddingModel(BaseEmbeddingModel):
 
         batch_size = params.pop("batch_size", 16)
 
-        logger.debug(f"Calling {self.__class__.__name__} with:\n{params}")
+        logger.info(f"Calling {self.__class__.__name__} with:\n{params}")
         if len(texts) <= batch_size:
             params["prompts"] = texts  # self._add_eos(texts=texts)
             results = self.embedding_model.encode(**params)

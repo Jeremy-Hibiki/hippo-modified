@@ -22,14 +22,14 @@ class GritLMEmbeddingModel(BaseEmbeddingModel):
 
         if embedding_model_name is not None:
             self.embedding_model_name = embedding_model_name
-            logger.debug(
+            logger.info(
                 f"Overriding {self.__class__.__name__}'s embedding_model_name with: {self.embedding_model_name}"
             )
 
         self._init_embedding_config()
 
         # Initializing the embedding model
-        logger.debug(
+        logger.info(
             f"Initializing {self.__class__.__name__}'s embedding model with params: {self.embedding_config.model_init_params}"
         )
         self.embedding_model = GritLM(**self.embedding_config.model_init_params)
@@ -61,7 +61,7 @@ class GritLMEmbeddingModel(BaseEmbeddingModel):
         }
 
         self.embedding_config = EmbeddingConfig.from_dict(config_dict=config_dict)
-        logger.debug(f"Init {self.__class__.__name__}'s embedding_config: {self.embedding_config}")
+        logger.info(f"Init {self.__class__.__name__}'s embedding_config: {self.embedding_config}")
 
     def _get_formated_instruction(self, instruction: str) -> str:
         return "<|user|>\n" + instruction + "\n<|embed|>\n" if instruction else "<|embed|>\n"
@@ -77,7 +77,7 @@ class GritLMEmbeddingModel(BaseEmbeddingModel):
             params["instruction"] = self._get_formated_instruction(params["instruction"])
         params["sentences"] = texts
 
-        logger.debug(f"Calling {self.__class__.__name__} with:\n{params}")
+        logger.info(f"Calling {self.__class__.__name__} with:\n{params}")
         results = self.embedding_model.encode(**params)
 
         if isinstance(results, torch.Tensor):

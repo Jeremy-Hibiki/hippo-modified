@@ -176,4 +176,4 @@ class BaseConfig:
                 self.save_dir = "outputs"  # running freely
             else:
                 self.save_dir = os.path.join("outputs", self.dataset)  # customize your dataset's output dir here
-        logger.debug(f"Initializing the highest level of save_dir to be {self.save_dir}")
+        logger.info(f"Initializing the highest level of save_dir to be {self.save_dir}")

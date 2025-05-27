@@ -143,7 +143,7 @@ class DSPyFilter:
         candidate = [list(candidate_item) for candidate_item in candidate_items]
         sorted_candidate_indices = []
         sorted_candidate_items = []
-        # logger.debug('===' * 10 + " start " + '===' * 10, candidate, sep='\r\n')
+        # logger.info('===' * 10 + " start " + '===' * 10, candidate, sep='\r\n')
         while len(candidate) > 0:
             batch_candidate = candidate[:batch_num]
             candidate = candidate[batch_num:]
@@ -151,7 +151,7 @@ class DSPyFilter:
             try:
                 # prediction = self.program(question=query, fact_before_filter=json.dumps(fact_before_filter))
                 response = self.llm_call(query, json.dumps(fact_before_filter))
-                # logger.debug(response, sep='\r\n')
+                # logger.info(response, sep='\r\n')
                 generated_facts = self.parse_filter(response)
             except Exception as e:
                 logger.error("exception", e)
@@ -165,11 +165,11 @@ class DSPyFilter:
                 try:
                     result_indices.append(candidate_items.index(eval(closest_matched_fact)))
                 except Exception as e:
-                    logger.debug("result_indices exception", e)
+                    logger.info("result_indices exception", e)
 
             sorted_candidate_indices.extend([candidate_indices[i] for i in result_indices])
             sorted_candidate_items.extend([candidate_items[i] for i in result_indices])
-        # logger.debug([], '===' * 10 + " end " + '===' * 10, sep='\r\n')
+        # logger.info([], '===' * 10 + " end " + '===' * 10, sep='\r\n')
         return (
             sorted_candidate_indices[:len_after_rerank],
             sorted_candidate_items[:len_after_rerank],
@@ -187,13 +187,13 @@ class DSPyFilter:
         try:
             # prediction = self.program(question=query, fact_before_filter=json.dumps(fact_before_filter))
             response = self.llm_call(query, json.dumps(fact_before_filter))
-            logger.debug("===" * 10 + " start " + "===" * 10, response, "\r\n\r\n", sep="\r\n")
+            logger.info("===" * 10 + " start " + "===" * 10, response, "\r\n\r\n", sep="\r\n")
             generated_facts = self.parse_filter(response)
-            logger.debug(generated_facts, "===" * 10 + " end " + "===" * 10, sep="\r\n")
+            logger.info(generated_facts, "===" * 10 + " end " + "===" * 10, sep="\r\n")
         except Exception as e:
             logger.error("exception", e)
             generated_facts = []
-            logger.debug([], "===" * 10 + " end " + "===" * 10, sep="\r\n")
+            logger.info([], "===" * 10 + " end " + "===" * 10, sep="\r\n")
         result_indices = []
         for generated_fact in generated_facts:
             closest_matched_fact = difflib.get_close_matches(

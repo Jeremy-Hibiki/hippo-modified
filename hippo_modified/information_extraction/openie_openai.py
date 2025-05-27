@@ -163,7 +163,7 @@ class OpenIE:
                         "num_cache_hit": num_cache_hit,
                     }
                 )
-        logger.debug(f"ner_results_list: {ner_results_list}")
+        logger.info(f"ner_results_list: {ner_results_list}")
         triple_results_list = []
         total_prompt_tokens, total_completion_tokens, num_cache_hit = 0, 0, 0
         with ThreadPoolExecutor() as executor:
@@ -194,7 +194,7 @@ class OpenIE:
                         "num_cache_hit": num_cache_hit,
                     }
                 )
-        logger.debug(f"triple_results_list: {triple_results_list}")
+        logger.info(f"triple_results_list: {triple_results_list}")
         ner_results_dict = {res.chunk_id: res for res in ner_results_list}
         triple_results_dict = {res.chunk_id: res for res in triple_results_list}
 

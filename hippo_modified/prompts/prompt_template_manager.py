@@ -75,7 +75,7 @@ class PromptTemplateManager:
                         raise AttributeError(f"Module '{module_name}' does not define a 'prompt_template'.")
 
                     prompt_template = module.prompt_template
-                    logger.debug(f"Loaded template from {module_name}")
+                    logger.info(f"Loaded template from {module_name}")
 
                     if isinstance(prompt_template, Template):
                         self.templates[script_name] = prompt_template
@@ -96,7 +96,7 @@ class PromptTemplateManager:
                             f"Invalid prompt_template format in '{module_name}.py'. Must be a Template or List[Dict]."
                         )
 
-                    logger.debug(f"Successfully loaded template '{script_name}' from '{module_name}.py'.")
+                    logger.info(f"Successfully loaded template '{script_name}' from '{module_name}.py'.")
 
                 except Exception as e:
                     logger.error(f"Failed to load template from '{module_name}.py': {e}")
@@ -121,7 +121,7 @@ class PromptTemplateManager:
             # Render a single string template
             try:
                 result = template.substitute(**kwargs)
-                logger.debug(f"Successfully rendered template '{name}' with variables: {kwargs}.")
+                logger.info(f"Successfully rendered template '{name}' with variables: {kwargs}.")
                 return result
             except KeyError as e:
                 logger.error(f"Missing variable for template '{name}': {e}")
@@ -132,7 +132,7 @@ class PromptTemplateManager:
                 rendered_list = [
                     {"role": item["role"], "content": item["content"].substitute(**kwargs)} for item in template
                 ]
-                logger.debug(f"Successfully rendered chat history template '{name}' with variables: {kwargs}.")
+                logger.info(f"Successfully rendered chat history template '{name}' with variables: {kwargs}.")
                 return rendered_list
             except KeyError as e:
                 logger.error(f"Missing variable in chat history template '{name}': {e}")
@@ -165,7 +165,7 @@ class PromptTemplateManager:
         if name not in self.templates:
             logger.error(f"Template '{name}' not found.")
             raise KeyError(f"Template '{name}' not found.")
-        logger.debug(f"Retrieved template '{name}'.")
+        logger.info(f"Retrieved template '{name}'.")
 
         return self.templates[name]
 
