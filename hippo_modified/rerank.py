@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import difflib
 import json
@@ -102,7 +104,9 @@ class DSPyFilter:
                             parsed_value = value
                     parsed = TypeAdapter(Fact).validate_python(parsed_value).fact
                 except Exception as e:
-                    logger.error(f"Error parsing field {k}: {e}.\n\n\t\tOn attempting to parse the value\n```\n{value}\n```")
+                    logger.error(
+                        f"Error parsing field {k}: {e}.\n\n\t\tOn attempting to parse the value\n```\n{value}\n```"
+                    )
 
         return parsed
 

@@ -1,5 +1,4 @@
 import logging
-import re
 from argparse import ArgumentTypeError
 from dataclasses import dataclass
 from hashlib import md5
@@ -64,8 +63,8 @@ def text_processing(text):
         return [text_processing(t) for t in text]
     if not isinstance(text, str):
         text = str(text)
-    return re.sub("[^A-Za-z0-9 ]", " ", text.lower()).strip()
-    # return NON_ALPHA_NUM_CJK_PATTERN.sub("", text.lower()).strip()
+    # return re.sub("[^A-Za-z0-9 ]", " ", text.lower()).strip()
+    return NON_ALPHA_NUM_CJK_PATTERN.sub("", text.lower()).strip()
 
 
 def reformat_openie_results(corpus_openie_results) -> tuple[dict[str, NerRawOutput], dict[str, TripleRawOutput]]:
