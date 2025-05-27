@@ -2,7 +2,6 @@ from copy import deepcopy
 
 import numpy as np
 import torch
-from gritlm import GritLM
 
 from ..utils.config_utils import BaseConfig
 from ..utils.llm_utils import TextChatMessage
@@ -14,6 +13,11 @@ logger = get_logger(__name__)
 
 class GritLMEmbeddingModel(BaseEmbeddingModel):
     def __init__(self, global_config: BaseConfig | None = None, embedding_model_name: str | None = None) -> None:
+        try:
+            from gritlm import GritLM
+        except ImportError:
+            raise ImportError("GritLM is not installed.") from None
+
         super().__init__(global_config=global_config)
 
         if embedding_model_name is not None:
