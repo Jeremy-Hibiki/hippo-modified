@@ -146,15 +146,17 @@ class DSPyFilter:
         # logger.info('===' * 10 + " start " + '===' * 10, candidate, sep='\r\n')
         while len(candidate) > 0:
             batch_candidate = candidate[:batch_num]
-            candidate = candidate[batch_num:]
+            #candidate = candidate[batch_num:]
             fact_before_filter = {"fact": batch_candidate}
             try:
                 # prediction = self.program(question=query, fact_before_filter=json.dumps(fact_before_filter))
                 response = self.llm_call(query, json.dumps(fact_before_filter))
                 # logger.info(response, sep='\r\n')
                 generated_facts = self.parse_filter(response)
+                candidate = candidate[batch_num:]
             except Exception as e:
                 logger.error("exception", e)
+                batch_num -= 1
                 generated_facts = []
 
             result_indices = []
