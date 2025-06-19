@@ -379,6 +379,7 @@ class HippoRAG:
         num_to_link: int = None,
         passage_node_weight: float = None,
         rerank_batch_num: int = 10,
+        rerank_file_path: str = None,
     ) -> list[QuerySolution] | tuple[list[QuerySolution], dict]:
         """
         Performs retrieval using the HippoRAG 2 framework, which consists of several steps:
@@ -419,6 +420,9 @@ class HippoRAG:
             self.passage_node_weight = passage_node_weight
         else:
             self.passage_node_weight = self.global_config.passage_node_weight
+
+        if rerank_file_path is not None:
+            self.global_config.rerank_dspy_file_path = rerank_file_path
 
         if gold_docs is not None:
             retrieval_recall_evaluator = RetrievalRecall(global_config=self.global_config)
