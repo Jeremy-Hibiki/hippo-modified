@@ -35,41 +35,52 @@ def _extract_ner_from_response(real_response):
 
 
 class OpenIE:
-    def __init__(self, llm_model: CacheOpenAI):
+    def __init__(self, llm_model: CacheOpenAI, chance: int = 7):
         # Init prompt template manager
         self.prompt_template_manager = PromptTemplateManager(
             role_mapping={"system": "system", "user": "user", "assistant": "assistant"}
         )
         self.llm_model = llm_model
+        self.chance = chance
 
     def ner(self, chunk_key: str, passage: str) -> NerRawOutput:
         # PREPROCESSING
         ner_input_message = self.prompt_template_manager.render(name="ner", passage=passage)
         raw_response = ""
         metadata = {}
-        try:
-            # LLM INFERENCE
-            raw_response, metadata, cache_hit = self.llm_model.infer(
-                messages=ner_input_message,
-            )
-            metadata["cache_hit"] = cache_hit
-            if metadata["finish_reason"] == "length":
-                real_response = fix_broken_generated_json(raw_response)
-            else:
-                real_response = raw_response
-            extracted_entities = _extract_ner_from_response(real_response)
-            unique_entities = list(dict.fromkeys(extracted_entities))
+        chance = self.chance
+        done = False
+        temperature = 0
+        while chance > 0 and not done:
+            try:
+                # LLM INFERENCE
+                raw_response, metadata, cache_hit = self.llm_model.infer(
+                    messages=ner_input_message, temperature=temperature
+                )
+                metadata["cache_hit"] = cache_hit
+                if metadata["finish_reason"] == "length":
+                    real_response = fix_broken_generated_json(raw_response)
+                else:
+                    real_response = raw_response
+                extracted_entities = _extract_ner_from_response(real_response)
+                unique_entities = list(dict.fromkeys(extracted_entities))
+                done = True
 
-        except Exception as e:
-            # For any other unexpected exceptions, log them and return with the error message
-            logger.warning(e)
-            metadata.update({"error": str(e)})
-            return NerRawOutput(
-                chunk_id=chunk_key,
-                response=raw_response,  # Store the error message in metadata
-                unique_entities=[],
-                metadata=metadata,  # Store the error message in metadata
-            )
+            except Exception as e:
+                chance -= 1
+                temperature += 0.1
+                unique_entities = []
+                if chance == 0:
+                    logger.warning(e)
+                # # For any other unexpected exceptions, log them and return with the error message
+                # logger.warning(e)
+                # metadata.update({"error": str(e)})
+                # return NerRawOutput(
+                #     chunk_id=chunk_key,
+                #     response=raw_response,  # Store the error message in metadata
+                #     unique_entities=[],
+                #     metadata=metadata,  # Store the error message in metadata
+                # )
 
         return NerRawOutput(
             chunk_id=chunk_key, response=raw_response, unique_entities=unique_entities, metadata=metadata
@@ -88,23 +99,34 @@ class OpenIE:
 
         raw_response = ""
         metadata = {}
-        try:
-            # LLM INFERENCE
-            raw_response, metadata, cache_hit = self.llm_model.infer(
-                messages=messages,
-            )
-            metadata["cache_hit"] = cache_hit
-            if metadata["finish_reason"] == "length":
-                real_response = fix_broken_generated_json(raw_response)
-            else:
-                real_response = raw_response
-            extracted_triples = _extract_triples_from_response(real_response)
-            triplets = filter_invalid_triples(triples=extracted_triples)
-
-        except Exception as e:
-            logger.warning(f"Exception for chunk {chunk_key}: {e}")
-            metadata.update({"error": str(e)})
-            return TripleRawOutput(chunk_id=chunk_key, response=raw_response, metadata=metadata, triples=[])
+        chance = self.chance
+        done = False
+        temperature = 0
+        while chance > 0 and not done:
+            try:
+                # LLM INFERENCE
+                raw_response, metadata, cache_hit = self.llm_model.infer(messages=messages, temperature=temperature)
+                metadata["cache_hit"] = cache_hit
+                if metadata["finish_reason"] == "length":
+                    real_response = fix_broken_generated_json(raw_response)
+                else:
+                    real_response = raw_response
+                extracted_triples = _extract_triples_from_response(real_response)
+                triplets = filter_invalid_triples(triples=extracted_triples)
+                if len(triplets) > 0:
+                    done = True
+                else:
+                    chance -= 1
+                    temperature += 0.1
+            except Exception as e:
+                chance -= 1
+                temperature += 0.1
+                triplets = []
+                if chance == 0:
+                    logger.warning(f"Exception for chunk {chunk_key}: {e}")
+                # logger.warning(f"Exception for chunk {chunk_key}: {e}")
+                # metadata.update({"error": str(e)})
+                # return TripleRawOutput(chunk_id=chunk_key, response=raw_response, metadata=metadata, triples=[])
 
         # Success
         return TripleRawOutput(chunk_id=chunk_key, response=raw_response, metadata=metadata, triples=triplets)

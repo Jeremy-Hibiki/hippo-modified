@@ -17,7 +17,7 @@ one_shot_ner_output = """{"named_entities":
 
 prompt_template = [
     {"role": "system", "content": ner_system},
-    {"role": "user", "content": one_shot_ner_paragraph},
-    {"role": "assistant", "content": one_shot_ner_output},
+    # {"role": "user", "content": one_shot_ner_paragraph},
+    # {"role": "assistant", "content": one_shot_ner_output},
     {"role": "user", "content": "${passage}"},
 ]
