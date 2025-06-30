@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 dependencies = [
     "openai>=1.58.1",
     "networkx==3.4.2",
-    "python-igraph>=0.11.8",
+    "python-igraph==0.11.8",
     "tiktoken>=0.7.0",
     "pandas",
     "pydantic>=2.10.4",
@@ -41,7 +41,6 @@ cu126 = [
 ]
 dev = ["ruff==0.11.0"]
 gritlm = ["gritlm==1.0.2"]
-vllm = ["vllm>=0.8", "einops"]
 
 [build-system]
 requires = ["hatchling"]
@@ -163,3 +162,6 @@ ignore = [
 
 [tool.ruff.lint.isort]
 extra-standard-library = ["typing_extensions"]
+
+[dependency-groups]
+dev = ["ruff==0.11.0"]

@@ -90,9 +90,6 @@ class BaseConfig:
         default="openie_openai_gpt",
         metadata={"help": "Class name indicating which information extraction model to use."},
     )
-    openie_mode: Literal["offline", "online"] = field(
-        default="online", metadata={"help": "Mode of the OpenIE model to use."}
-    )
     skip_graph: bool = field(
         default=False,
         metadata={
