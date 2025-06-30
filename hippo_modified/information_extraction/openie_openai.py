@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
+from pydantic import BaseModel, Field
 from tqdm import tqdm
 
 from ..llm.openai_gpt import CacheOpenAI
@@ -22,6 +23,16 @@ class ChunkInfo(TypedDict):
     full_doc_ids: list[str]
 
 
+class Triple(BaseModel):
+    triple: list[str, str, str] = Field(
+        description="A list of named entity triple which contains two named entities and their relation"
+    )
+
+
+class TriplesList(BaseModel):
+    triples: list[Triple] = Field(description="A list of named entity triples")
+
+
 @dataclass
 class LLMInput:
     chunk_id: str
@@ -35,13 +46,14 @@ def _extract_ner_from_response(real_response):
 
 
 class OpenIE:
-    def __init__(self, llm_model: CacheOpenAI, chance: int = 7):
+    def __init__(self, llm_model: CacheOpenAI, chance: int = 7, merge: int = 3):
         # Init prompt template manager
         self.prompt_template_manager = PromptTemplateManager(
             role_mapping={"system": "system", "user": "user", "assistant": "assistant"}
         )
         self.llm_model = llm_model
         self.chance = chance
+        self.merge = merge
 
     def ner(self, chunk_key: str, passage: str) -> NerRawOutput:
         # PREPROCESSING
@@ -49,9 +61,10 @@ class OpenIE:
         raw_response = ""
         metadata = {}
         chance = self.chance
-        done = False
+        merge = self.merge
+        all_entites = []
         temperature = 0
-        while chance > 0 and not done:
+        while chance > 0 and merge != 0:
             try:
                 # LLM INFERENCE
                 raw_response, metadata, cache_hit = self.llm_model.infer(
@@ -64,13 +77,16 @@ class OpenIE:
                     real_response = raw_response
                 extracted_entities = _extract_ner_from_response(real_response)
                 unique_entities = list(dict.fromkeys(extracted_entities))
-                done = True
+                for entity in unique_entities:
+                    if entity not in all_entites:
+                        all_entites.append(entity)
+                merge -= 1
 
             except Exception as e:
                 chance -= 1
                 temperature += 0.1
                 unique_entities = []
-                if chance == 0:
+                if chance == 0 and merge == self.merge:
                     logger.warning(e)
                 # # For any other unexpected exceptions, log them and return with the error message
                 # logger.warning(e)
@@ -83,7 +99,7 @@ class OpenIE:
                 # )
 
         return NerRawOutput(
-            chunk_id=chunk_key, response=raw_response, unique_entities=unique_entities, metadata=metadata
+            chunk_id=chunk_key, response=raw_response, unique_entities=all_entites, metadata=metadata
         )
 
     def triple_extraction(self, chunk_key: str, passage: str, named_entities: list[str]) -> TripleRawOutput:
@@ -100,21 +116,29 @@ class OpenIE:
         raw_response = ""
         metadata = {}
         chance = self.chance
-        done = False
+        merge = self.merge
         temperature = 0
-        while chance > 0 and not done:
+        all_triples = []
+        while chance > 0 and merge != 0:
             try:
                 # LLM INFERENCE
-                raw_response, metadata, cache_hit = self.llm_model.infer(messages=messages, temperature=temperature)
+                raw_response, metadata, cache_hit = self.llm_model.infer(
+                    messages=messages,
+                    temperature=temperature,
+                    # response_format={"type": "json_schema", "json_schema": TriplesList.model_json_schema()},
+                )
                 metadata["cache_hit"] = cache_hit
                 if metadata["finish_reason"] == "length":
                     real_response = fix_broken_generated_json(raw_response)
                 else:
                     real_response = raw_response
                 extracted_triples = _extract_triples_from_response(real_response)
-                triplets = filter_invalid_triples(triples=extracted_triples)
-                if len(triplets) > 0:
-                    done = True
+                triples = filter_invalid_triples(triples=extracted_triples)
+                if len(triples) > 0:
+                    for triple in triples:
+                        if triple not in all_triples:
+                            all_triples.append(triple)
+                    merge -= 1
                 else:
                     chance -= 1
                     temperature += 0.1
@@ -122,14 +146,15 @@ class OpenIE:
                 chance -= 1
                 temperature += 0.1
                 triplets = []
-                if chance == 0:
+                if chance == 0 and merge == self.merge:
                     logger.warning(f"Exception for chunk {chunk_key}: {e}")
+                    logger.warning(raw_response)
                 # logger.warning(f"Exception for chunk {chunk_key}: {e}")
                 # metadata.update({"error": str(e)})
                 # return TripleRawOutput(chunk_id=chunk_key, response=raw_response, metadata=metadata, triples=[])
 
         # Success
-        return TripleRawOutput(chunk_id=chunk_key, response=raw_response, metadata=metadata, triples=triplets)
+        return TripleRawOutput(chunk_id=chunk_key, response=raw_response, metadata=metadata, triples=all_triples)
 
     def openie(self, chunk_key: str, passage: str) -> dict[str, Any]:
         ner_output = self.ner(chunk_key=chunk_key, passage=passage)

@@ -1,6 +1,6 @@
 [project]
 name = "hippo-modified"
-version = "2.0.6"
+version = "2.0.7"
 description = "Add your description here"
 readme = "README.md"
 authors = [
