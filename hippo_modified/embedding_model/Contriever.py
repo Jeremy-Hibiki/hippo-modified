@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
+import numpy.typing as npt
 import torch
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
@@ -85,7 +86,7 @@ class ContrieverModel(BaseEmbeddingModel):
 
         return embeddings
 
-    def batch_encode(self, texts: list[str], **kwargs) -> None:
+    def batch_encode(self, texts: list[str], **kwargs) -> npt.NDArray:
         if isinstance(texts, str):
             texts = [texts]
 

@@ -90,9 +90,6 @@ class BaseConfig:
         default="openie_openai_gpt",
         metadata={"help": "Class name indicating which information extraction model to use."},
     )
-    openie_mode: Literal["offline", "online"] = field(
-        default="online", metadata={"help": "Mode of the OpenIE model to use."}
-    )
     skip_graph: bool = field(
         default=False,
         metadata={
@@ -111,6 +108,18 @@ class BaseConfig:
     embedding_max_seq_len: int = field(default=2048, metadata={"help": "Max sequence length for the embedding model."})
     embedding_model_dtype: Literal["float16", "float32", "bfloat16", "auto"] = field(
         default="auto", metadata={"help": "Data type for local embedding model."}
+    )
+
+    # Embedding Store specific attributes
+    embedding_store_type: Literal["dataframe", "milvus"] = field(
+        default="dataframe", metadata={"help": "Type of embedding store to use."}
+    )
+    milvus_uri: str = field(default="http://localhost:19530", metadata={"help": "Milvus server URI."})
+    milvus_token: str = field(default="", metadata={"help": "Milvus authentication token (optional)."})
+    milvus_db_name: str = field(default="default", metadata={"help": "Milvus database name."})
+    milvus_collection_prefix: str = field(default="hippo", metadata={"help": "Prefix for Milvus collection names."})
+    milvus_enable_hybrid_search: bool = field(
+        default=True, metadata={"help": "Enable hybrid search (vector + full-text)."}
     )
 
     # Graph construction specific attributes
