@@ -6,9 +6,9 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 
-from hippo_modified.embedding_model import BaseEmbeddingModel
-from hippo_modified.embedding_store.base import BaseEmbeddingStore
-from hippo_modified.utils.misc_utils import compute_mdhash_id
+from ..embedding_model import BaseEmbeddingModel
+from ..utils.misc_utils import compute_mdhash_id
+from .base import BaseEmbeddingStore
 
 logger = logging.getLogger(__name__)
 

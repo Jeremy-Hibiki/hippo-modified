@@ -6,9 +6,9 @@ from collections.abc import Sequence
 import numpy as np
 from pymilvus import FunctionType
 
-from hippo_modified.embedding_model import BaseEmbeddingModel
-from hippo_modified.embedding_store.base import BaseEmbeddingStore
-from hippo_modified.utils.misc_utils import compute_mdhash_id, load_hit_stopwords
+from ..embedding_model import BaseEmbeddingModel
+from ..utils.misc_utils import compute_mdhash_id, load_hit_stopwords
+from .base import BaseEmbeddingStore
 
 logger = logging.getLogger(__name__)
 
