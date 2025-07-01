@@ -1,9 +1,11 @@
+import ast
 import json
 import logging
 import os
 import re
 import time
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import asdict
 from typing import cast
 
@@ -12,16 +14,13 @@ import numpy as np
 from tqdm import tqdm
 
 from .embedding_model import _get_embedding_model_class
-from .embedding_store import EmbeddingStore
-from .evaluation.qa_eval import QAExactMatch, QAF1Score
-from .evaluation.retrieval_eval import RetrievalRecall
+from .embedding_store import create_embedding_store
 from .information_extraction import OpenIE
 from .llm import _get_llm_class
 from .prompts.linking import get_query_instruction
 from .prompts.prompt_template_manager import PromptTemplateManager
 from .rerank import DSPyFilter
 from .utils.config_utils import BaseConfig
-from .utils.embed_utils import retrieve_knn
 from .utils.misc_utils import (
     NerRawOutput,
     QuerySolution,
@@ -134,11 +133,26 @@ class HippoRAG:
             embedding_model_name=self.global_config.embedding_model_name
         )(global_config=self.global_config, embedding_model_name=self.global_config.embedding_model_name)
 
-        self.fact_embedding_store = EmbeddingStore(
-            self.embedding_model,
-            os.path.join(self.working_dir, "fact_embeddings"),
-            self.global_config.embedding_batch_size,
-            "fact",
+        self.chunk_embedding_store = create_embedding_store(
+            embedding_model=self.embedding_model,
+            db_name=os.path.join(self.working_dir, "chunk_embeddings"),
+            batch_size=self.global_config.embedding_batch_size,
+            namespace="chunk",
+            config=self.global_config,
+        )
+        self.entity_embedding_store = create_embedding_store(
+            embedding_model=self.embedding_model,
+            db_name=os.path.join(self.working_dir, "entity_embeddings"),
+            batch_size=self.global_config.embedding_batch_size,
+            namespace="entity",
+            config=self.global_config,
+        )
+        self.fact_embedding_store = create_embedding_store(
+            embedding_model=self.embedding_model,
+            db_name=os.path.join(self.working_dir, "fact_embeddings"),
+            batch_size=self.global_config.embedding_batch_size,
+            namespace="fact",
+            config=self.global_config,
         )
 
         self.prompt_template_manager = PromptTemplateManager(
@@ -159,7 +173,7 @@ class HippoRAG:
 
         self.ent_node_to_chunk_ids = None
 
-    def initialize_graph(self):
+    def initialize_graph(self) -> ig.Graph:
         """
         Initializes a graph using a Pickle file if available or creates a new graph.
 
@@ -179,7 +193,7 @@ class HippoRAG:
         preloaded_graph = None
 
         if not self.global_config.force_index_from_scratch and os.path.exists(self._graph_pickle_filename):
-            preloaded_graph = ig.Graph.Read_Pickle(self._graph_pickle_filename)
+            preloaded_graph = cast(ig.Graph, ig.Graph.Read_Pickle(self._graph_pickle_filename))
 
         if preloaded_graph is None:
             return ig.Graph(directed=self.global_config.is_directed_graph)
@@ -206,7 +220,7 @@ class HippoRAG:
         self.chunk_embedding_store.insert_strings(docs)
         chunk_to_rows = self.chunk_embedding_store.get_all_id_to_rows()
 
-        all_openie_info, chunk_keys_to_process = self.load_existing_openie(chunk_to_rows.keys())
+        all_openie_info, chunk_keys_to_process = self.load_existing_openie(list(chunk_to_rows.keys()))
         new_openie_rows = {k: chunk_to_rows[k] for k in chunk_keys_to_process}
 
         if len(chunk_keys_to_process) > 0:
@@ -248,100 +262,15 @@ class HippoRAG:
             self.augment_graph()
             self.save_igraph()
 
-    def delete(self, docs_to_delete: list[str]):
-        """
-        Deletes the given documents from all data structures within the HippoRAG class.
-        Note that triples and entities which are indexed from chunks that are not being removed will not be removed.
-
-        Parameters:
-            docs_to_delete : List[str]
-                A list of documents to be deleted.
-        """
-
-        # Making sure that all the necessary structures have been built.
-        if not self.ready_to_retrieve:
-            self.prepare_retrieval_objects()
-
-        current_docs = set(self.chunk_embedding_store.get_all_texts())
-        docs_to_delete = [doc for doc in docs_to_delete if doc in current_docs]
-
-        # Get ids for chunks to delete
-        chunk_ids_to_delete = set([self.chunk_embedding_store.text_to_hash_id[chunk] for chunk in docs_to_delete])
-
-        # Find triples in chunks to delete
-        all_openie_info, chunk_keys_to_process = self.load_existing_openie([])
-        triples_to_delete = []
-
-        all_openie_info_with_deletes = []
-
-        for openie_doc in all_openie_info:
-            if openie_doc["idx"] in chunk_ids_to_delete:
-                triples_to_delete.append(openie_doc["extracted_triples"])
-            else:
-                all_openie_info_with_deletes.append(openie_doc)
-
-        triples_to_delete = flatten_facts(triples_to_delete)
-
-        # Filter out triples that appear in unaltered chunks
-        true_triples_to_delete = []
-
-        for triple in triples_to_delete:
-            proc_triple = tuple(text_processing(list(triple)))
-
-            doc_ids = self.proc_triples_to_docs[str(proc_triple)]
-
-            non_deleted_docs = doc_ids.difference(chunk_ids_to_delete)
-
-            if len(non_deleted_docs) == 0:
-                true_triples_to_delete.append(triple)
-
-        processed_true_triples_to_delete = [[text_processing(list(triple)) for triple in true_triples_to_delete]]
-        entities_to_delete, _ = extract_entity_nodes(processed_true_triples_to_delete)
-        processed_true_triples_to_delete = flatten_facts(processed_true_triples_to_delete)
-
-        triple_ids_to_delete = set(
-            [self.fact_embedding_store.text_to_hash_id[str(triple)] for triple in processed_true_triples_to_delete]
-        )
-
-        # Filter out entities that appear in unaltered chunks
-        ent_ids_to_delete = [self.entity_embedding_store.text_to_hash_id[ent] for ent in entities_to_delete]
-
-        filtered_ent_ids_to_delete = []
-
-        for ent_node in ent_ids_to_delete:
-            doc_ids = self.ent_node_to_chunk_ids[ent_node]
-
-            non_deleted_docs = doc_ids.difference(chunk_ids_to_delete)
-
-            if len(non_deleted_docs) == 0:
-                filtered_ent_ids_to_delete.append(ent_node)
-
-        logger.info(f"Deleting {len(chunk_ids_to_delete)} Chunks")
-        logger.info(f"Deleting {len(triple_ids_to_delete)} Triples")
-        logger.info(f"Deleting {len(filtered_ent_ids_to_delete)} Entities")
-
-        self.save_openie_results(all_openie_info_with_deletes)
-
-        self.entity_embedding_store.delete(filtered_ent_ids_to_delete)
-        self.fact_embedding_store.delete(triple_ids_to_delete)
-        self.chunk_embedding_store.delete(chunk_ids_to_delete)
-
-        # Delete Nodes from Graph
-        self.graph.delete_vertices(list(filtered_ent_ids_to_delete) + list(chunk_ids_to_delete))
-        self.save_igraph()
-
-        self.ready_to_retrieve = False
-
     def retrieve(
         self,
         queries: list[str],
         num_to_retrieve: int = None,
-        gold_docs: list[list[str]] = None,
         num_to_link: int = None,
         passage_node_weight: float = None,
         rerank_batch_num: int = 10,
         rerank_file_path: str = None,
-    ) -> list[QuerySolution] | tuple[list[QuerySolution], dict]:
+    ) -> list[QuerySolution]:
         """
         Performs retrieval using the HippoRAG 2 framework, which consists of several steps:
         - Fact Retrieval
@@ -355,15 +284,11 @@ class HippoRAG:
             num_to_retrieve: int, optional
                 The maximum number of documents to retrieve for each query. If not specified, defaults to
                 the `retrieval_top_k` value defined in the global configuration.
-            gold_docs: List[List[str]], optional
-                A list of lists containing gold-standard documents corresponding to each query. Required
-                if retrieval performance evaluation is enabled (`do_eval_retrieval` in global configuration).
 
         Returns:
-            List[QuerySolution] or (List[QuerySolution], Dict)
-                If retrieval performance evaluation is not enabled, returns a list of QuerySolution objects, each containing
-                the retrieved documents and their scores for the corresponding query. If evaluation is enabled, also returns
-                a dictionary containing the evaluation metrics computed over the retrieved results.
+            List[QuerySolution]
+                A list of QuerySolution objects, each containing
+                the retrieved documents and their scores for the corresponding query.
 
         Notes
         -----
@@ -385,13 +310,8 @@ class HippoRAG:
         if rerank_file_path is not None:
             self.global_config.rerank_dspy_file_path = rerank_file_path
 
-        if gold_docs is not None:
-            retrieval_recall_evaluator = RetrievalRecall(global_config=self.global_config)
-
         if not self.ready_to_retrieve:
             self.prepare_retrieval_objects()
-
-        self.get_query_embeddings(queries)
 
         retrieval_results = []
 
@@ -438,341 +358,7 @@ class HippoRAG:
         logger.info(f"Total PPR Time {self.ppr_time:.2f}s")
         logger.info(f"Total Misc Time {self.all_retrieval_time - (self.rerank_time + self.ppr_time):.2f}s")
 
-        # Evaluate retrieval
-        if gold_docs is not None:
-            k_list = [1, 2, 5, 10, 20, 30, 50, 100, 150, 200]
-            overall_retrieval_result, example_retrieval_results = retrieval_recall_evaluator.calculate_metric_scores(
-                gold_docs=gold_docs,
-                retrieved_docs=[retrieval_result.docs for retrieval_result in retrieval_results],
-                k_list=k_list,
-            )
-            logger.info(f"Evaluation results for retrieval: {overall_retrieval_result}")
-
-            return retrieval_results, overall_retrieval_result
-        else:
-            return retrieval_results
-
-    def rag_qa(
-        self,
-        queries: list[str | QuerySolution],
-        gold_docs: list[list[str]] = None,
-        gold_answers: list[list[str]] = None,
-        qa_top_k: int = None,
-        temperature: float = 0.0,
-    ) -> (
-        tuple[list[QuerySolution], list[str], list[dict]]
-        | tuple[list[QuerySolution], list[str], list[dict], dict, dict]
-    ):
-        """
-        Performs retrieval-augmented generation enhanced QA using the HippoRAG 2 framework.
-
-        This method can handle both string-based queries and pre-processed QuerySolution objects. Depending
-        on its inputs, it returns answers only or additionally evaluate retrieval and answer quality using
-        recall @ k, exact match and F1 score metrics.
-
-        Parameters:
-            queries (List[Union[str, QuerySolution]]): A list of queries, which can be either strings or
-                QuerySolution instances. If they are strings, retrieval will be performed.
-            gold_docs (Optional[List[List[str]]]): A list of lists containing gold-standard documents for
-                each query. This is used if document-level evaluation is to be performed. Default is None.
-            gold_answers (Optional[List[List[str]]]): A list of lists containing gold-standard answers for
-                each query. Required if evaluation of question answering (QA) answers is enabled. Default
-                is None.
-
-        Returns:
-            Union[
-                Tuple[List[QuerySolution], List[str], List[Dict]],
-                Tuple[List[QuerySolution], List[str], List[Dict], Dict, Dict]
-            ]: A tuple that always includes:
-                - List of QuerySolution objects containing answers and metadata for each query.
-                - List of response messages for the provided queries.
-                - List of metadata dictionaries for each query.
-                If evaluation is enabled, the tuple also includes:
-                - A dictionary with overall results from the retrieval phase (if applicable).
-                - A dictionary with overall QA evaluation metrics (exact match and F1 scores).
-
-        """
-        if gold_answers is not None:
-            qa_em_evaluator = QAExactMatch(global_config=self.global_config)
-            qa_f1_evaluator = QAF1Score(global_config=self.global_config)
-
-        if qa_top_k is not None:
-            self.global_config.qa_top_k = qa_top_k
-        # Retrieving (if necessary)
-        overall_retrieval_result = None
-
-        if not isinstance(queries[0], QuerySolution):
-            if gold_docs is not None:
-                queries, overall_retrieval_result = self.retrieve(
-                    queries=cast(list[str], queries),
-                    gold_docs=gold_docs,
-                )
-            else:
-                queries = self.retrieve(queries=cast(list[str], queries))
-
-        # Performing QA
-        queries_solutions, all_response_message, all_metadata = self.qa(cast(list[QuerySolution], queries))
-
-        # Evaluating QA
-        if gold_answers is not None:
-            overall_qa_em_result, example_qa_em_results = qa_em_evaluator.calculate_metric_scores(
-                gold_answers=gold_answers,
-                predicted_answers=[qa_result.answer for qa_result in queries_solutions],
-                aggregation_fn=np.max,
-            )
-            overall_qa_f1_result, example_qa_f1_results = qa_f1_evaluator.calculate_metric_scores(
-                gold_answers=gold_answers,
-                predicted_answers=[qa_result.answer for qa_result in queries_solutions],
-                aggregation_fn=np.max,
-            )
-
-            # round off to 4 decimal places for QA results
-            overall_qa_em_result.update(overall_qa_f1_result)
-            overall_qa_results = overall_qa_em_result
-            overall_qa_results = {k: round(float(v), 4) for k, v in overall_qa_results.items()}
-            logger.info(f"Evaluation results for QA: {overall_qa_results}")
-
-            # Save retrieval and QA results
-            for idx, q in enumerate(queries_solutions):
-                q.gold_answers = list(gold_answers[idx])
-                if gold_docs is not None:
-                    q.gold_docs = gold_docs[idx]
-
-            return queries_solutions, all_response_message, all_metadata, overall_retrieval_result, overall_qa_results
-        else:
-            return queries_solutions, all_response_message, all_metadata
-
-    def retrieve_dpr(
-        self, queries: list[str], num_to_retrieve: int = None, gold_docs: list[list[str]] = None
-    ) -> list[QuerySolution] | tuple[list[QuerySolution], dict]:
-        """
-        Performs retrieval using a DPR framework, which consists of several steps:
-        - Dense passage scoring
-
-        Parameters:
-            queries: List[str]
-                A list of query strings for which documents are to be retrieved.
-            num_to_retrieve: int, optional
-                The maximum number of documents to retrieve for each query. If not specified, defaults to
-                the `retrieval_top_k` value defined in the global configuration.
-            gold_docs: List[List[str]], optional
-                A list of lists containing gold-standard documents corresponding to each query. Required
-                if retrieval performance evaluation is enabled (`do_eval_retrieval` in global configuration).
-
-        Returns:
-            List[QuerySolution] or (List[QuerySolution], Dict)
-                If retrieval performance evaluation is not enabled, returns a list of QuerySolution objects, each containing
-                the retrieved documents and their scores for the corresponding query. If evaluation is enabled, also returns
-                a dictionary containing the evaluation metrics computed over the retrieved results.
-
-        Notes
-        -----
-        - Long queries with no relevant facts after reranking will default to results from dense passage retrieval.
-        """
-        retrieve_start_time = time.time()  # Record start time
-
-        if num_to_retrieve is None:
-            num_to_retrieve = self.global_config.retrieval_top_k
-
-        if gold_docs is not None:
-            retrieval_recall_evaluator = RetrievalRecall(global_config=self.global_config)
-
-        if not self.ready_to_retrieve:
-            self.prepare_retrieval_objects()
-
-        self.get_query_embeddings(queries)
-
-        retrieval_results = []
-
-        for q_idx, query in tqdm(enumerate(queries), desc="Retrieving", total=len(queries)):
-            logger.info("No facts found after reranking, return DPR results")
-            sorted_doc_ids, sorted_doc_scores = self.dense_passage_retrieval(query)
-
-            top_k_docs = [
-                self.chunk_embedding_store.get_row(self.passage_node_keys[idx])["content"]
-                for idx in sorted_doc_ids[:num_to_retrieve]
-            ]
-
-            retrieval_results.append(
-                QuerySolution(question=query, docs=top_k_docs, doc_scores=sorted_doc_scores[:num_to_retrieve])
-            )
-
-        retrieve_end_time = time.time()  # Record end time
-
-        self.all_retrieval_time += retrieve_end_time - retrieve_start_time
-
-        logger.info(f"Total Retrieval Time {self.all_retrieval_time:.2f}s")
-
-        # Evaluate retrieval
-        if gold_docs is not None:
-            k_list = [1, 2, 5, 10, 20, 30, 50, 100, 150, 200]
-            overall_retrieval_result, example_retrieval_results = retrieval_recall_evaluator.calculate_metric_scores(
-                gold_docs=gold_docs,
-                retrieved_docs=[retrieval_result.docs for retrieval_result in retrieval_results],
-                k_list=k_list,
-            )
-            logger.info(f"Evaluation results for retrieval: {overall_retrieval_result}")
-
-            return retrieval_results, overall_retrieval_result
-        else:
-            return retrieval_results
-
-    def rag_qa_dpr(
-        self,
-        queries: list[str | QuerySolution],
-        gold_docs: list[list[str]] = None,
-        gold_answers: list[list[str]] = None,
-        temperature: float = 0.0,
-    ) -> (
-        tuple[list[QuerySolution], list[str], list[dict]]
-        | tuple[list[QuerySolution], list[str], list[dict], dict, dict]
-    ):
-        """
-        Performs retrieval-augmented generation enhanced QA using a standard DPR framework.
-
-        This method can handle both string-based queries and pre-processed QuerySolution objects. Depending
-        on its inputs, it returns answers only or additionally evaluate retrieval and answer quality using
-        recall @ k, exact match and F1 score metrics.
-
-        Parameters:
-            queries (List[Union[str, QuerySolution]]): A list of queries, which can be either strings or
-                QuerySolution instances. If they are strings, retrieval will be performed.
-            gold_docs (Optional[List[List[str]]]): A list of lists containing gold-standard documents for
-                each query. This is used if document-level evaluation is to be performed. Default is None.
-            gold_answers (Optional[List[List[str]]]): A list of lists containing gold-standard answers for
-                each query. Required if evaluation of question answering (QA) answers is enabled. Default
-                is None.
-
-        Returns:
-            Union[
-                Tuple[List[QuerySolution], List[str], List[Dict]],
-                Tuple[List[QuerySolution], List[str], List[Dict], Dict, Dict]
-            ]: A tuple that always includes:
-                - List of QuerySolution objects containing answers and metadata for each query.
-                - List of response messages for the provided queries.
-                - List of metadata dictionaries for each query.
-                If evaluation is enabled, the tuple also includes:
-                - A dictionary with overall results from the retrieval phase (if applicable).
-                - A dictionary with overall QA evaluation metrics (exact match and F1 scores).
-
-        """
-        if gold_answers is not None:
-            qa_em_evaluator = QAExactMatch(global_config=self.global_config)
-            qa_f1_evaluator = QAF1Score(global_config=self.global_config)
-
-        # Retrieving (if necessary)
-        overall_retrieval_result = None
-
-        if not isinstance(queries[0], QuerySolution):
-            if gold_docs is not None:
-                queries, overall_retrieval_result = self.retrieve_dpr(
-                    queries=cast(list[str], queries), gold_docs=gold_docs
-                )
-            else:
-                queries = self.retrieve_dpr(queries=cast(list[str], queries))
-
-        # Performing QA
-        queries_solutions, all_response_message, all_metadata = self.qa(
-            cast(list[QuerySolution], queries), temperature=temperature
-        )
-
-        # Evaluating QA
-        if gold_answers is not None:
-            overall_qa_em_result, example_qa_em_results = qa_em_evaluator.calculate_metric_scores(
-                gold_answers=gold_answers,
-                predicted_answers=[qa_result.answer for qa_result in queries_solutions],
-                aggregation_fn=np.max,
-            )
-            overall_qa_f1_result, example_qa_f1_results = qa_f1_evaluator.calculate_metric_scores(
-                gold_answers=gold_answers,
-                predicted_answers=[qa_result.answer for qa_result in queries_solutions],
-                aggregation_fn=np.max,
-            )
-
-            # round off to 4 decimal places for QA results
-            overall_qa_em_result.update(overall_qa_f1_result)
-            overall_qa_results = overall_qa_em_result
-            overall_qa_results = {k: round(float(v), 4) for k, v in overall_qa_results.items()}
-            logger.info(f"Evaluation results for QA: {overall_qa_results}")
-
-            # Save retrieval and QA results
-            for idx, q in enumerate(queries_solutions):
-                q.gold_answers = list(gold_answers[idx])
-                if gold_docs is not None:
-                    q.gold_docs = gold_docs[idx]
-
-            return queries_solutions, all_response_message, all_metadata, overall_retrieval_result, overall_qa_results
-        else:
-            return queries_solutions, all_response_message, all_metadata
-
-    def qa(
-        self,
-        queries: list[QuerySolution],
-        temperature: float = 0.0,
-    ) -> tuple[list[QuerySolution], list[str], list[dict]]:
-        """
-        Executes question-answering (QA) inference using a provided set of query solutions and a language model.
-
-        Parameters:
-            queries: List[QuerySolution]
-                A list of QuerySolution objects that contain the user queries, retrieved documents, and other related information.
-
-        Returns:
-            Tuple[List[QuerySolution], List[str], List[Dict]]
-                A tuple containing:
-                - A list of updated QuerySolution objects with the predicted answers embedded in them.
-                - A list of raw response messages from the language model.
-                - A list of metadata dictionaries associated with the results.
-        """
-        # Running inference for QA
-        all_qa_messages = []
-
-        for query_solution in tqdm(queries, desc="Collecting QA prompts"):
-            # obtain the retrieved docs
-            retrieved_passages = query_solution.docs[: self.global_config.qa_top_k]
-
-            prompt_user = ""
-            for passage in retrieved_passages:
-                prompt_user += f"资料: {passage}\n\n"
-            prompt_user += "问题: " + query_solution.question + "\n思考: "
-
-            if self.prompt_template_manager.is_template_name_valid(name=f"rag_qa_{self.global_config.dataset}"):
-                # find the corresponding prompt for this dataset
-                prompt_dataset_name = self.global_config.dataset
-            else:
-                # the dataset does not have a customized prompt template yet
-                logger.info(
-                    f"rag_qa_{self.global_config.dataset} does not have a customized prompt template. Using MUSIQUE's prompt template instead."
-                )
-                prompt_dataset_name = "musique"
-            all_qa_messages.append(
-                self.prompt_template_manager.render(name=f"rag_qa_{prompt_dataset_name}", prompt_user=prompt_user)
-            )
-
-        all_qa_results = [
-            self.llm_model.infer(qa_messages, temperature=temperature)
-            for qa_messages in tqdm(all_qa_messages, desc="QA Reading")
-        ]
-
-        all_response_message, all_metadata, all_cache_hit = zip(*all_qa_results, strict=False)
-        all_response_message, all_metadata = list(all_response_message), list(all_metadata)
-
-        # Process responses and extract predicted answers.
-        queries_solutions = []
-        for query_solution_idx, query_solution in tqdm(
-            enumerate(queries), desc="Extraction Answers from LLM Response"
-        ):
-            response_content = all_response_message[query_solution_idx]
-            try:
-                pred_ans = response_content.split("答案:")[1].strip()
-            except Exception as e:
-                logger.warning(f"Error in parsing the answer from the raw LLM QA inference response: {e!s}!")
-                pred_ans = response_content
-
-            query_solution.answer = pred_ans
-            queries_solutions.append(query_solution)
-
-        return queries_solutions, all_response_message, all_metadata
+        return retrieval_results
 
     def add_fact_edges(self, chunk_ids: list[str], chunk_triples: list[tuple]):
         """
@@ -794,10 +380,7 @@ class HippoRAG:
             Does not explicitly raise exceptions within the provided function logic.
         """
 
-        if "name" in self.graph.vs:
-            current_graph_nodes = set(self.graph.vs["name"])
-        else:
-            current_graph_nodes = set()
+        current_graph_nodes = set(self.graph.vs["name"]) if "name" in self.graph.vs else set()
 
         logger.info("Adding OpenIE triples to graph.")
 
@@ -852,10 +435,7 @@ class HippoRAG:
                 The number of new passage nodes added to the graph.
         """
 
-        if "name" in self.graph.vs.attribute_names():
-            current_graph_nodes = set(self.graph.vs["name"])
-        else:
-            current_graph_nodes = set()
+        current_graph_nodes = set(self.graph.vs["name"]) if "name" in self.graph.vs.attribute_names() else set()
 
         num_new_chunks = 0
 
@@ -892,19 +472,11 @@ class HippoRAG:
         logger.info("Expanding graph with synonymy edges")
 
         self.entity_id_to_row = self.entity_embedding_store.get_all_id_to_rows()
-        entity_node_keys = list(self.entity_id_to_row.keys())
 
-        logger.info(f"Performing KNN retrieval for each phrase nodes ({len(entity_node_keys)}).")
+        logger.info(f"Performing KNN retrieval for each phrase nodes ({len(self.entity_id_to_row)}).")
 
-        entity_embs = self.entity_embedding_store.get_embeddings(entity_node_keys)
-
-        # Here we build synonymy edges only between newly inserted phrase nodes and all phrase nodes in the storage to reduce cost for incremental graph updates
-        query_node_key2knn_node_keys = retrieve_knn(
-            query_ids=entity_node_keys,
-            key_ids=entity_node_keys,
-            query_vecs=entity_embs,
-            key_vecs=entity_embs,
-            k=self.global_config.synonymy_edge_topk,
+        query_node_key2knn_node_keys = self.entity_embedding_store.internal_cross_knn(
+            top_k=self.global_config.synonymy_edge_topk,
             query_batch_size=self.global_config.synonymy_edge_query_batch_size,
             key_batch_size=self.global_config.synonymy_edge_key_batch_size,
         )
@@ -937,7 +509,7 @@ class HippoRAG:
 
             synonym_candidates.append((node_key, synonyms))
 
-    def load_existing_openie(self, chunk_keys: list[str]) -> tuple[list[dict], set[str]]:
+    def load_existing_openie(self, chunk_keys: Sequence[str]) -> tuple[list[dict], set[str]]:
         """
         Loads existing OpenIE results from the specified file if it exists and combines
         them with new content while standardizing indices. If the file does not exist or
@@ -959,7 +531,8 @@ class HippoRAG:
         chunk_keys_to_save = set()
 
         if not self.global_config.force_openie_from_scratch and os.path.isfile(self.openie_results_path):
-            openie_results = json.load(open(self.openie_results_path))
+            with open(self.openie_results_path, encoding="utf-8") as f:
+                openie_results = json.load(f)
             all_openie_info = openie_results.get("docs", [])
 
             # Standardizing indices for OpenIE Files.
@@ -1205,11 +778,10 @@ class HippoRAG:
         logger.info("Preparing for fast retrieval.")
 
         logger.info("Loading keys.")
-        self.query_to_embedding: dict = {"triple": {}, "passage": {}}
 
-        self.entity_node_keys: list = list(self.entity_embedding_store.get_all_ids())  # a list of phrase node keys
-        self.passage_node_keys: list = list(self.chunk_embedding_store.get_all_ids())  # a list of passage node keys
-        self.fact_node_keys: list = list(self.fact_embedding_store.get_all_ids())
+        self.entity_node_keys = list(self.entity_embedding_store.get_all_ids())  # a list of phrase node keys
+        self.passage_node_keys = list(self.chunk_embedding_store.get_all_ids())  # a list of passage node keys
+        self.fact_node_keys = list(self.fact_embedding_store.get_all_ids())
 
         # Check if the graph has the expected number of nodes
         expected_node_count = len(self.entity_node_keys) + len(self.passage_node_keys)
@@ -1263,10 +835,6 @@ class HippoRAG:
             self.passage_node_idxs = []
 
         logger.info("Loading embeddings.")
-        self.entity_embeddings = np.array(self.entity_embedding_store.get_embeddings(self.entity_node_keys))
-        self.passage_embeddings = np.array(self.chunk_embedding_store.get_embeddings(self.passage_node_keys))
-
-        self.fact_embeddings = np.array(self.fact_embedding_store.get_embeddings(self.fact_node_keys))
 
         all_openie_info, chunk_keys_to_process = self.load_existing_openie([])
 
@@ -1319,43 +887,6 @@ class HippoRAG:
 
         self.ready_to_retrieve = True
 
-    def get_query_embeddings(self, queries: list[str] | list[QuerySolution]):
-        """
-        Retrieves embeddings for given queries and updates the internal query-to-embedding mapping. The method determines whether each query
-        is already present in the `self.query_to_embedding` dictionary under the keys 'triple' and 'passage'. If a query is not present in
-        either, it is encoded into embeddings using the embedding model and stored.
-
-        Args:
-            queries List[str] | List[QuerySolution]: A list of query strings or QuerySolution objects. Each query is checked for
-            its presence in the query-to-embedding mappings.
-        """
-
-        all_query_strings = []
-        for query in queries:
-            if isinstance(query, QuerySolution) and (
-                query.question not in self.query_to_embedding["triple"]
-                or query.question not in self.query_to_embedding["passage"]
-            ):
-                all_query_strings.append(query.question)
-            elif query not in self.query_to_embedding["triple"] or query not in self.query_to_embedding["passage"]:
-                all_query_strings.append(query)
-
-        if len(all_query_strings) > 0:
-            # get all query embeddings
-            logger.info(f"Encoding {len(all_query_strings)} queries for query_to_fact.")
-            query_embeddings_for_triple = self.embedding_model.batch_encode(
-                all_query_strings, instruction=get_query_instruction("query_to_fact"), norm=True
-            )
-            for query, embedding in zip(all_query_strings, query_embeddings_for_triple, strict=False):
-                self.query_to_embedding["triple"][query] = embedding
-
-            logger.info(f"Encoding {len(all_query_strings)} queries for query_to_passage.")
-            query_embeddings_for_passage = self.embedding_model.batch_encode(
-                all_query_strings, instruction=get_query_instruction("query_to_passage"), norm=True
-            )
-            for query, embedding in zip(all_query_strings, query_embeddings_for_passage, strict=False):
-                self.query_to_embedding["passage"][query] = embedding
-
     def get_fact_scores(self, query: str) -> np.ndarray:
         """
         Retrieves and computes normalized similarity scores between the given query and pre-stored fact embeddings.
@@ -1376,20 +907,15 @@ class HippoRAG:
             If no embedding is found for the provided query in the stored query
             embeddings dictionary.
         """
-        query_embedding = self.query_to_embedding["triple"].get(query, None)
-        if query_embedding is None:
-            query_embedding = self.embedding_model.batch_encode(
-                query, instruction=get_query_instruction("query_to_fact"), norm=True
+        try:
+            query_fact_scores = self.fact_embedding_store.search(
+                query_text=query, instruction=get_query_instruction("query_to_fact")
             )
 
-        # Check if there are any facts
-        if len(self.fact_embeddings) == 0:
-            logger.warning("No facts available for scoring. Returning empty array.")
-            return np.array([])
+            if len(query_fact_scores) == 0:
+                logger.warning("No facts available for scoring. Returning empty array.")
+                return np.array([])
 
-        try:
-            query_fact_scores = np.dot(self.fact_embeddings, query_embedding.T)  # shape: (#facts, )
-            query_fact_scores = np.squeeze(query_fact_scores) if query_fact_scores.ndim == 2 else query_fact_scores
             query_fact_scores = min_max_normalize(query_fact_scores)
             return query_fact_scores
         except Exception as e:
@@ -1420,13 +946,9 @@ class HippoRAG:
             - A numpy array of the normalized similarity scores for the corresponding
               documents.
         """
-        query_embedding = self.query_to_embedding["passage"].get(query, None)
-        if query_embedding is None:
-            query_embedding = self.embedding_model.batch_encode(
-                query, instruction=get_query_instruction("query_to_passage"), norm=True
-            )
-        query_doc_scores = np.dot(self.passage_embeddings, query_embedding.T)
-        query_doc_scores = np.squeeze(query_doc_scores) if query_doc_scores.ndim == 2 else query_doc_scores
+        query_doc_scores = self.chunk_embedding_store.search(
+            query_text=query, instruction=get_query_instruction("query_to_passage")
+        )
         query_doc_scores = min_max_normalize(query_doc_scores)
 
         sorted_doc_ids = np.argsort(query_doc_scores)[::-1]
@@ -1512,7 +1034,6 @@ class HippoRAG:
 
         for rank, f in enumerate(top_k_facts):
             subject_phrase = f[0].lower()
-            predicate_phrase = f[1].lower()
             object_phrase = f[2].lower()
             fact_score = (
                 query_fact_scores[top_k_fact_indices[rank]] if query_fact_scores.ndim > 0 else query_fact_scores
@@ -1581,17 +1102,14 @@ class HippoRAG:
         batch_num: int = 10,
     ) -> tuple[list[int], list[tuple], dict]:
         """
-
         Args:
 
         Returns:
-            top_k_fact_indicies:
+            top_k_fact_indices:
             top_k_facts:
             rerank_log (dict): {'facts_before_rerank': candidate_facts, 'facts_after_rerank': top_k_facts}
                 - candidate_facts (list): list of link_top_k facts (each fact is a relation triple in tuple data type).
                 - top_k_facts:
-
-
         """
         # load args
         link_top_k: int = self.global_config.linking_top_k
@@ -1613,7 +1131,7 @@ class HippoRAG:
             # Get the actual fact IDs
             real_candidate_fact_ids = [self.fact_node_keys[idx] for idx in candidate_fact_indices]
             fact_row_dict = self.fact_embedding_store.get_rows(real_candidate_fact_ids)
-            candidate_facts = [eval(fact_row_dict[id]["content"]) for id in real_candidate_fact_ids]
+            candidate_facts = [ast.literal_eval(fact_row_dict[id]["content"]) for id in real_candidate_fact_ids]
             logger.info(f"query: {query}")
             logger.info(f"candidate_facts: {candidate_facts}")
             # Rerank the facts

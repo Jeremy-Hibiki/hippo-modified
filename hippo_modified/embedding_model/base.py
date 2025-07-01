@@ -5,12 +5,13 @@ import sqlite3
 import threading
 from dataclasses import asdict, dataclass, field
 from typing import Any
+from typing_extensions import Self
 
 import numpy as np
+import numpy.typing as npt
 import torch
 from filelock import FileLock
 
-from ..llm.base import LLMConfig
 from ..utils.config_utils import BaseConfig
 from ..utils.logging_utils import get_logger
 
@@ -82,14 +83,14 @@ class EmbeddingConfig:
         return json.dumps(self._data)
 
     @classmethod
-    def from_dict(cls, config_dict: dict[str, Any]) -> "LLMConfig":
+    def from_dict(cls, config_dict: dict[str, Any]) -> Self:
         """Create an LLMConfig instance from a dictionary."""
         instance = cls()
         instance.batch_upsert(config_dict)
         return instance
 
     @classmethod
-    def from_json(cls, json_str: str) -> "LLMConfig":
+    def from_json(cls, json_str: str) -> Self:
         """Create an LLMConfig instance from a JSON string."""
         instance = cls()
         instance.batch_upsert(json.loads(json_str))
@@ -187,7 +188,7 @@ class BaseEmbeddingModel:
 
         logger.info(f"Init {self.__class__.__name__}'s embedding_model_name with: {self.embedding_model_name}")
 
-    def batch_encode(self, texts: list[str], **kwargs) -> None:
+    def batch_encode(self, texts: list[str], **kwargs) -> npt.NDArray:
         raise NotImplementedError
 
     def get_query_doc_scores(self, query_vec: np.ndarray, doc_vecs: np.ndarray):

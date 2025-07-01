@@ -110,6 +110,18 @@ class BaseConfig:
         default="auto", metadata={"help": "Data type for local embedding model."}
     )
 
+    # Embedding Store specific attributes
+    embedding_store_type: Literal["dataframe", "milvus"] = field(
+        default="dataframe", metadata={"help": "Type of embedding store to use."}
+    )
+    milvus_uri: str = field(default="http://localhost:19530", metadata={"help": "Milvus server URI."})
+    milvus_token: str = field(default="", metadata={"help": "Milvus authentication token (optional)."})
+    milvus_db_name: str = field(default="default", metadata={"help": "Milvus database name."})
+    milvus_collection_prefix: str = field(default="hippo", metadata={"help": "Prefix for Milvus collection names."})
+    milvus_enable_hybrid_search: bool = field(
+        default=True, metadata={"help": "Enable hybrid search (vector + full-text)."}
+    )
+
     # Graph construction specific attributes
     synonymy_edge_topk: int = field(default=2047, metadata={"help": "k for knn retrieval in buiding synonymy edges."})
     synonymy_edge_query_batch_size: int = field(

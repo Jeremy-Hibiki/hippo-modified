@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
+import numpy.typing as npt
 import torch
 
 from ..utils.config_utils import BaseConfig
@@ -66,7 +67,7 @@ class GritLMEmbeddingModel(BaseEmbeddingModel):
     def _get_formated_instruction(self, instruction: str) -> str:
         return "<|user|>\n" + instruction + "\n<|embed|>\n" if instruction else "<|embed|>\n"
 
-    def batch_encode(self, texts: list[str], **kwargs) -> None:
+    def batch_encode(self, texts: list[str], **kwargs) -> npt.NDArray:
         if isinstance(texts, str):
             texts = [texts]
 

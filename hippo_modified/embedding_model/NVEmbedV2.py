@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
+import numpy.typing as npt
 import torch
 from tqdm import tqdm
 from transformers import AutoModel
@@ -67,7 +68,7 @@ class NVEmbedV2EmbeddingModel(BaseEmbeddingModel):
     #     # Adds EOS token to each text
     #     return [text + self.embedding_model.tokenizer.eos_token for text in texts]
 
-    def batch_encode(self, texts: list[str], **kwargs) -> None:
+    def batch_encode(self, texts: list[str], **kwargs) -> npt.NDArray:
         if isinstance(texts, str):
             texts = [texts]
 

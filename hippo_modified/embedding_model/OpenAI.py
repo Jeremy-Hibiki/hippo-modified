@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
+import numpy.typing as npt
 import torch
 from openai import AzureOpenAI, OpenAI
 from tqdm import tqdm
@@ -76,7 +77,7 @@ class OpenAIEmbeddingModel(BaseEmbeddingModel):
 
         return results
 
-    def batch_encode(self, texts: list[str], **kwargs) -> None:
+    def batch_encode(self, texts: list[str], **kwargs) -> npt.NDArray:
         if isinstance(texts, str):
             texts = [texts]
 
@@ -95,18 +96,12 @@ class OpenAIEmbeddingModel(BaseEmbeddingModel):
         if len(texts) <= batch_size:
             results = self.encode(texts)
         else:
-            pbar = tqdm(total=len(texts), desc="Batch Encoding")
-            results = []
-            for i in range(0, len(texts), batch_size):
-                batch = texts[i : i + batch_size]
-                try:
+            with tqdm(total=len(texts), desc="Batch Encoding") as pbar:
+                results = []
+                for i in range(0, len(texts), batch_size):
+                    batch = texts[i : i + batch_size]
                     results.append(self.encode(batch))
-                except:
-                    import ipdb
-
-                    ipdb.set_trace()
-                pbar.update(batch_size)
-            pbar.close()
+                    pbar.update(batch_size)
             results = np.concatenate(results)
 
         if isinstance(results, torch.Tensor):

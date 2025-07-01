@@ -41,6 +41,7 @@ cu126 = [
 ]
 dev = ["ruff==0.11.0"]
 gritlm = ["gritlm==1.0.2"]
+milvus = ["pymilvus>=2.5"]
 
 [build-system]
 requires = ["hatchling"]

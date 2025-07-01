@@ -2,6 +2,7 @@ import logging
 from argparse import ArgumentTypeError
 from dataclasses import dataclass
 from hashlib import md5
+from pathlib import Path
 from typing import Any, Literal
 
 import numpy as np
@@ -41,24 +42,20 @@ class QuerySolution:
     docs: list[str]
     doc_scores: np.ndarray = None
     answer: str = None
-    gold_answers: list[str] = None
-    gold_docs: list[str] | None = None
 
     def to_dict(self):
         return {
             "question": self.question,
             "answer": self.answer,
-            "gold_answers": self.gold_answers,
             "docs": self.docs[:5],
             "doc_scores": [round(v, 4) for v in self.doc_scores.tolist()[:5]] if self.doc_scores is not None else None,
-            "gold_docs": self.gold_docs,
         }
 
 
 NON_ALPHA_NUM_CJK_PATTERN = regex.compile(r"[^a-zA-Z0-9\p{Han}]")
 
 
-def text_processing(text):
+def text_processing(text: str | list[str]) -> list[str] | str:
     if isinstance(text, list):
         return [text_processing(t) for t in text]
     if not isinstance(text, str):
@@ -160,3 +157,7 @@ def string_to_bool(v):
         raise ArgumentTypeError(
             f"Truthy value expected: got {v} but expected one of yes/no, true/false, t/f, y/n, 1/0 (case insensitive)."
         )
+
+
+def load_hit_stopwords():
+    return (Path(__file__).parent / "hit_stopwords.txt").read_text(encoding="utf-8").splitlines()
