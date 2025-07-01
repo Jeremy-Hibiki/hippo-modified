@@ -1,7 +1,6 @@
 import os.path
 
-from hippo_modified.embedding_model.base import BaseEmbeddingModel
-
+from ..embedding_model.base import BaseEmbeddingModel
 from .base import BaseEmbeddingStore
 from .dataframe import DataFrameEmbeddingStore
 from .milvus import MilvusEmbeddingStore
