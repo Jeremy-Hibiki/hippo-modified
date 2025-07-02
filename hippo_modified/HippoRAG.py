@@ -477,8 +477,6 @@ class HippoRAG:
 
         query_node_key2knn_node_keys = self.entity_embedding_store.internal_cross_knn(
             top_k=self.global_config.synonymy_edge_topk,
-            query_batch_size=self.global_config.synonymy_edge_query_batch_size,
-            key_batch_size=self.global_config.synonymy_edge_key_batch_size,
         )
 
         num_synonym_triple = 0
