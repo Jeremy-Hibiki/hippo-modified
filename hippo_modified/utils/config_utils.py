@@ -20,6 +20,10 @@ class BaseConfig:
         default=None,
         metadata={"help": "Base URL for an OpenAI compatible embedding model, if none, means using OPENAI service."},
     )
+    embedding_use_instruction: bool = field(
+        default=False, metadata={"help": "Whether add instruction when embedding."}
+    )
+    embedding_instruction_format: str = field(default="{instruction} {text}", metadata={"help": ""})
     azure_endpoint: str = field(
         default=None, metadata={"help": "Azure Endpoint URI for the LLM model, if none, uses OPENAI service directly."}
     )

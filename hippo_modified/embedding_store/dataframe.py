@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from ..embedding_model import BaseEmbeddingModel
+from ..utils.config_utils import BaseConfig
 from ..utils.misc_utils import compute_mdhash_id
 from .base import BaseEmbeddingStore
 
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 class DataFrameEmbeddingStore(BaseEmbeddingStore):
     def __init__(
         self,
+        global_config: BaseConfig,
         embedding_model: BaseEmbeddingModel,
         db_filename: str,
         batch_size: int,
@@ -25,6 +27,7 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         Initializes the class with necessary configurations and sets up the working directory.
 
         Parameters:
+        global_config
         embedding_model: The model used for embeddings.
         db_filename: The directory path where data will be stored or retrieved.
         batch_size: The batch size used for processing.
@@ -37,6 +40,7 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         - Constructs the filename for storing data in a parquet file format.
         - Calls the method `_load_data()` to initialize the data loading process.
         """
+        self.global_config = global_config
         self.embedding_model = embedding_model
         self.batch_size = batch_size
         self.namespace = namespace
@@ -145,13 +149,18 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
     def search(
         self,
         query_text: str,
-        target_ids: Sequence[str] = None,
         instruction: str = "",
     ) -> np.ndarray:
-        query_embedding = self.embedding_model.batch_encode([query_text])[0]
+        if self.global_config.embedding_use_instruction:
+            text_to_embed = self.global_config.embedding_instruction_format.format(
+                instruction=instruction, text=query_text
+            )
+        else:
+            text_to_embed = query_text
+        query_embedding = self.embedding_model.batch_encode([text_to_embed])[0]
         return np.dot(query_embedding, np.array(self.embeddings).T)
 
-    def internal_cross_knn(self, top_k: int) -> dict:
+    def internal_cross_knn(self, top_k: int) -> dict[str, tuple[list[str], list[float]]]:
         all_ids = self.get_all_ids()
         all_rows = self.get_all_id_to_rows()
         if len(all_rows) == 0:

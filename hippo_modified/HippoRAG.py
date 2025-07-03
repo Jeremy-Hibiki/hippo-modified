@@ -138,21 +138,21 @@ class HippoRAG:
             db_name=os.path.join(self.working_dir, "chunk_embeddings"),
             batch_size=self.global_config.embedding_batch_size,
             namespace="chunk",
-            config=self.global_config,
+            global_config=self.global_config,
         )
         self.entity_embedding_store = create_embedding_store(
             embedding_model=self.embedding_model,
             db_name=os.path.join(self.working_dir, "entity_embeddings"),
             batch_size=self.global_config.embedding_batch_size,
             namespace="entity",
-            config=self.global_config,
+            global_config=self.global_config,
         )
         self.fact_embedding_store = create_embedding_store(
             embedding_model=self.embedding_model,
             db_name=os.path.join(self.working_dir, "fact_embeddings"),
             batch_size=self.global_config.embedding_batch_size,
             namespace="fact",
-            config=self.global_config,
+            global_config=self.global_config,
         )
 
         self.prompt_template_manager = PromptTemplateManager(
@@ -232,7 +232,9 @@ class HippoRAG:
 
         ner_results_dict, triple_results_dict = reformat_openie_results(all_openie_info)
 
-        assert len(chunk_to_rows) == len(ner_results_dict) == len(triple_results_dict)
+        assert len(chunk_to_rows) == len(ner_results_dict) == len(triple_results_dict), (
+            f"{len(chunk_to_rows)}, {len(ner_results_dict)}, {len(triple_results_dict)}"
+        )
 
         # prepare data_store
         chunk_ids = list(chunk_to_rows.keys())

@@ -7,6 +7,7 @@ import numpy as np
 from pymilvus import FunctionType
 
 from ..embedding_model import BaseEmbeddingModel
+from ..utils.config_utils import BaseConfig
 from ..utils.misc_utils import compute_mdhash_id, load_hit_stopwords
 from .base import BaseEmbeddingStore
 
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 class MilvusEmbeddingStore(BaseEmbeddingStore):
     def __init__(
         self,
+        global_config: BaseConfig,
         embedding_model: BaseEmbeddingModel,
         namespace: str,
         uri: str = "http://localhost:19530",
@@ -29,6 +31,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         except ImportError:
             raise ImportError("Please install `pymilvus` to use MilvusEmbeddingStore") from None
 
+        self.global_config = global_config
         self._embedding_model = embedding_model
         self._namespace = namespace
         self._db_name = db_name
@@ -204,16 +207,18 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
     def search(
         self,
         query_text: str,
-        target_ids: Sequence[str] = None,
         instruction: str = "",
     ) -> np.ndarray:
-        # [TODO]
-        pass
+        if self.global_config.embedding_use_instruction:
+            text_to_embed = f"{instruction} {query_text}"
+        else:
+            text_to_embed = query_text
+        query_embedding = self._embedding_model.batch_encode([text_to_embed])[0]
+        res = self.client.search(
+            self._collection_name,
+            data=[query_embedding],
+            limit=self.global_config.linking_top_k,
+        )
 
-    def internal_cross_knn(
-        self,
-        top_k: int,
-        query_batch_size: int = 1000,
-        key_batch_size: int = 10000,
-    ) -> dict:
+    def internal_cross_knn(self, top_k: int) -> dict[str, tuple[list[str], list[float]]]:
         pass
