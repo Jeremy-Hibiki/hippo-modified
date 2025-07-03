@@ -38,7 +38,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         self._collection_name = f"{collection_prefix}_{namespace}"
         self._enable_hybrid_search = enable_hybrid_search
 
-        self._client = MilvusClient(uri=uri, token=token)
+        self._client = MilvusClient(uri=uri, token=token, db_name=db_name)
 
         self._setup_collection()
 
@@ -70,10 +70,12 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             is_primary=True,
             max_length=128,
         )
+        index_params.add_index(field_name="hash_id", index_type="AUTOINDEX")
+
         schema.add_field(
             field_name="embedding",
             datatype=DataType.FLOAT_VECTOR,
-            dim=self._embedding_model.embedding_dim,
+            dim=self.global_config.milvus_dense_embedding_dim,
         )
         index_params.add_index(field_name="embedding", metric_type="IP", index_type="FLAT")
 
@@ -96,6 +98,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                 enable_match=True,
             )
 
+            schema.add_field(field_name="sparse_embedding", datatype=DataType.SPARSE_FLOAT_VECTOR)
             schema.add_function(
                 Function(
                     name="bm25",
@@ -144,7 +147,10 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
     def get_all_ids(self) -> list[str]:
         from pymilvus import Collection
 
-        iterator = Collection(self._collection_name).query_iterator(
+        iterator = Collection(
+            self._collection_name,
+            using=self.client._using,
+        ).query_iterator(
             batch_size=2048,
             expr="hash_id is not null",
             output_fields=["hash_id"],
@@ -159,7 +165,10 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
     def get_all_id_to_rows(self) -> dict:
         from pymilvus import Collection
 
-        iterator = Collection(self._collection_name).query_iterator(
+        iterator = Collection(
+            self._collection_name,
+            using=self.client._using,
+        ).query_iterator(
             batch_size=2048,
             expr="hash_id is not null",
             output_fields=["hash_id", "content"],
@@ -197,28 +206,90 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
 
         embeddings = self._embedding_model.batch_encode(list(texts))
         for hash_id, embedding in zip(all_hash_ids, embeddings, strict=True):
+            nodes_dict[hash_id]["hash_id"] = hash_id
             nodes_dict[hash_id]["embedding"] = embedding.tolist()
-
+        data = list(nodes_dict.values())
         self.client.upsert(
             collection_name=self._collection_name,
-            data=nodes_dict,
+            data=data,
         )
 
     def search(
         self,
         query_text: str,
         instruction: str = "",
-    ):
+        top_k: int = 10,
+    ) -> list[tuple[dict, float]]:
         if self.global_config.embedding_use_instruction:
-            text_to_embed = f"{instruction} {query_text}"
+            text_to_embed = self.global_config.embedding_instruction_format.format(
+                instruction=instruction, text=query_text
+            )
         else:
             text_to_embed = query_text
         query_embedding = self._embedding_model.batch_encode([text_to_embed])[0]
-        res = self.client.search(
-            self._collection_name,
-            data=[query_embedding],
-            limit=self.global_config.linking_top_k,
-        )
+        if not self._enable_hybrid_search:
+            results = self.client.search(
+                self._collection_name,
+                data=[query_embedding],
+                limit=top_k,
+                output_fields=["hash_id", "content", "embedding"],
+            )
+        else:
+            try:
+                from pymilvus import AnnSearchRequest, RRFRanker
+            except ImportError:
+                raise ImportError("Please upgrade `pymilvus` for hybrid search") from None
+
+            dense_req = AnnSearchRequest(
+                [query_embedding],
+                "embedding",
+                {"metric_type": "IP"},
+                limit=top_k * 4,
+            )
+            sparse_req = AnnSearchRequest(
+                [query_text],
+                "sparse_embedding",
+                {"metric_type": "BM25"},
+                limit=top_k * 4,
+            )
+            try:
+                results = self.client.hybrid_search(
+                    self._collection_name,
+                    [dense_req, sparse_req],
+                    ranker=RRFRanker(),
+                    limit=top_k,
+                    output_fields=["hash_id", "content", "embedding"],
+                )
+            except Exception as e:
+                logger.error(f"Hybrid search failed: {e}")
+                raise e
+        return [(hit["entity"], float(hit["distance"])) for hit in results[0]]
 
     def internal_cross_knn(self, top_k: int) -> dict[str, tuple[list[str], list[float]]]:
-        pass
+        all_ids = self.get_all_ids()
+        all_rows = self.get_all_id_to_rows()
+        if len(all_rows) == 0:
+            return {}
+
+        vecs = self.embedding_model.batch_encode([v["content"] for v in all_rows.values()]).astype(np.float32)
+        vecs = vecs / np.linalg.norm(vecs, axis=1, keepdims=True)
+
+        similarity = np.dot(vecs, vecs.T)
+
+        actual_k = min(top_k, similarity.shape[1])
+
+        results = {}
+        for i in range(len(all_ids)):
+            query_id = all_ids[i]
+
+            # 获取该query的相似度分数，按降序排序
+            query_similarities = similarity[i]
+            topk_indices = np.argsort(query_similarities)[-actual_k:][::-1]  # 最大的k个，降序
+            topk_scores = query_similarities[topk_indices]
+
+            # 转换indices为key_ids
+            query_topk_key_ids = [all_ids[idx] for idx in topk_indices]
+
+            results[query_id] = (query_topk_key_ids, topk_scores.tolist())
+
+        return results

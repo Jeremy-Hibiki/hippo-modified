@@ -1,5 +1,3 @@
-import os.path
-
 from ..embedding_model.base import BaseEmbeddingModel
 from ..utils.config_utils import BaseConfig
 from .base import BaseEmbeddingStore
@@ -13,6 +11,7 @@ def create_embedding_store(
     global_config: BaseConfig,
     batch_size: int,
     namespace: str = "default",
+    enable_hybrid_search: bool = False,
 ) -> BaseEmbeddingStore:
     """
     根据配置创建相应的嵌入存储实例
@@ -41,9 +40,9 @@ def create_embedding_store(
             namespace=namespace,
             uri=global_config.milvus_uri,
             token=global_config.milvus_token,
-            db_name=os.path.split(db_name)[-1],
+            db_name=global_config.milvus_db_name,
             collection_prefix=global_config.milvus_collection_prefix,
-            enable_hybrid_search=global_config.milvus_enable_hybrid_search,
+            enable_hybrid_search=enable_hybrid_search,
         )
 
     else:

@@ -122,6 +122,7 @@ class BaseConfig:
     milvus_token: str = field(default="", metadata={"help": "Milvus authentication token (optional)."})
     milvus_db_name: str = field(default="default", metadata={"help": "Milvus database name."})
     milvus_collection_prefix: str = field(default="hippo", metadata={"help": "Prefix for Milvus collection names."})
+    milvus_dense_embedding_dim: int = field(default=1024, metadata={"help": "Dimension of the dense embedding."})
     milvus_enable_hybrid_search: bool = field(
         default=True, metadata={"help": "Enable hybrid search (vector + full-text)."}
     )

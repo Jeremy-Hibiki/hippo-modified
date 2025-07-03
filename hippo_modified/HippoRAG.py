@@ -153,6 +153,7 @@ class HippoRAG:
             batch_size=self.global_config.embedding_batch_size,
             namespace="fact",
             global_config=self.global_config,
+            enable_hybrid_search=self.global_config.milvus_enable_hybrid_search,
         )
 
         self.prompt_template_manager = PromptTemplateManager(
