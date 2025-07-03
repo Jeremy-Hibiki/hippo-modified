@@ -208,11 +208,3 @@ PROMPT_JSON_TEMPLATE = {
         },
     },
 }
-
-
-def num_tokens_by_tiktoken(text: str):
-    import tiktoken
-
-    enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
-
-    return len(enc.encode(text))
