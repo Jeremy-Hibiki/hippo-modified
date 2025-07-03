@@ -180,39 +180,3 @@ class DSPyFilter:
             sorted_candidate_items[:len_after_rerank],
             {"confidence": None},
         )
-
-    def old_rerank(
-        self,
-        query: str,
-        candidate_items: list[tuple],
-        candidate_indices: list[int],
-        len_after_rerank: int = None,
-    ) -> tuple[list[int], list[tuple], dict]:
-        fact_before_filter = {"fact": [list(candidate_item) for candidate_item in candidate_items]}
-        try:
-            # prediction = self.program(question=query, fact_before_filter=json.dumps(fact_before_filter))
-            response = self.llm_call(query, json.dumps(fact_before_filter))
-            logger.info("===" * 10 + " start " + "===" * 10, response, "\r\n\r\n", sep="\r\n")
-            generated_facts = self.parse_filter(response)
-            logger.info(generated_facts, "===" * 10 + " end " + "===" * 10, sep="\r\n")
-        except Exception as e:
-            logger.error("exception", e)
-            generated_facts = []
-            logger.info([], "===" * 10 + " end " + "===" * 10, sep="\r\n")
-        result_indices = []
-        for generated_fact in generated_facts:
-            closest_matched_fact = difflib.get_close_matches(
-                str(generated_fact), [str(i) for i in candidate_items], n=1, cutoff=0.0
-            )[0]
-            try:
-                result_indices.append(candidate_items.index(eval(closest_matched_fact)))
-            except Exception as e:
-                logger.error("result_indices exception", e)
-
-        sorted_candidate_indices = [candidate_indices[i] for i in result_indices]
-        sorted_candidate_items = [candidate_items[i] for i in result_indices]
-        return (
-            sorted_candidate_indices[:len_after_rerank],
-            sorted_candidate_items[:len_after_rerank],
-            {"confidence": None},
-        )

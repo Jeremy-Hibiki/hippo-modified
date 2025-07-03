@@ -30,24 +30,25 @@ class BaseEmbeddingStore(ABC):
     def search(
         self,
         query_text: str,
-        target_ids: Sequence[str] = None,
         instruction: str = "",
-    ) -> np.ndarray:
+        top_k: int = 10,
+    ) -> list[tuple[dict, float]]:
         """
-        在当前向量库进行相似度计算
+        Searches for the top_k most similar texts to the query_text.
 
         Args:
-            query_text: 查询文本
-            target_ids: 目标ID列表，如果为None则计算与所有存储的向量的相似度
-            instruction: 嵌入指令，用于指导向量化过程
+            query_text: The text to search for.
+            instruction: An optional instruction for the embedding model.
+            top_k: The number of results to return.
 
         Returns:
-            相似度分数数组
+            A list of tuples, where each tuple contains the a document and
+            its similarity score. The list is sorted by score in descending order.
         """
         pass
 
     @abstractmethod
-    def internal_cross_knn(self, top_k: int) -> dict:
+    def internal_cross_knn(self, top_k: int) -> dict[str, tuple[list[str], list[float]]]:
         """
         执行KNN搜索，基于已存储的ID
 
