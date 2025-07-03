@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 class HippoRAG:
     def __init__(
         self,
-        global_config=None,
+        global_config: BaseConfig = None,
         save_dir=None,
         llm_model_name=None,
         llm_base_url=None,
@@ -319,10 +319,8 @@ class HippoRAG:
 
         for q_idx, query in tqdm(enumerate(queries), desc="Retrieving", total=len(queries)):
             rerank_start = time.time()
-            query_fact_scores = self.get_fact_scores(query)
-            top_k_fact_indices, top_k_facts, rerank_log = self.rerank_facts(
+            top_k_facts, fact_scores_dict, rerank_log = self.rerank_facts(
                 query,
-                query_fact_scores,
                 batch_num=rerank_batch_num,
             )
             rerank_end = time.time()
@@ -336,9 +334,8 @@ class HippoRAG:
                 sorted_doc_ids, sorted_doc_scores = self.graph_search_with_fact_entities(
                     query=query,
                     link_top_k=self.global_config.linking_top_k,
-                    query_fact_scores=query_fact_scores,
                     top_k_facts=top_k_facts,
-                    top_k_fact_indices=top_k_fact_indices,
+                    fact_scores_dict=fact_scores_dict,
                     passage_node_weight=self.passage_node_weight,
                 )
 
@@ -887,74 +884,6 @@ class HippoRAG:
 
         self.ready_to_retrieve = True
 
-    def get_fact_scores(self, query: str) -> np.ndarray:
-        """
-        Retrieves and computes normalized similarity scores between the given query and pre-stored fact embeddings.
-
-        Parameters:
-        query : str
-            The input query text for which similarity scores with fact embeddings
-            need to be computed.
-
-        Returns:
-        numpy.ndarray
-            A normalized array of similarity scores between the query and fact
-            embeddings. The shape of the array is determined by the number of
-            facts.
-
-        Raises:
-        KeyError
-            If no embedding is found for the provided query in the stored query
-            embeddings dictionary.
-        """
-        try:
-            query_fact_scores = self.fact_embedding_store.search(
-                query_text=query, instruction=get_query_instruction("query_to_fact")
-            )
-
-            if len(query_fact_scores) == 0:
-                logger.warning("No facts available for scoring. Returning empty array.")
-                return np.array([])
-
-            query_fact_scores = min_max_normalize(query_fact_scores)
-            return query_fact_scores
-        except Exception as e:
-            logger.error(f"Error computing fact scores: {e!s}")
-            return np.array([])
-
-    def dense_passage_retrieval(self, query: str) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Conduct dense passage retrieval to find relevant documents for a query.
-
-        This function processes a given query using a pre-trained embedding model
-        to generate query embeddings. The similarity scores between the query
-        embedding and passage embeddings are computed using dot product, followed
-        by score normalization. Finally, the function ranks the documents based
-        on their similarity scores and returns the ranked document identifiers
-        and their scores.
-
-        Parameters
-        ----------
-        query : str
-            The input query for which relevant passages should be retrieved.
-
-        Returns
-        -------
-        tuple : Tuple[np.ndarray, np.ndarray]
-            A tuple containing two elements:
-            - A list of sorted document identifiers based on their relevance scores.
-            - A numpy array of the normalized similarity scores for the corresponding
-              documents.
-        """
-        query_doc_scores = self.chunk_embedding_store.search(
-            query_text=query, instruction=get_query_instruction("query_to_passage")
-        )
-        query_doc_scores = min_max_normalize(query_doc_scores)
-
-        sorted_doc_ids = np.argsort(query_doc_scores)[::-1]
-        sorted_doc_scores = query_doc_scores[sorted_doc_ids.tolist()]
-        return sorted_doc_ids, sorted_doc_scores
-
     def get_top_k_weights(
         self, link_top_k: int, all_phrase_weights: np.ndarray, linking_score_map: dict[str, float]
     ) -> tuple[np.ndarray, dict[str, float]]:
@@ -998,9 +927,8 @@ class HippoRAG:
         self,
         query: str,
         link_top_k: int,
-        query_fact_scores: np.ndarray,
         top_k_facts: list[tuple],
-        top_k_fact_indices: list[int],
+        fact_scores_dict: dict[str, float],
         passage_node_weight: float = 0.05,
     ) -> tuple[np.ndarray, np.ndarray]:
         """
@@ -1013,12 +941,9 @@ class HippoRAG:
                 need to be performed.
             link_top_k (int): The number of top phrases to include from the linking score map for
                 downstream processing.
-            query_fact_scores (np.ndarray): An array of scores representing fact-query similarity
-                for each of the provided facts.
             top_k_facts (List[Tuple]): A list of top-ranked facts, where each fact is represented
                 as a tuple of its subject, predicate, and object.
-            top_k_fact_indices (List[int]): Corresponding indices or identifiers for the top-ranked
-                facts in the query_fact_scores array.
+            fact_scores_dict (Dict[str, float]): A dictionary mapping fact string to its score.
             passage_node_weight (float): Default weight to scale passage scores in the graph.
 
         Returns:
@@ -1035,9 +960,7 @@ class HippoRAG:
         for rank, f in enumerate(top_k_facts):
             subject_phrase = f[0].lower()
             object_phrase = f[2].lower()
-            fact_score = (
-                query_fact_scores[top_k_fact_indices[rank]] if query_fact_scores.ndim > 0 else query_fact_scores
-            )
+            fact_score = fact_scores_dict.get(str(f), 0.0)
             for phrase in [subject_phrase, object_phrase]:
                 phrase_key = compute_mdhash_id(content=phrase, prefix="entity-")
                 phrase_id = self.node_name_to_vertex_idx.get(phrase_key, None)
@@ -1062,15 +985,17 @@ class HippoRAG:
             )  # at this stage, the length of linking_scope_map is determined by link_top_k
 
         # Get passage scores according to chosen dense retrieval model
-        dpr_sorted_doc_ids, dpr_sorted_doc_scores = self.dense_passage_retrieval(query)
-        normalized_dpr_sorted_scores = min_max_normalize(dpr_sorted_doc_scores)
+        dpr_top_passages = self.chunk_embedding_store.search(
+            query_text=query, instruction=get_query_instruction("query_to_passage"), top_k=len(self.passage_node_keys)
+        )
+        passage_scores_list = [score for _, score in dpr_top_passages]
+        normalized_dpr_sorted_scores = min_max_normalize(np.array(passage_scores_list))
 
-        for i, dpr_sorted_doc_id in enumerate(dpr_sorted_doc_ids.tolist()):
-            passage_node_key = self.passage_node_keys[dpr_sorted_doc_id]
+        for i, (passage_dict, _) in enumerate(dpr_top_passages):
             passage_dpr_score = normalized_dpr_sorted_scores[i]
-            passage_node_id = self.node_name_to_vertex_idx[passage_node_key]
+            passage_node_id = self.node_name_to_vertex_idx[passage_dict["hash_id"]]
             passage_weights[passage_node_id] = passage_dpr_score * passage_node_weight
-            passage_node_text = self.chunk_embedding_store.get_row(passage_node_key)["content"]
+            passage_node_text = passage_dict["content"]
             linking_score_map[passage_node_text] = passage_dpr_score * passage_node_weight
 
         # Combining phrase and passage scores into one array for PPR
@@ -1098,15 +1023,14 @@ class HippoRAG:
     def rerank_facts(
         self,
         query: str,
-        query_fact_scores: np.ndarray,
         batch_num: int = 10,
-    ) -> tuple[list[int], list[tuple], dict]:
+    ) -> tuple[list[tuple], dict[str, float], dict]:
         """
         Args:
 
         Returns:
-            top_k_fact_indices:
             top_k_facts:
+            fact_scores (dict):
             rerank_log (dict): {'facts_before_rerank': candidate_facts, 'facts_after_rerank': top_k_facts}
                 - candidate_facts (list): list of link_top_k facts (each fact is a relation triple in tuple data type).
                 - top_k_facts:
@@ -1114,42 +1038,41 @@ class HippoRAG:
         # load args
         link_top_k: int = self.global_config.linking_top_k
 
-        # Check if there are any facts to rerank
-        if len(query_fact_scores) == 0 or len(self.fact_node_keys) == 0:
-            logger.warning("No facts available for reranking. Returning empty lists.")
-            return [], [], {"facts_before_rerank": [], "facts_after_rerank": []}
-
         try:
             # Get the top k facts by score
-            if len(query_fact_scores) <= link_top_k:
-                # If we have fewer facts than requested, use all of them
-                candidate_fact_indices = np.argsort(query_fact_scores)[::-1].tolist()
-            else:
-                # Otherwise get the top k
-                candidate_fact_indices = np.argsort(query_fact_scores)[-link_top_k:][::-1].tolist()
+            top_facts_from_search = self.fact_embedding_store.search(
+                query_text=query, instruction=get_query_instruction("query_to_fact"), top_k=link_top_k
+            )
 
-            # Get the actual fact IDs
-            real_candidate_fact_ids = [self.fact_node_keys[idx] for idx in candidate_fact_indices]
-            fact_row_dict = self.fact_embedding_store.get_rows(real_candidate_fact_ids)
-            candidate_facts = [ast.literal_eval(fact_row_dict[id]["content"]) for id in real_candidate_fact_ids]
+            if not top_facts_from_search:
+                logger.warning("No facts available for reranking. Returning empty lists.")
+                return [], {}, {"facts_before_rerank": [], "facts_after_rerank": []}
+
+            fact_row_dict = [fact_dict for fact_dict, score in top_facts_from_search]
+            candidate_facts: list[tuple] = [ast.literal_eval(f["content"]) for f in fact_row_dict]
+            initial_fact_scores = {f["content"]: score for f, score in top_facts_from_search}
+
             logger.info(f"query: {query}")
             logger.info(f"candidate_facts: {candidate_facts}")
             # Rerank the facts
-            top_k_fact_indices, top_k_facts, reranker_dict = self.rerank_filter(
+            top_k_facts = self.rerank_filter(
                 query,
                 candidate_facts,
-                candidate_fact_indices,
+                list(range(len(candidate_facts))),
                 len_after_rerank=link_top_k,
                 batch_num=batch_num,
-            )
+            )[1]
             logger.info(f"top_k_facts: {top_k_facts}")
             rerank_log = {"facts_before_rerank": candidate_facts, "facts_after_rerank": top_k_facts}
 
-            return top_k_fact_indices, top_k_facts, rerank_log
+            # The scores are not reranked, we use the original scores from vector search
+            fact_scores = {str(fact): initial_fact_scores.get(str(fact), 0.0) for fact in top_k_facts}
+
+            return top_k_facts, fact_scores, rerank_log
 
         except Exception as e:
             logger.error(f"Error in rerank_facts: {e!s}")
-            return [], [], {"facts_before_rerank": [], "facts_after_rerank": [], "error": str(e)}
+            return [], {}, {"facts_before_rerank": [], "facts_after_rerank": [], "error": str(e)}
 
     def run_ppr(self, reset_prob: np.ndarray, damping: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
         """

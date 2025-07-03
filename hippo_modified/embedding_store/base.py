@@ -31,7 +31,20 @@ class BaseEmbeddingStore(ABC):
         self,
         query_text: str,
         instruction: str = "",
-    ) -> np.ndarray:
+        top_k: int = 10,
+    ) -> list[tuple[dict, float]]:
+        """
+        Searches for the top_k most similar texts to the query_text.
+
+        Args:
+            query_text: The text to search for.
+            instruction: An optional instruction for the embedding model.
+            top_k: The number of results to return.
+
+        Returns:
+            A list of tuples, where each tuple contains the a document and
+            its similarity score. The list is sorted by score in descending order.
+        """
         pass
 
     @abstractmethod

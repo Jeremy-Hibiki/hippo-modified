@@ -150,7 +150,8 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         self,
         query_text: str,
         instruction: str = "",
-    ) -> np.ndarray:
+        top_k: int = 10,
+    ):
         if self.global_config.embedding_use_instruction:
             text_to_embed = self.global_config.embedding_instruction_format.format(
                 instruction=instruction, text=query_text
@@ -158,7 +159,14 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         else:
             text_to_embed = query_text
         query_embedding = self.embedding_model.batch_encode([text_to_embed])[0]
-        return np.dot(query_embedding, np.array(self.embeddings).T)
+        similarity = np.dot(query_embedding, np.array(self.embeddings).T)
+        topk_indices = np.argsort(similarity)[-top_k:][::-1]
+        topk_scores = similarity[topk_indices]
+        topk_key_ids = [self.hash_ids[idx] for idx in topk_indices]
+        return [
+            (self.hash_id_to_row[key_id], float(score))
+            for key_id, score in zip(topk_key_ids, topk_scores, strict=True)
+        ]
 
     def internal_cross_knn(self, top_k: int) -> dict[str, tuple[list[str], list[float]]]:
         all_ids = self.get_all_ids()

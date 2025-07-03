@@ -208,7 +208,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         self,
         query_text: str,
         instruction: str = "",
-    ) -> np.ndarray:
+    ):
         if self.global_config.embedding_use_instruction:
             text_to_embed = f"{instruction} {query_text}"
         else:
