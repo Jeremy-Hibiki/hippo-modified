@@ -271,7 +271,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         if len(all_rows) == 0:
             return {}
 
-        vecs = self.embedding_model.batch_encode([v["content"] for v in all_rows.values()]).astype(np.float32)
+        vecs = self._embedding_model.batch_encode([v["content"] for v in all_rows.values()]).astype(np.float32)
         vecs = vecs / np.linalg.norm(vecs, axis=1, keepdims=True)
 
         similarity = np.dot(vecs, vecs.T)
