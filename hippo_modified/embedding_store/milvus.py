@@ -4,7 +4,6 @@ import logging
 from collections.abc import Sequence
 
 import numpy as np
-from pymilvus import FunctionType
 
 from ..embedding_model import BaseEmbeddingModel
 from ..utils.config_utils import BaseConfig
@@ -59,7 +58,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             raise
 
     def _create_collection(self):
-        from pymilvus import DataType, Function
+        from pymilvus import DataType
 
         schema = self.client.create_schema(enable_dynamic_field=True)
         index_params = self.client.prepare_index_params()
@@ -79,7 +78,9 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         )
         index_params.add_index(field_name="embedding", metric_type="IP", index_type="FLAT")
 
-        if self._enable_hybrid_search:
+        try:
+            from pymilvus import Function, FunctionType
+
             schema.add_field(
                 field_name="content",
                 datatype=DataType.VARCHAR,
@@ -112,7 +113,8 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                 index_type="SPARSE_INVERTED_INDEX",
                 metric_type="BM25",
             )
-        else:
+        except ImportError:
+            logger.warning("Current pymilvus version does not support native bm25")
             schema.add_field(
                 field_name="content",
                 datatype=DataType.VARCHAR,
