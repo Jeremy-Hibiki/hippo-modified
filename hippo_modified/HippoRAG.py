@@ -155,6 +155,14 @@ class HippoRAG:
             config=self.global_config,
         )
 
+        self.query_embedding_store = create_embedding_store(
+            embedding_model=self.embedding_model,
+            db_name=os.path.join(self.working_dir, "query_embeddings"),
+            batch_size=self.global_config.embedding_batch_size,
+            namespace="query",
+            config=self.global_config,
+        )
+
         self.prompt_template_manager = PromptTemplateManager(
             role_mapping={"system": "system", "user": "user", "assistant": "assistant"}
         )
@@ -163,6 +171,10 @@ class HippoRAG:
             self.global_config.save_dir, f"openie_results_ner_{self.global_config.llm_name.replace('/', '_')}.json"
         )
 
+        self.pike_patch_path = os.path.join(
+            self.global_config.save_dir, "pike_patch.json"
+        )
+        self.pike_patch()
         self.rerank_filter = DSPyFilter(self)
 
         self.ready_to_retrieve = False
@@ -202,6 +214,31 @@ class HippoRAG:
                 f"Loaded graph from {self._graph_pickle_filename} with {preloaded_graph.vcount()} nodes, {preloaded_graph.ecount()} edges"
             )
             return preloaded_graph
+
+    def pike_patch(self, queries: dict = {}):
+        logger.info("Indexing PIKE queriers")
+        if os.path.exists(self.pike_patch_path):
+            with open(self.pike_patch_path, 'r') as f:
+                old_queries = json.load(f)
+        old_queries.update(queries)
+
+        for query in list(old_queries.keys()):
+            self.query_embedding_store.insert_strings([query])
+        with open(self.pike_patch_path, 'w') as f:
+            json.dump(old_queries, f)
+        self.chunk_embedding_store._load_data()
+        query_to_chunk_ids = {}
+        for query in old_queries:
+            chunks = old_queries[query]
+            chunk_ids = []
+            for chunk in chunks:
+                chunk_id = self.chunk_embedding_store.text_to_hash_id.get(chunk, None)
+                if chunk_id is not None:
+                    chunk_ids.append(chunk_id)
+            query_to_chunk_ids[query] = chunk_ids
+        self.query_to_chunk_ids = query_to_chunk_ids
+
+
 
     def index(self, docs: list[str]):
         """
@@ -251,6 +288,7 @@ class HippoRAG:
 
         self.node_to_node_stats = {}
         self.ent_node_to_chunk_ids = {}
+        
 
         self.add_fact_edges(chunk_ids, chunk_triples)
         num_new_chunks = self.add_passage_edges(chunk_ids, chunk_triple_entities)
@@ -268,6 +306,7 @@ class HippoRAG:
         num_to_retrieve: int = None,
         num_to_link: int = None,
         passage_node_weight: float = None,
+        pike_node_weight: float = None,
         rerank_batch_num: int = 10,
         rerank_file_path: str = None,
     ) -> list[QuerySolution]:
@@ -307,6 +346,11 @@ class HippoRAG:
         else:
             self.passage_node_weight = self.global_config.passage_node_weight
 
+        if pike_node_weight is not None:
+            self.pike_node_weight = pike_node_weight
+        else:
+            self.pike_node_weight = self.global_config.passage_node_weight
+            
         if rerank_file_path is not None:
             self.global_config.rerank_dspy_file_path = rerank_file_path
 
@@ -338,6 +382,7 @@ class HippoRAG:
                     top_k_facts=top_k_facts,
                     top_k_fact_indices=top_k_fact_indices,
                     passage_node_weight=self.passage_node_weight,
+                    pike_node_weight=self.pike_node_weight,
                 )
 
             top_k_docs = [
@@ -782,6 +827,9 @@ class HippoRAG:
         self.entity_node_keys = list(self.entity_embedding_store.get_all_ids())  # a list of phrase node keys
         self.passage_node_keys = list(self.chunk_embedding_store.get_all_ids())  # a list of passage node keys
         self.fact_node_keys = list(self.fact_embedding_store.get_all_ids())
+        # pike_patch prepare
+        self.query_node_keys = list(self.query_embedding_store.get_all_ids())
+        
 
         # Check if the graph has the expected number of nodes
         expected_node_count = len(self.entity_node_keys) + len(self.passage_node_keys)
@@ -922,6 +970,21 @@ class HippoRAG:
             logger.error(f"Error computing fact scores: {e!s}")
             return np.array([])
 
+    def dense_query_retrieval(self, query:str) -> tuple[np.ndarray, np.ndarray]:
+        try:
+            atom_query_scores = self.query_embedding_store.search(
+            query_text=query, instruction=None
+            )
+            #atom_query_scores = min_max_normalize(atom_query_scores)
+
+            sorted_query_ids = np.argsort(atom_query_scores)[::-1]
+            sorted_query_scores = atom_query_scores[sorted_query_ids.tolist()]
+            return sorted_query_ids, sorted_query_scores
+        except Exception as e:
+            return np.array([]), np.array([])
+
+
+
     def dense_passage_retrieval(self, query: str) -> tuple[np.ndarray, np.ndarray]:
         """
         Conduct dense passage retrieval to find relevant documents for a query.
@@ -1002,6 +1065,7 @@ class HippoRAG:
         top_k_facts: list[tuple],
         top_k_fact_indices: list[int],
         passage_node_weight: float = 0.05,
+        pike_node_weight: float = 1.0,
     ) -> tuple[np.ndarray, np.ndarray]:
         """
         Computes document scores based on fact-based similarity and relevance using personalized
@@ -1031,6 +1095,7 @@ class HippoRAG:
         phrase_scores = {}  # store all fact scores for each phrase regardless of whether they exist in the knowledge graph or not
         phrase_weights = np.zeros(len(self.graph.vs["name"]))
         passage_weights = np.zeros(len(self.graph.vs["name"]))
+        pike_passage_weights = np.zeros(len(self.graph.vs["name"]))
 
         for rank, f in enumerate(top_k_facts):
             subject_phrase = f[0].lower()
@@ -1061,6 +1126,21 @@ class HippoRAG:
                 link_top_k, phrase_weights, linking_score_map
             )  # at this stage, the length of linking_scope_map is determined by link_top_k
 
+        # Get pike chunk according to chosen atom query
+        dpr_sorted_query_ids, query_sorted_scores = self.dense_query_retrieval(query)
+        if len(dpr_sorted_query_ids) != 0:
+            query_sorted_scores = query_sorted_scores[:3]
+            for i, query_id in enumerate(dpr_sorted_query_ids):
+                query_node_key = self.query_node_keys[query_id]
+                query_dpr_score = query_sorted_scores[i]
+                atom_query = self.query_embedding_store.get_row(query_node_key)['content']
+                chunk_ids = self.query_to_chunk_ids.get(atom_query, [])
+                for chunk_id in chunk_ids:
+                    #passage_node_key = self.passage_node_keys[chunk_id]
+                    passage_node_id = self.node_name_to_vertex_idx[chunk_id]
+                    pike_passage_weights[passage_node_id] = query_dpr_score * pike_node_weight
+            
+
         # Get passage scores according to chosen dense retrieval model
         dpr_sorted_doc_ids, dpr_sorted_doc_scores = self.dense_passage_retrieval(query)
         normalized_dpr_sorted_scores = min_max_normalize(dpr_sorted_doc_scores)
@@ -1074,7 +1154,8 @@ class HippoRAG:
             linking_score_map[passage_node_text] = passage_dpr_score * passage_node_weight
 
         # Combining phrase and passage scores into one array for PPR
-        node_weights = phrase_weights + passage_weights
+        # Combining pike passage scores 
+        node_weights = phrase_weights + passage_weights + pike_passage_weights
 
         # Recording top 30 facts in linking_score_map
         if len(linking_score_map) > 30:
