@@ -309,6 +309,7 @@ class HippoRAG:
         pike_node_weight: float = None,
         rerank_batch_num: int = 10,
         rerank_file_path: str = None,
+        atom_query_num: int = 3, 
     ) -> list[QuerySolution]:
         """
         Performs retrieval using the HippoRAG 2 framework, which consists of several steps:
@@ -353,6 +354,9 @@ class HippoRAG:
             
         if rerank_file_path is not None:
             self.global_config.rerank_dspy_file_path = rerank_file_path
+
+        if atom_query_num is not None:
+            self.atom_query_num = atom_query_num
 
         if not self.ready_to_retrieve:
             self.prepare_retrieval_objects()
@@ -1129,7 +1133,7 @@ class HippoRAG:
         # Get pike chunk according to chosen atom query
         dpr_sorted_query_ids, query_sorted_scores = self.dense_query_retrieval(query)
         if len(dpr_sorted_query_ids) != 0:
-            query_sorted_scores = query_sorted_scores[:3]
+            query_sorted_scores = query_sorted_scores[:self.atom_query_num]
             for i, query_id in enumerate(dpr_sorted_query_ids):
                 query_node_key = self.query_node_keys[query_id]
                 query_dpr_score = query_sorted_scores[i]
