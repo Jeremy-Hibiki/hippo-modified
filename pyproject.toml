@@ -1,6 +1,6 @@
 [project]
 name = "hippo-modified"
-version = "2.1.1"
+version = "2.1.2"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -10,7 +10,6 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "openai>=1.58.1",
-    "networkx==3.4.2",
     "python-igraph==0.11.8",
     "tiktoken>=0.7.0",
     "pandas",
@@ -84,7 +83,6 @@ nvidia-cusparselt-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
 nvidia-nccl-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
 nvidia-nvtx-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
 nvidia-nvjitlink-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-llama-index-exts-fmsh = { git = "git+http://oauth2:sGHJwWuSCQfY8VyEY8z7@192.168.131.126:8089/zhoubodong/chatpdf-backend.git", subdirectory = "packages/llama-index-exts-fmsh" }
 
 [[tool.uv.index]]
 name = "tuna"
@@ -94,12 +92,6 @@ default = true
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://mirror.nju.edu.cn/pytorch/whl/cpu"
-explicit = true
-
-[[tool.uv.index]]
-name = "pytorch-cu124"
-url = "https://mirror.nju.edu.cn/pytorch/whl/cu124"
-# url = "https://download.pytorch.org/whl/cu124"
 explicit = true
 
 [[tool.uv.index]]

@@ -3,16 +3,6 @@ import re
 from string import Template
 from typing import TypedDict
 
-from openai import APIConnectionError, RateLimitError, Timeout
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
-
-from .config_utils import BaseConfig
-
 
 class TextChatMessage(TypedDict):
     """Representation of a single text-based chat message in the chat history."""
@@ -58,83 +48,6 @@ def convert_format_to_template(
     template_string = placeholder_pattern.sub(replace_placeholder, original_string)
 
     return template_string
-
-
-def safe_unicode_decode(content: bytes | str) -> str:
-    """
-    Safely decodes a string or byte sequence containing Unicode escape sequences into a properly decoded Unicode string.
-
-    Args:
-        content (Union[bytes, str]): The input data, either as a byte sequence or a string, which may contain Unicode escape sequences.
-
-    Returns:
-        str: The decoded Unicode string with escape sequences replaced by their corresponding characters.
-
-    Raises:
-        AttributeError: If the input is neither bytes nor a string.
-    """
-    # Regular expression to find all Unicode escape sequences of the form \uXXXX
-    unicode_escape_pattern = re.compile(r"\\u([0-9a-fA-F]{4})")
-
-    # Function to replace the Unicode escape with the actual character
-    def replace_unicode_escape(match: re.Match) -> str:
-        # Convert the matched hexadecimal value into the actual Unicode character
-        return chr(int(match.group(1), 16))
-
-    # If content is bytes, decode it to a UTF-8 string
-    if isinstance(content, bytes):
-        content = content.decode("utf-8")
-    elif not isinstance(content, str):
-        raise AttributeError("Input must be of type bytes or str.")
-
-    # Perform the substitution
-    decoded_content = unicode_escape_pattern.sub(replace_unicode_escape, content)
-
-    return decoded_content
-
-
-def dynamic_retry(experiment_config: BaseConfig):
-    """
-    Factory function to create a retry decorator with dynamic parameters.
-
-    Args:
-        experiment_config (BaseConfig): Configuration containing stop and wait parameters. Expected to use the global config for running all experiments.
-
-    Returns:
-        Callable: A retry decorator with dynamically set parameters.
-    """
-    stop = stop_after_attempt(experiment_config.async_max_retry_attempts)
-    wait = wait_exponential(
-        multiplier=experiment_config.async_retry_wait_exp_multiplier,
-        min=experiment_config.async_retry_min_wait_exp_time,
-        max=experiment_config.async_retry_max_wait_exp_time,
-    )
-
-    return retry(
-        stop=stop,
-        wait=wait,
-        retry=retry_if_exception_type((RateLimitError, APIConnectionError, Timeout)),
-    )
-
-
-# def fix_broken_generated_json(json_str: str) -> str:
-#     """
-#     Fixes a malformed JSON string by:
-#     - Removing the last comma and any trailing content.
-#     - Appending a closing bracket `]` and brace `}` to properly terminate the JSON.
-
-#     Args:
-#         json_str (str): The malformed JSON string to be fixed.
-
-#     Returns:
-#         str: The corrected JSON string.
-#     """
-#     last_comma_index = json_str.rfind(',')
-#     if last_comma_index != -1:
-#         json_str = json_str[:last_comma_index]
-
-#     processed_string = json_str + ']\n}'
-#     return processed_string
 
 
 def fix_broken_generated_json(json_str: str) -> str:

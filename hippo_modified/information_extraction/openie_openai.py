@@ -98,9 +98,7 @@ class OpenIE:
                 #     metadata=metadata,  # Store the error message in metadata
                 # )
 
-        return NerRawOutput(
-            chunk_id=chunk_key, response=raw_response, unique_entities=all_entites, metadata=metadata
-        )
+        return NerRawOutput(chunk_id=chunk_key, response=raw_response, unique_entities=all_entites, metadata=metadata)
 
     def triple_extraction(self, chunk_key: str, passage: str, named_entities: list[str]) -> TripleRawOutput:
         def _extract_triples_from_response(real_response):

@@ -1,9 +1,8 @@
 import logging
-from argparse import ArgumentTypeError
 from dataclasses import dataclass
 from hashlib import md5
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import numpy as np
 import regex
@@ -28,12 +27,6 @@ class TripleRawOutput:
     response: str
     triples: list[list[str]]
     metadata: dict[str, Any]
-
-
-@dataclass
-class LinkingOutput:
-    score: np.ndarray
-    type: Literal["node", "dpr"]
 
 
 @dataclass
@@ -125,38 +118,6 @@ def compute_mdhash_id(content: str, prefix: str = "") -> str:
         str: A string consisting of the prefix followed by the hexadecimal representation of the MD5 hash.
     """
     return prefix + md5(content.encode()).hexdigest()
-
-
-def all_values_of_same_length(data: dict) -> bool:
-    """
-    Return True if all values in 'data' have the same length or data is an empty dict,
-    otherwise return False.
-    """
-    # Get an iterator over the dictionary's values
-    value_iter = iter(data.values())
-
-    # Get the length of the first sequence (handle empty dict case safely)
-    try:
-        first_length = len(next(value_iter))
-    except StopIteration:
-        # If the dictionary is empty, treat it as all having "the same length"
-        return True
-
-    # Check that every remaining sequence has this same length
-    return all(len(seq) == first_length for seq in value_iter)
-
-
-def string_to_bool(v):
-    if isinstance(v, bool):
-        return v
-    if v.lower() in ("yes", "true", "t", "y", "1"):
-        return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
-        return False
-    else:
-        raise ArgumentTypeError(
-            f"Truthy value expected: got {v} but expected one of yes/no, true/false, t/f, y/n, 1/0 (case insensitive)."
-        )
 
 
 def load_hit_stopwords():
