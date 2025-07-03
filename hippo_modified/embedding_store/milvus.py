@@ -233,6 +233,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             results = self.client.search(
                 self._collection_name,
                 data=[query_embedding],
+                anns_field="embedding",
                 limit=top_k,
                 output_fields=["hash_id", "content", "embedding"],
             )
