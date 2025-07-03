@@ -111,13 +111,17 @@ class HippoRAG:
         if azure_embedding_endpoint is not None:
             self.global_config.azure_embedding_endpoint = azure_embedding_endpoint
 
-        _print_config = ",\n  ".join([f"{k} = {v}" for k, v in asdict(self.global_config).items()])
+        _print_config = ",\n  ".join(
+            [f"{k} = {v}" for k, v in asdict(self.global_config).items()]
+        )
         logger.info(f"HippoRAG init with config:\n  {_print_config}\n")
 
         # LLM and embedding model specific working directories are created under every specified saving directories
         llm_label = self.global_config.llm_name.replace("/", "_")
         embedding_label = self.global_config.embedding_model_name.replace("/", "_")
-        self.working_dir = os.path.join(self.global_config.save_dir, f"{llm_label}_{embedding_label}")
+        self.working_dir = os.path.join(
+            self.global_config.save_dir, f"{llm_label}_{embedding_label}"
+        )
 
         if not os.path.exists(self.working_dir):
             logger.info(f"Creating working directory: {self.working_dir}")
@@ -131,7 +135,10 @@ class HippoRAG:
 
         self.embedding_model = _get_embedding_model_class(
             embedding_model_name=self.global_config.embedding_model_name
-        )(global_config=self.global_config, embedding_model_name=self.global_config.embedding_model_name)
+        )(
+            global_config=self.global_config,
+            embedding_model_name=self.global_config.embedding_model_name,
+        )
 
         self.chunk_embedding_store = create_embedding_store(
             embedding_model=self.embedding_model,
@@ -170,10 +177,13 @@ class HippoRAG:
         )
 
         self.openie_results_path = os.path.join(
-            self.global_config.save_dir, f"openie_results_ner_{self.global_config.llm_name.replace('/', '_')}.json"
+            self.global_config.save_dir,
+            f"openie_results_ner_{self.global_config.llm_name.replace('/', '_')}.json",
         )
 
-        self.pike_patch_path = os.path.join(self.global_config.save_dir, "pike_patch.json")
+        self.pike_patch_path = os.path.join(
+            self.global_config.save_dir, "pike_patch.json"
+        )
         self.pike_patch()
         self.rerank_filter = DSPyFilter(self)
 
@@ -204,8 +214,12 @@ class HippoRAG:
 
         preloaded_graph = None
 
-        if not self.global_config.force_index_from_scratch and os.path.exists(self._graph_pickle_filename):
-            preloaded_graph = cast(ig.Graph, ig.Graph.Read_Pickle(self._graph_pickle_filename))
+        if not self.global_config.force_index_from_scratch and os.path.exists(
+            self._graph_pickle_filename
+        ):
+            preloaded_graph = cast(
+                ig.Graph, ig.Graph.Read_Pickle(self._graph_pickle_filename)
+            )
 
         if preloaded_graph is None:
             return ig.Graph(directed=self.global_config.is_directed_graph)
@@ -256,26 +270,38 @@ class HippoRAG:
         self.chunk_embedding_store.insert_strings(docs)
         chunk_to_rows = self.chunk_embedding_store.get_all_id_to_rows()
 
-        all_openie_info, chunk_keys_to_process = self.load_existing_openie(list(chunk_to_rows.keys()))
+        all_openie_info, chunk_keys_to_process = self.load_existing_openie(
+            list(chunk_to_rows.keys())
+        )
         new_openie_rows = {k: chunk_to_rows[k] for k in chunk_keys_to_process}
 
         if len(chunk_keys_to_process) > 0:
-            new_ner_results_dict, new_triple_results_dict = self.openie.batch_openie(new_openie_rows)
-            self.merge_openie_results(all_openie_info, new_openie_rows, new_ner_results_dict, new_triple_results_dict)
+            new_ner_results_dict, new_triple_results_dict = self.openie.batch_openie(
+                new_openie_rows
+            )
+            self.merge_openie_results(
+                all_openie_info,
+                new_openie_rows,
+                new_ner_results_dict,
+                new_triple_results_dict,
+            )
 
         if self.global_config.save_openie:
             self.save_openie_results(all_openie_info)
 
         ner_results_dict, triple_results_dict = reformat_openie_results(all_openie_info)
 
-        assert len(chunk_to_rows) == len(ner_results_dict) == len(triple_results_dict), (
-            f"{len(chunk_to_rows)}, {len(ner_results_dict)}, {len(triple_results_dict)}"
-        )
+        assert (
+            len(chunk_to_rows) == len(ner_results_dict) == len(triple_results_dict)
+        ), f"{len(chunk_to_rows)}, {len(ner_results_dict)}, {len(triple_results_dict)}"
 
         # prepare data_store
         chunk_ids = list(chunk_to_rows.keys())
 
-        chunk_triples = [[text_processing(t) for t in triple_results_dict[chunk_id].triples] for chunk_id in chunk_ids]
+        chunk_triples = [
+            [text_processing(t) for t in triple_results_dict[chunk_id].triples]
+            for chunk_id in chunk_ids
+        ]
         entity_nodes, chunk_triple_entities = extract_entity_nodes(chunk_triples)
         facts = flatten_facts(chunk_triples)
 
@@ -363,7 +389,9 @@ class HippoRAG:
 
         retrieval_results = []
 
-        for q_idx, query in tqdm(enumerate(queries), desc="Retrieving", total=len(queries)):
+        for q_idx, query in tqdm(
+            enumerate(queries), desc="Retrieving", total=len(queries)
+        ):
             rerank_start = time.time()
             top_k_facts, fact_scores_dict, rerank_log = self.rerank_facts(
                 query,
@@ -377,22 +405,30 @@ class HippoRAG:
                 logger.info("No facts found after reranking")
                 sorted_doc_ids, sorted_doc_scores = np.array([]), np.array([])
             else:
-                sorted_doc_ids, sorted_doc_scores = self.graph_search_with_fact_entities(
-                    query=query,
-                    link_top_k=self.global_config.linking_top_k,
-                    top_k_facts=top_k_facts,
-                    fact_scores_dict=fact_scores_dict,
-                    passage_node_weight=self.passage_node_weight,
-                    pike_node_weight=self.pike_node_weight,
+                sorted_doc_ids, sorted_doc_scores = (
+                    self.graph_search_with_fact_entities(
+                        query=query,
+                        link_top_k=self.global_config.linking_top_k,
+                        top_k_facts=top_k_facts,
+                        fact_scores_dict=fact_scores_dict,
+                        passage_node_weight=self.passage_node_weight,
+                        pike_node_weight=self.pike_node_weight,
+                    )
                 )
 
             top_k_docs = [
-                self.chunk_embedding_store.get_row(self.passage_node_keys[idx])["content"]
+                self.chunk_embedding_store.get_row(self.passage_node_keys[idx])[
+                    "content"
+                ]
                 for idx in sorted_doc_ids[:num_to_retrieve]
             ]
 
             retrieval_results.append(
-                QuerySolution(question=query, docs=top_k_docs, doc_scores=sorted_doc_scores[:num_to_retrieve])
+                QuerySolution(
+                    question=query,
+                    docs=top_k_docs,
+                    doc_scores=sorted_doc_scores[:num_to_retrieve],
+                )
             )
 
         retrieve_end_time = time.time()  # Record end time
@@ -402,7 +438,9 @@ class HippoRAG:
         logger.info(f"Total Retrieval Time {self.all_retrieval_time:.2f}s")
         logger.info(f"Total Recognition Memory Time {self.rerank_time:.2f}s")
         logger.info(f"Total PPR Time {self.ppr_time:.2f}s")
-        logger.info(f"Total Misc Time {self.all_retrieval_time - (self.rerank_time + self.ppr_time):.2f}s")
+        logger.info(
+            f"Total Misc Time {self.all_retrieval_time - (self.rerank_time + self.ppr_time):.2f}s"
+        )
 
         return retrieval_results
 
@@ -426,7 +464,9 @@ class HippoRAG:
             Does not explicitly raise exceptions within the provided function logic.
         """
 
-        current_graph_nodes = set(self.graph.vs["name"]) if "name" in self.graph.vs else set()
+        current_graph_nodes = (
+            set(self.graph.vs["name"]) if "name" in self.graph.vs else set()
+        )
 
         logger.info("Adding OpenIE triples to graph.")
 
@@ -441,7 +481,9 @@ class HippoRAG:
                         continue
 
                     node_key = compute_mdhash_id(content=triple[0], prefix=("entity-"))
-                    node_2_key = compute_mdhash_id(content=triple[2], prefix=("entity-"))
+                    node_2_key = compute_mdhash_id(
+                        content=triple[2], prefix=("entity-")
+                    )
 
                     self.node_to_node_stats[(node_key, node_2_key)] = (
                         self.node_to_node_stats.get((node_key, node_2_key), 0.0) + 1
@@ -454,11 +496,13 @@ class HippoRAG:
                     entities_in_chunk.add(node_2_key)
 
                 for node in entities_in_chunk:
-                    self.ent_node_to_chunk_ids[node] = self.ent_node_to_chunk_ids.get(node, set()).union(
-                        set([chunk_key])
-                    )
+                    self.ent_node_to_chunk_ids[node] = self.ent_node_to_chunk_ids.get(
+                        node, set()
+                    ).union(set([chunk_key]))
 
-    def add_passage_edges(self, chunk_ids: list[str], chunk_triple_entities: list[list[str]]):
+    def add_passage_edges(
+        self, chunk_ids: list[str], chunk_triple_entities: list[list[str]]
+    ):
         """
         Adds edges connecting passage nodes to phrase nodes in the graph.
 
@@ -481,7 +525,11 @@ class HippoRAG:
                 The number of new passage nodes added to the graph.
         """
 
-        current_graph_nodes = set(self.graph.vs["name"]) if "name" in self.graph.vs.attribute_names() else set()
+        current_graph_nodes = (
+            set(self.graph.vs["name"])
+            if "name" in self.graph.vs.attribute_names()
+            else set()
+        )
 
         num_new_chunks = 0
 
@@ -519,7 +567,9 @@ class HippoRAG:
 
         self.entity_id_to_row = self.entity_embedding_store.get_all_id_to_rows()
 
-        logger.info(f"Performing KNN retrieval for each phrase nodes ({len(self.entity_id_to_row)}).")
+        logger.info(
+            f"Performing KNN retrieval for each phrase nodes ({len(self.entity_id_to_row)})."
+        )
 
         query_node_key2knn_node_keys = self.entity_embedding_store.internal_cross_knn(
             top_k=self.global_config.synonymy_edge_topk,
@@ -528,7 +578,9 @@ class HippoRAG:
         num_synonym_triple = 0
         synonym_candidates = []  # [(node key, [(synonym node key, corresponding score), ...]), ...]
 
-        for node_key in tqdm(query_node_key2knn_node_keys.keys(), total=len(query_node_key2knn_node_keys)):
+        for node_key in tqdm(
+            query_node_key2knn_node_keys.keys(), total=len(query_node_key2knn_node_keys)
+        ):
             synonyms = []
 
             entity = self.entity_id_to_row[node_key]["content"]
@@ -538,7 +590,10 @@ class HippoRAG:
 
                 num_nns = 0
                 for nn, score in zip(nns[0], nns[1], strict=False):
-                    if score < self.global_config.synonymy_edge_sim_threshold or num_nns > 100:
+                    if (
+                        score < self.global_config.synonymy_edge_sim_threshold
+                        or num_nns > 100
+                    ):
                         break
 
                     nn_phrase = self.entity_id_to_row[nn]["content"]
@@ -548,12 +603,16 @@ class HippoRAG:
                         synonyms.append((nn, score))
                         num_synonym_triple += 1
 
-                        self.node_to_node_stats[sim_edge] = score  # Need to seriously discuss on this
+                        self.node_to_node_stats[sim_edge] = (
+                            score  # Need to seriously discuss on this
+                        )
                         num_nns += 1
 
             synonym_candidates.append((node_key, synonyms))
 
-    def load_existing_openie(self, chunk_keys: Sequence[str]) -> tuple[list[dict], set[str]]:
+    def load_existing_openie(
+        self, chunk_keys: Sequence[str]
+    ) -> tuple[list[dict], set[str]]:
         """
         Loads existing OpenIE results from the specified file if it exists and combines
         them with new content while standardizing indices. If the file does not exist or
@@ -574,7 +633,9 @@ class HippoRAG:
         # combine openie_results with contents already in file, if file exists
         chunk_keys_to_save = set()
 
-        if not self.global_config.force_openie_from_scratch and os.path.isfile(self.openie_results_path):
+        if not self.global_config.force_openie_from_scratch and os.path.isfile(
+            self.openie_results_path
+        ):
             with open(self.openie_results_path, encoding="utf-8") as f:
                 openie_results = json.load(f)
             all_openie_info = openie_results.get("docs", [])
@@ -655,9 +716,19 @@ class HippoRAG:
                 extracted entities.
         """
 
-        sum_phrase_chars = sum([len(e) for chunk in all_openie_info for e in chunk["extracted_entities"]])
-        sum_phrase_words = sum([len(e.split()) for chunk in all_openie_info for e in chunk["extracted_entities"]])
-        num_phrases = sum([len(chunk["extracted_entities"]) for chunk in all_openie_info])
+        sum_phrase_chars = sum(
+            [len(e) for chunk in all_openie_info for e in chunk["extracted_entities"]]
+        )
+        sum_phrase_words = sum(
+            [
+                len(e.split())
+                for chunk in all_openie_info
+                for e in chunk["extracted_entities"]
+            ]
+        )
+        num_phrases = sum(
+            [len(chunk["extracted_entities"]) for chunk in all_openie_info]
+        )
 
         if len(all_openie_info) > 0:
             # Avoid division by zero if there are no phrases
@@ -668,7 +739,11 @@ class HippoRAG:
                 avg_ent_chars = 0
                 avg_ent_words = 0
 
-            openie_dict = {"docs": all_openie_info, "avg_ent_chars": avg_ent_chars, "avg_ent_words": avg_ent_words}
+            openie_dict = {
+                "docs": all_openie_info,
+                "avg_ent_chars": avg_ent_chars,
+                "avg_ent_words": avg_ent_words,
+            }
 
             with open(self.openie_results_path, "w") as f:
                 json.dump(openie_dict, f)
@@ -697,7 +772,9 @@ class HippoRAG:
         New nodes are prepared and added in bulk to optimize graph updates.
         """
 
-        existing_nodes = {v["name"]: v for v in self.graph.vs if "name" in v.attributes()}
+        existing_nodes = {
+            v["name"]: v for v in self.graph.vs if "name" in v.attributes()
+        }
 
         entity_to_row = self.entity_embedding_store.get_all_id_to_rows()
         passage_to_row = self.chunk_embedding_store.get_all_id_to_rows()
@@ -715,7 +792,9 @@ class HippoRAG:
                     new_nodes[k].append(v)
 
         if len(new_nodes) > 0:
-            self.graph.add_vertices(n=len(next(iter(new_nodes.values()))), attributes=new_nodes)
+            self.graph.add_vertices(
+                n=len(next(iter(new_nodes.values()))), attributes=new_nodes
+            )
 
     def add_new_edges(self):
         """
@@ -743,16 +822,23 @@ class HippoRAG:
         for source_node_id, target_node_id, edge_d in zip(
             edge_source_node_keys, edge_target_node_keys, edge_metadata, strict=False
         ):
-            if source_node_id in current_node_ids and target_node_id in current_node_ids:
+            if (
+                source_node_id in current_node_ids
+                and target_node_id in current_node_ids
+            ):
                 valid_edges.append((source_node_id, target_node_id))
                 weight = edge_d.get("weight", 1.0)
                 valid_weights["weight"].append(weight)
             else:
-                logger.warning(f"Edge {source_node_id} -> {target_node_id} is not valid.")
+                logger.warning(
+                    f"Edge {source_node_id} -> {target_node_id} is not valid."
+                )
         self.graph.add_edges(valid_edges, attributes=valid_weights)
 
     def save_igraph(self):
-        logger.info(f"Writing graph with {len(self.graph.vs())} nodes, {len(self.graph.es())} edges")
+        logger.info(
+            f"Writing graph with {len(self.graph.vs())} nodes, {len(self.graph.es())} edges"
+        )
         self.graph.write_pickle(self._graph_pickle_filename)
         logger.info("Saving graph completed!")
 
@@ -790,10 +876,14 @@ class HippoRAG:
         graph_info["num_passage_nodes"] = len(set(passage_nodes_keys))
 
         # get # of total nodes
-        graph_info["num_total_nodes"] = graph_info["num_phrase_nodes"] + graph_info["num_passage_nodes"]
+        graph_info["num_total_nodes"] = (
+            graph_info["num_phrase_nodes"] + graph_info["num_passage_nodes"]
+        )
 
         # get # of extracted triples
-        graph_info["num_extracted_triples"] = len(self.fact_embedding_store.get_all_ids())
+        graph_info["num_extracted_triples"] = len(
+            self.fact_embedding_store.get_all_ids()
+        )
 
         num_triples_with_passage_node = 0
         passage_nodes_set = set(passage_nodes_keys)
@@ -805,7 +895,9 @@ class HippoRAG:
         graph_info["num_triples_with_passage_node"] = num_triples_with_passage_node
 
         graph_info["num_synonymy_triples"] = (
-            len(self.node_to_node_stats) - graph_info["num_extracted_triples"] - num_triples_with_passage_node
+            len(self.node_to_node_stats)
+            - graph_info["num_extracted_triples"]
+            - num_triples_with_passage_node
         )
 
         # get # of total triples
@@ -823,8 +915,12 @@ class HippoRAG:
 
         logger.info("Loading keys.")
 
-        self.entity_node_keys = list(self.entity_embedding_store.get_all_ids())  # a list of phrase node keys
-        self.passage_node_keys = list(self.chunk_embedding_store.get_all_ids())  # a list of passage node keys
+        self.entity_node_keys = list(
+            self.entity_embedding_store.get_all_ids()
+        )  # a list of phrase node keys
+        self.passage_node_keys = list(
+            self.chunk_embedding_store.get_all_ids()
+        )  # a list of passage node keys
         self.fact_node_keys = list(self.fact_embedding_store.get_all_ids())
         # pike_patch prepare
         self.query_node_keys = list(self.query_embedding_store.get_all_ids())
@@ -834,7 +930,9 @@ class HippoRAG:
         actual_node_count = self.graph.vcount()
 
         if expected_node_count != actual_node_count:
-            logger.warning(f"Graph node count mismatch: expected {expected_node_count}, got {actual_node_count}")
+            logger.warning(
+                f"Graph node count mismatch: expected {expected_node_count}, got {actual_node_count}"
+            )
             # If the graph is empty but we have nodes, we need to add them
             if actual_node_count == 0 and expected_node_count > 0:
                 logger.info(f"Initializing graph with {expected_node_count} nodes")
@@ -850,10 +948,14 @@ class HippoRAG:
 
             # Check if all entity and passage nodes are in the graph
             missing_entity_nodes = [
-                node_key for node_key in self.entity_node_keys if node_key not in igraph_name_to_idx
+                node_key
+                for node_key in self.entity_node_keys
+                if node_key not in igraph_name_to_idx
             ]
             missing_passage_nodes = [
-                node_key for node_key in self.passage_node_keys if node_key not in igraph_name_to_idx
+                node_key
+                for node_key in self.passage_node_keys
+                if node_key not in igraph_name_to_idx
             ]
 
             if missing_entity_nodes or missing_passage_nodes:
@@ -864,7 +966,9 @@ class HippoRAG:
                 self.add_new_nodes()
                 self.save_igraph()
                 # Update the mapping
-                igraph_name_to_idx = {node["name"]: idx for idx, node in enumerate(self.graph.vs)}
+                igraph_name_to_idx = {
+                    node["name"]: idx for idx, node in enumerate(self.graph.vs)
+                }
                 self.node_name_to_vertex_idx = igraph_name_to_idx
 
             self.entity_node_idxs = [
@@ -891,15 +995,23 @@ class HippoRAG:
             for triple in triples:
                 if len(triple) == 3:
                     proc_triple = tuple(text_processing(list(triple)))
-                    self.proc_triples_to_docs[str(proc_triple)] = self.proc_triples_to_docs.get(
-                        str(proc_triple), set()
-                    ).union(set([doc["idx"]]))
+                    self.proc_triples_to_docs[str(proc_triple)] = (
+                        self.proc_triples_to_docs.get(str(proc_triple), set()).union(
+                            set([doc["idx"]])
+                        )
+                    )
 
         if self.ent_node_to_chunk_ids is None:
-            ner_results_dict, triple_results_dict = reformat_openie_results(all_openie_info)
+            ner_results_dict, triple_results_dict = reformat_openie_results(
+                all_openie_info
+            )
 
             # Check if the lengths match
-            if not (len(self.passage_node_keys) == len(ner_results_dict) == len(triple_results_dict)):
+            if not (
+                len(self.passage_node_keys)
+                == len(ner_results_dict)
+                == len(triple_results_dict)
+            ):
                 logger.warning(
                     f"Length mismatch: passage_node_keys={len(self.passage_node_keys)}, ner_results_dict={len(ner_results_dict)}, triple_results_dict={len(triple_results_dict)}"
                 )
@@ -1002,7 +1114,10 @@ class HippoRAG:
         return sorted_doc_ids, sorted_doc_scores
 
     def get_top_k_weights(
-        self, link_top_k: int, all_phrase_weights: np.ndarray, linking_score_map: dict[str, float]
+        self,
+        link_top_k: int,
+        all_phrase_weights: np.ndarray,
+        linking_score_map: dict[str, float],
     ) -> tuple[np.ndarray, dict[str, float]]:
         """
         This function filters the all_phrase_weights to retain only the weights for the
@@ -1023,12 +1138,19 @@ class HippoRAG:
             linking_score_map containing only the top `link_top_k` phrases.
         """
         # choose top ranked nodes in linking_score_map
-        linking_score_map = dict(sorted(linking_score_map.items(), key=lambda x: x[1], reverse=True)[:link_top_k])
+        linking_score_map = dict(
+            sorted(linking_score_map.items(), key=lambda x: x[1], reverse=True)[
+                :link_top_k
+            ]
+        )
 
         # only keep the top_k phrases in all_phrase_weights
         top_k_phrases = set(linking_score_map.keys())
         top_k_phrases_keys = set(
-            [compute_mdhash_id(content=top_k_phrase, prefix="entity-") for top_k_phrase in top_k_phrases]
+            [
+                compute_mdhash_id(content=top_k_phrase, prefix="entity-")
+                for top_k_phrase in top_k_phrases
+            ]
         )
 
         for phrase_key in self.node_name_to_vertex_idx:
@@ -1088,7 +1210,9 @@ class HippoRAG:
                     phrase_weights[phrase_id] = fact_score
 
                     if len(self.ent_node_to_chunk_ids.get(phrase_key, set())) > 0:
-                        phrase_weights[phrase_id] /= len(self.ent_node_to_chunk_ids[phrase_key])
+                        phrase_weights[phrase_id] /= len(
+                            self.ent_node_to_chunk_ids[phrase_key]
+                        )
 
                 if phrase not in phrase_scores:
                     phrase_scores[phrase] = []
@@ -1104,21 +1228,27 @@ class HippoRAG:
             )  # at this stage, the length of linking_scope_map is determined by link_top_k
 
         # Get pike chunk according to chosen atom query
-        atom_query_results = self.query_embedding_store.search(query, top_k=self.atom_query_num)
+        atom_query_results = self.query_embedding_store.search(
+            query, top_k=self.atom_query_num
+        )
         query_sorted_scores = [score for _, score in atom_query_results]
         if len(atom_query_results) != 0:
-            for i, query_dict in enumerate(atom_query_results):
+            for i, (query_dict, _) in enumerate(atom_query_results):
                 query_dpr_score = query_sorted_scores[i]
                 atom_query = query_dict["content"]
                 chunk_ids = self.query_to_chunk_ids.get(atom_query, [])
                 for chunk_id in chunk_ids:
                     # passage_node_key = self.passage_node_keys[chunk_id]
                     passage_node_id = self.node_name_to_vertex_idx[chunk_id]
-                    pike_passage_weights[passage_node_id] = query_dpr_score * pike_node_weight
+                    pike_passage_weights[passage_node_id] = (
+                        query_dpr_score * pike_node_weight
+                    )
 
         # Get passage scores according to chosen dense retrieval model
         dpr_top_passages = self.chunk_embedding_store.search(
-            query_text=query, instruction=get_query_instruction("query_to_passage"), top_k=len(self.passage_node_keys)
+            query_text=query,
+            instruction=get_query_instruction("query_to_passage"),
+            top_k=len(self.passage_node_keys),
         )
         passage_scores_list = [score for _, score in dpr_top_passages]
         normalized_dpr_sorted_scores = min_max_normalize(np.array(passage_scores_list))
@@ -1128,7 +1258,9 @@ class HippoRAG:
             passage_node_id = self.node_name_to_vertex_idx[passage_dict["hash_id"]]
             passage_weights[passage_node_id] = passage_dpr_score * passage_node_weight
             passage_node_text = passage_dict["content"]
-            linking_score_map[passage_node_text] = passage_dpr_score * passage_node_weight
+            linking_score_map[passage_node_text] = (
+                passage_dpr_score * passage_node_weight
+            )
 
         # Combining phrase and passage scores into one array for PPR
         # Combining pike passage scores
@@ -1136,13 +1268,19 @@ class HippoRAG:
 
         # Recording top 30 facts in linking_score_map
         if len(linking_score_map) > 30:
-            linking_score_map = dict(sorted(linking_score_map.items(), key=lambda x: x[1], reverse=True)[:30])
+            linking_score_map = dict(
+                sorted(linking_score_map.items(), key=lambda x: x[1], reverse=True)[:30]
+            )
 
-        assert sum(node_weights) > 0, f"No phrases found in the graph for the given facts: {top_k_facts}"
+        assert sum(node_weights) > 0, (
+            f"No phrases found in the graph for the given facts: {top_k_facts}"
+        )
 
         # Running PPR algorithm based on the passage and phrase weights previously assigned
         ppr_start = time.time()
-        ppr_sorted_doc_ids, ppr_sorted_doc_scores = self.run_ppr(node_weights, damping=self.global_config.damping)
+        ppr_sorted_doc_ids, ppr_sorted_doc_scores = self.run_ppr(
+            node_weights, damping=self.global_config.damping
+        )
         ppr_end = time.time()
 
         self.ppr_time += ppr_end - ppr_start
@@ -1174,16 +1312,24 @@ class HippoRAG:
         try:
             # Get the top k facts by score
             top_facts_from_search = self.fact_embedding_store.search(
-                query_text=query, instruction=get_query_instruction("query_to_fact"), top_k=link_top_k
+                query_text=query,
+                instruction=get_query_instruction("query_to_fact"),
+                top_k=link_top_k,
             )
 
             if not top_facts_from_search:
-                logger.warning("No facts available for reranking. Returning empty lists.")
+                logger.warning(
+                    "No facts available for reranking. Returning empty lists."
+                )
                 return [], {}, {"facts_before_rerank": [], "facts_after_rerank": []}
 
             fact_row_dict = [fact_dict for fact_dict, score in top_facts_from_search]
-            candidate_facts: list[tuple] = [ast.literal_eval(f["content"]) for f in fact_row_dict]
-            initial_fact_scores = {f["content"]: score for f, score in top_facts_from_search}
+            candidate_facts: list[tuple] = [
+                ast.literal_eval(f["content"]) for f in fact_row_dict
+            ]
+            initial_fact_scores = {
+                f["content"]: score for f, score in top_facts_from_search
+            }
 
             logger.info(f"query: {query}")
             logger.info(f"candidate_facts: {candidate_facts}")
@@ -1196,18 +1342,30 @@ class HippoRAG:
                 batch_num=batch_num,
             )[1]
             logger.info(f"top_k_facts: {top_k_facts}")
-            rerank_log = {"facts_before_rerank": candidate_facts, "facts_after_rerank": top_k_facts}
+            rerank_log = {
+                "facts_before_rerank": candidate_facts,
+                "facts_after_rerank": top_k_facts,
+            }
 
             # The scores are not reranked, we use the original scores from vector search
-            fact_scores = {str(fact): initial_fact_scores.get(str(fact), 0.0) for fact in top_k_facts}
+            fact_scores = {
+                str(fact): initial_fact_scores.get(str(fact), 0.0)
+                for fact in top_k_facts
+            }
 
             return top_k_facts, fact_scores, rerank_log
 
         except Exception as e:
             logger.error(f"Error in rerank_facts: {e!s}")
-            return [], {}, {"facts_before_rerank": [], "facts_after_rerank": [], "error": str(e)}
+            return (
+                [],
+                {},
+                {"facts_before_rerank": [], "facts_after_rerank": [], "error": str(e)},
+            )
 
-    def run_ppr(self, reset_prob: np.ndarray, damping: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
+    def run_ppr(
+        self, reset_prob: np.ndarray, damping: float = 0.5
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Runs Personalized PageRank (PPR) on a graph and computes relevance scores for
         nodes corresponding to document passages. The method utilizes a damping
