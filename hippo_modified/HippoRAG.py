@@ -228,7 +228,6 @@ class HippoRAG:
             self.query_embedding_store.insert_strings([query])
         with open(self.pike_patch_path, "w") as f:
             json.dump(old_queries, f)
-        self.chunk_embedding_store._load_data()
         query_to_chunk_ids = {}
         for query in old_queries:
             chunk_ids = old_queries[query]
