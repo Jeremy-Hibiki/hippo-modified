@@ -231,13 +231,13 @@ class HippoRAG:
         self.chunk_embedding_store._load_data()
         query_to_chunk_ids = {}
         for query in old_queries:
-            chunks = old_queries[query]
-            chunk_ids = []
-            for chunk in chunks:
-                chunk_id = self.chunk_embedding_store.text_to_hash_id.get(chunk, None)
-                if chunk_id is not None:
-                    chunk_ids.append(chunk_id)
-            query_to_chunk_ids[query] = chunk_ids
+            chunk_ids = old_queries[query]
+            query_chunk_ids = []
+            all_ids = self.chunk_embedding_store.get_all_ids()
+            for chunk_id in chunk_ids:
+                if chunk_id in all_ids:
+                    query_chunk_ids.append(chunk_id)
+            query_to_chunk_ids[query] = query_chunk_ids
         self.query_to_chunk_ids = query_to_chunk_ids
 
     def index(self, docs: list[str]):
