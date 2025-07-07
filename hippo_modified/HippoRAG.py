@@ -1124,17 +1124,21 @@ class HippoRAG:
             )  # at this stage, the length of linking_scope_map is determined by link_top_k
 
         # Get pike chunk according to chosen atom query
-        atom_query_results = self.query_embedding_store.search(query, top_k=self.atom_query_num)
-        query_sorted_scores = [score for _, score in atom_query_results]
-        if len(atom_query_results) != 0:
-            for i, (query_dict, _) in enumerate(atom_query_results):
-                query_dpr_score = query_sorted_scores[i]
-                atom_query = query_dict["content"]
-                chunk_ids = self.query_to_chunk_ids.get(atom_query, [])
-                for chunk_id in chunk_ids:
-                    # passage_node_key = self.passage_node_keys[chunk_id]
-                    passage_node_id = self.node_name_to_vertex_idx[chunk_id]
-                    pike_passage_weights[passage_node_id] = query_dpr_score * pike_node_weight
+        # atom_query_results = self.query_embedding_store.search(
+        #     query, top_k=self.atom_query_num
+        # )
+        # query_sorted_scores = [score for _, score in atom_query_results]
+        # if len(atom_query_results) != 0:
+        #     for i, (query_dict, _) in enumerate(atom_query_results):
+        #         query_dpr_score = query_sorted_scores[i]
+        #         atom_query = query_dict["content"]
+        #         chunk_ids = self.query_to_chunk_ids.get(atom_query, [])
+        #         for chunk_id in chunk_ids:
+        #             # passage_node_key = self.passage_node_keys[chunk_id]
+        #             passage_node_id = self.node_name_to_vertex_idx[chunk_id]
+        #             pike_passage_weights[passage_node_id] = (
+        #                 query_dpr_score * pike_node_weight
+        #             )
 
         # Get passage scores according to chosen dense retrieval model
         dpr_top_passages = self.chunk_embedding_store.search(
