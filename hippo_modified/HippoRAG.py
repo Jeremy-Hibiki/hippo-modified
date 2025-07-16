@@ -227,16 +227,16 @@ class HippoRAG:
             old_queries.update(queries)
         else:
             old_queries = queries.copy()
-
-        for query in list(old_queries.keys()):
-            self.query_embedding_store.insert_strings([query])
+        
+        #for query in list(old_queries.keys()):
+        self.query_embedding_store.insert_strings(list(old_queries.keys()))
         with open(self.pike_patch_path, "w") as f:
             json.dump(old_queries, f)
         query_to_chunk_ids = {}
+        all_ids = set(self.chunk_embedding_store.get_all_ids())
         for query in old_queries:
             chunk_ids = old_queries[query]
             query_chunk_ids = []
-            all_ids = self.chunk_embedding_store.get_all_ids()
             for chunk_id in chunk_ids:
                 if chunk_id in all_ids:
                     query_chunk_ids.append(chunk_id)
@@ -318,7 +318,7 @@ class HippoRAG:
         pike_node_weight: float = None,
         rerank_batch_num: int = 10,
         rerank_file_path: str = None,
-        atom_query_num: int = 3,
+        atom_query_num: int = 5,
     ) -> list[QuerySolution]:
         """
         Performs retrieval using the HippoRAG 2 framework, which consists of several steps:
@@ -1124,21 +1124,22 @@ class HippoRAG:
             )  # at this stage, the length of linking_scope_map is determined by link_top_k
 
         # Get pike chunk according to chosen atom query
-        # atom_query_results = self.query_embedding_store.search(
-        #     query, top_k=self.atom_query_num
-        # )
-        # query_sorted_scores = [score for _, score in atom_query_results]
-        # if len(atom_query_results) != 0:
-        #     for i, (query_dict, _) in enumerate(atom_query_results):
-        #         query_dpr_score = query_sorted_scores[i]
-        #         atom_query = query_dict["content"]
-        #         chunk_ids = self.query_to_chunk_ids.get(atom_query, [])
-        #         for chunk_id in chunk_ids:
-        #             # passage_node_key = self.passage_node_keys[chunk_id]
-        #             passage_node_id = self.node_name_to_vertex_idx[chunk_id]
-        #             pike_passage_weights[passage_node_id] = (
-        #                 query_dpr_score * pike_node_weight
-        #             )
+        atom_query_results = self.query_embedding_store.search(
+            query, top_k=self.atom_query_num
+        )
+        query_sorted_scores = [score for _, score in atom_query_results]
+        normalized_query_sorted_scores = min_max_normalize(np.array(query_sorted_scores))
+        if len(atom_query_results) != 0:
+            for i, (query_dict, _) in enumerate(atom_query_results):
+                query_dpr_score = normalized_query_sorted_scores[i]
+                atom_query = query_dict["content"]
+                chunk_ids = self.query_to_chunk_ids.get(atom_query, [])
+                for chunk_id in chunk_ids:
+                    # passage_node_key = self.passage_node_keys[chunk_id]
+                    passage_node_id = self.node_name_to_vertex_idx[chunk_id]
+                    pike_passage_weights[passage_node_id] = (
+                        query_dpr_score * pike_node_weight
+                    )
 
         # Get passage scores according to chosen dense retrieval model
         dpr_top_passages = self.chunk_embedding_store.search(
@@ -1204,7 +1205,6 @@ class HippoRAG:
                 instruction=get_query_instruction("query_to_fact"),
                 top_k=link_top_k,
             )
-
             if not top_facts_from_search:
                 logger.warning("No facts available for reranking. Returning empty lists.")
                 return [], {}, {"facts_before_rerank": [], "facts_after_rerank": []}
