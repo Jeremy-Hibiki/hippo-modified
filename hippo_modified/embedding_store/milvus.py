@@ -26,7 +26,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         enable_hybrid_search: bool = True,
     ):
         try:
-            from pymilvus import MilvusClient
+            from pymilvus import Collection, MilvusClient
         except ImportError:
             raise ImportError("Please install `pymilvus` to use MilvusEmbeddingStore") from None
 
@@ -40,6 +40,8 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         self._client = MilvusClient(uri=uri, token=token, db_name=db_name)
 
         self._setup_collection()
+
+        self._col = Collection(self._collection_name, using=self._client._using)
 
         logger.info(f"Initialized MilvusEmbeddingStore for namespace: {namespace}")
 
@@ -147,12 +149,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         return compute_mdhash_id(text, prefix=self._namespace + "-")
 
     def get_all_ids(self) -> list[str]:
-        from pymilvus import Collection
-
-        iterator = Collection(
-            self._collection_name,
-            using=self.client._using,
-        ).query_iterator(
+        iterator = self._col.query_iterator(
             batch_size=2048,
             expr="hash_id is not null",
             output_fields=["hash_id"],
@@ -165,12 +162,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         return list({result["hash_id"] for result in results})
 
     def get_all_id_to_rows(self) -> dict:
-        from pymilvus import Collection
-
-        iterator = Collection(
-            self._collection_name,
-            using=self.client._using,
-        ).query_iterator(
+        iterator = self._col.query_iterator(
             batch_size=2048,
             expr="hash_id is not null",
             output_fields=["hash_id", "content"],
