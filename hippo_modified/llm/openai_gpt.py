@@ -1,4 +1,3 @@
-import functools
 import hashlib
 import inspect
 import json
@@ -170,15 +169,26 @@ def cache_response(func: Callable[..., _R]) -> Callable[..., _R]:
         return sync_wrapper(func)
 
 
-def dynamic_retry_decorator(func):
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        max_retries = getattr(self, "max_retries", 5)
+def dynamic_retry_decorator(func: Callable[..., _R]) -> Callable[..., _R]:
+    @wrapt.decorator
+    def sync_wrapper(wrapped, instance, args, kwargs):
+        max_retries = getattr(instance, "max_retries", 5)
         dynamic_retry = retry(stop=stop_after_attempt(max_retries), wait=wait_fixed(1))
-        decorated_func = dynamic_retry(func)
-        return decorated_func(self, *args, **kwargs)
+        decorated_func = dynamic_retry(wrapped)
+        return decorated_func(*args, **kwargs)
 
-    return wrapper
+    @wrapt.decorator
+    async def async_wrapper(wrapped, instance, args, kwargs):
+        max_retries = getattr(instance, "max_retries", 5)
+        dynamic_retry = retry(stop=stop_after_attempt(max_retries), wait=wait_fixed(1))
+        decorated_func = dynamic_retry(wrapped)
+        return await decorated_func(*args, **kwargs)
+
+    # 根据被装饰函数的类型返回对应的装饰器
+    if inspect.iscoroutinefunction(func):
+        return async_wrapper(func)
+    else:
+        return sync_wrapper(func)
 
 
 class CacheOpenAI(BaseLLM):
