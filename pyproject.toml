@@ -17,6 +17,8 @@ dependencies = [
     "tqdm",
     "transformers>=4.51",
     "filelock",
+    "wrapt>=1.17.2",
+    "aiosqlite>=0.21.0",
 ]
 
 [project.optional-dependencies]

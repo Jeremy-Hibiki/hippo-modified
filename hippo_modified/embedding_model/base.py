@@ -191,6 +191,9 @@ class BaseEmbeddingModel:
     def batch_encode(self, texts: list[str], **kwargs) -> npt.NDArray:
         raise NotImplementedError
 
+    async def async_batch_encode(self, texts: list[str], **kwargs) -> npt.NDArray:
+        return self.batch_encode(texts, **kwargs)
+
     def get_query_doc_scores(self, query_vec: np.ndarray, doc_vecs: np.ndarray):
         # """
         # @param query_vec: query vector

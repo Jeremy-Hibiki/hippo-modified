@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
+from typing_extensions import override
 from uuid import uuid4
 
 import numpy as np
@@ -27,7 +28,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         enable_hybrid_search: bool = True,
     ):
         try:
-            from pymilvus import Collection, MilvusClient
+            from pymilvus import AsyncMilvusClient, Collection, MilvusClient
         except ImportError:
             raise ImportError("Please install `pymilvus` to use MilvusEmbeddingStore") from None
 
@@ -39,6 +40,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         self._enable_hybrid_search = enable_hybrid_search
 
         self._client = MilvusClient(uri=uri, token=token, db_name=db_name, alias=uuid4().hex)
+        self._async_client = AsyncMilvusClient(uri=uri, token=token, db_name=db_name, alias=uuid4().hex)
 
         self._setup_collection()
 
@@ -49,6 +51,10 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
     @property
     def client(self):
         return self._client
+
+    @property
+    def async_client(self):
+        return self._async_client
 
     def _setup_collection(self):
         try:
@@ -209,6 +215,26 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             data=data,
         )
 
+    @override
+    async def async_insert_strings(self, texts: Sequence[str]) -> dict | None:
+        nodes_dict = {}
+        for text in texts:
+            nodes_dict[compute_mdhash_id(text, prefix=self._namespace + "-")] = {"content": text}
+
+        all_hash_ids = list(nodes_dict.keys())
+        if not all_hash_ids:
+            return  # Nothing to insert.
+
+        embeddings = await self._embedding_model.async_batch_encode(list(texts))
+        for hash_id, embedding in zip(all_hash_ids, embeddings, strict=True):
+            nodes_dict[hash_id]["hash_id"] = hash_id
+            nodes_dict[hash_id]["embedding"] = embedding.tolist()
+        data = list(nodes_dict.values())
+        self.async_client.upsert(
+            collection_name=self._collection_name,
+            data=data,
+        )
+
     def search(
         self,
         query_text: str,
@@ -250,6 +276,59 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             )
             try:
                 results = self.client.hybrid_search(
+                    self._collection_name,
+                    [dense_req, sparse_req],
+                    ranker=RRFRanker(),
+                    limit=top_k,
+                    output_fields=["hash_id", "content", "embedding"],
+                )
+            except Exception as e:
+                logger.error(f"Hybrid search failed: {e}")
+                raise e
+        return [(hit["entity"], float(hit["distance"])) for hit in results[0]]
+
+    @override
+    async def async_search(
+        self,
+        query_text: str,
+        instruction: str = "",
+        top_k: int = 10,
+    ) -> list[tuple[dict, float]]:
+        if self.global_config.embedding_use_instruction:
+            text_to_embed = self.global_config.embedding_instruction_format.format(
+                instruction=instruction, text=query_text
+            )
+        else:
+            text_to_embed = query_text
+        query_embedding = (await self._embedding_model.async_batch_encode([text_to_embed]))[0]
+        if not self._enable_hybrid_search:
+            results = await self.async_client.search(
+                self._collection_name,
+                data=[query_embedding],
+                anns_field="embedding",
+                limit=top_k,
+                output_fields=["hash_id", "content", "embedding"],
+            )
+        else:
+            try:
+                from pymilvus import AnnSearchRequest, RRFRanker
+            except ImportError:
+                raise ImportError("Please upgrade `pymilvus` for hybrid search") from None
+
+            dense_req = AnnSearchRequest(
+                [query_embedding],
+                "embedding",
+                {"metric_type": "IP"},
+                limit=top_k * 4,
+            )
+            sparse_req = AnnSearchRequest(
+                [query_text],
+                "sparse_embedding",
+                {"metric_type": "BM25"},
+                limit=top_k * 4,
+            )
+            try:
+                results = await self.async_client.hybrid_search(
                     self._collection_name,
                     [dense_req, sparse_req],
                     ranker=RRFRanker(),
