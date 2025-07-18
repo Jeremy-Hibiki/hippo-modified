@@ -10,6 +10,9 @@ class BaseEmbeddingStore(ABC):
     def insert_strings(self, texts: Sequence[str]) -> dict | None:
         pass
 
+    async def async_insert_strings(self, texts: Sequence[str]) -> dict | None:
+        return self.insert_strings(texts)
+
     @abstractmethod
     def get_row(self, hash_id: str) -> dict:
         pass

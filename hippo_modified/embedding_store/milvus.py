@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
+from typing_extensions import override
 from uuid import uuid4
 
 import numpy as np
@@ -214,6 +215,26 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             data=data,
         )
 
+    @override
+    async def async_insert_strings(self, texts: Sequence[str]) -> dict | None:
+        nodes_dict = {}
+        for text in texts:
+            nodes_dict[compute_mdhash_id(text, prefix=self._namespace + "-")] = {"content": text}
+
+        all_hash_ids = list(nodes_dict.keys())
+        if not all_hash_ids:
+            return  # Nothing to insert.
+
+        embeddings = await self._embedding_model.async_batch_encode(list(texts))
+        for hash_id, embedding in zip(all_hash_ids, embeddings, strict=True):
+            nodes_dict[hash_id]["hash_id"] = hash_id
+            nodes_dict[hash_id]["embedding"] = embedding.tolist()
+        data = list(nodes_dict.values())
+        self.async_client.upsert(
+            collection_name=self._collection_name,
+            data=data,
+        )
+
     def search(
         self,
         query_text: str,
@@ -266,6 +287,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                 raise e
         return [(hit["entity"], float(hit["distance"])) for hit in results[0]]
 
+    @override
     async def async_search(
         self,
         query_text: str,

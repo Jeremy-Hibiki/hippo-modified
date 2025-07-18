@@ -36,7 +36,7 @@ from .utils.misc_utils import (
 logger = logging.getLogger(__name__)
 
 
-class HippoRAG:
+class AsyncHippoRAG:
     def __init__(
         self,
         global_config: BaseConfig = None,
@@ -49,7 +49,7 @@ class HippoRAG:
         azure_embedding_endpoint=None,
     ):
         """
-        Initializes an instance of the class and its related components.
+        Initializes an async version of the class and its related components.
 
         Attributes:
             global_config (BaseConfig): The global configuration settings for the instance. An instance
@@ -181,7 +181,7 @@ class HippoRAG:
         self.pike_patch()
 
         rerank_filter = DSPyFilter(self)
-        self.rerank_filter_fn = rerank_filter.rerank
+        self.rerank_filter_fn = rerank_filter.async_rerank
 
         self.ready_to_retrieve = False
 
@@ -245,7 +245,7 @@ class HippoRAG:
             query_to_chunk_ids[query] = query_chunk_ids
         self.query_to_chunk_ids = query_to_chunk_ids
 
-    def index(self, docs: list[str]):
+    async def index(self, docs: list[str]):
         """
         Indexes the given documents based on the HippoRAG 2 framework which generates an OpenIE knowledge graph
         based on the given documents and encodes passages, entities and facts separately for later retrieval.
@@ -259,7 +259,7 @@ class HippoRAG:
 
         logger.info("Performing OpenIE")
 
-        self.chunk_embedding_store.insert_strings(docs)
+        await self.chunk_embedding_store.async_insert_strings(docs)
         chunk_to_rows = self.chunk_embedding_store.get_all_id_to_rows()
 
         all_openie_info, chunk_keys_to_process = self.load_existing_openie(list(chunk_to_rows.keys()))
@@ -291,10 +291,10 @@ class HippoRAG:
         facts = flatten_facts(chunk_triples)
 
         logger.info("Encoding Entities")
-        self.entity_embedding_store.insert_strings(entity_nodes)
+        await self.entity_embedding_store.async_insert_strings(entity_nodes)
 
         logger.info("Encoding Facts")
-        self.fact_embedding_store.insert_strings([str(fact) for fact in facts])
+        await self.fact_embedding_store.async_insert_strings([str(fact) for fact in facts])
 
         logger.info("Constructing Graph")
 
@@ -311,7 +311,7 @@ class HippoRAG:
             self.augment_graph()
             self.save_igraph()
 
-    def retrieve(
+    async def retrieve(
         self,
         queries: list[str],
         num_to_retrieve: int = None,
@@ -376,7 +376,7 @@ class HippoRAG:
 
         for q_idx, query in tqdm(enumerate(queries), desc="Retrieving", total=len(queries)):
             rerank_start = time.time()
-            top_k_facts, fact_scores_dict, rerank_log = self.rerank_facts(
+            top_k_facts, fact_scores_dict, rerank_log = await self.async_rerank_facts(
                 query,
                 batch_num=rerank_batch_num,
             )
@@ -388,7 +388,7 @@ class HippoRAG:
                 logger.info("No facts found after reranking")
                 sorted_doc_ids, sorted_doc_scores = np.array([]), np.array([])
             else:
-                sorted_doc_ids, sorted_doc_scores = self.graph_search_with_fact_entities(
+                sorted_doc_ids, sorted_doc_scores = await self.graph_search_with_fact_entities(
                     query=query,
                     link_top_k=self.global_config.linking_top_k,
                     top_k_facts=top_k_facts,
@@ -994,7 +994,7 @@ class HippoRAG:
         assert np.count_nonzero(all_phrase_weights) == len(linking_score_map.keys())
         return all_phrase_weights, linking_score_map
 
-    def graph_search_with_fact_entities(
+    async def graph_search_with_fact_entities(
         self,
         query: str,
         link_top_k: int,
@@ -1058,7 +1058,7 @@ class HippoRAG:
             )  # at this stage, the length of linking_scope_map is determined by link_top_k
 
         # Get pike chunk according to chosen atom query
-        atom_query_results = self.query_embedding_store.search(query, top_k=self.atom_query_num)
+        atom_query_results = await self.query_embedding_store.async_search(query, top_k=self.atom_query_num)
         query_sorted_scores = [score for _, score in atom_query_results]
         normalized_query_sorted_scores = min_max_normalize(np.array(query_sorted_scores))
         if len(atom_query_results) != 0:
@@ -1072,7 +1072,7 @@ class HippoRAG:
                     pike_passage_weights[passage_node_id] = query_dpr_score * pike_node_weight
 
         # Get passage scores according to chosen dense retrieval model
-        dpr_top_passages = self.chunk_embedding_store.search(
+        dpr_top_passages = await self.chunk_embedding_store.async_search(
             query_text=query,
             instruction=get_query_instruction("query_to_passage"),
             top_k=len(self.passage_node_keys),
@@ -1110,7 +1110,7 @@ class HippoRAG:
 
         return ppr_sorted_doc_ids, ppr_sorted_doc_scores
 
-    def rerank_facts(
+    async def rerank_facts(
         self,
         query: str,
         batch_num: int = 10,
@@ -1130,7 +1130,7 @@ class HippoRAG:
 
         try:
             # Get the top k facts by score
-            top_facts_from_search = self.fact_embedding_store.search(
+            top_facts_from_search = await self.fact_embedding_store.async_search(
                 query_text=query,
                 instruction=get_query_instruction("query_to_fact"),
                 top_k=link_top_k,
@@ -1146,7 +1146,7 @@ class HippoRAG:
             logger.info(f"query: {query}")
             logger.info(f"candidate_facts: {candidate_facts}")
             # Rerank the facts
-            top_k_facts = self.rerank_filter_fn(
+            top_k_facts = await self.async_rerank_filter_fn(
                 query,
                 candidate_facts,
                 list(range(len(candidate_facts))),
