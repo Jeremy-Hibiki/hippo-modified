@@ -23,16 +23,16 @@ conflicts = [[
 [[package]]
 name = "accelerate"
 version = "1.8.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "huggingface-hub", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "packaging", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "psutil", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pyyaml", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "safetensors", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "torch", version = "2.7.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "torch", version = "2.7.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "torch", version = "2.7.1+cpu", source = { registry = "https://mirror.nju.edu.cn/pytorch/whl/cpu" }, marker = "(platform_machine == 'x86_64' and extra == 'extra-14-hippo-modified-cpu') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "torch", version = "2.7.1+cu126", source = { registry = "https://mirror.nju.edu.cn/pytorch/whl/cu126" }, marker = "(platform_machine == 'x86_64' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -44,7 +44,7 @@ wheels = [
 [[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/26/30/f84a107a9c4331c14b2b586036f40965c128aa4fee4dda5d3d51cb14ad54/aiohappyeyeballs-2.6.1.tar.gz", hash = "sha256:c3f9d0113123803ccadfdf3f0faa505bc78e6a72d1cc4806cbd719826e943558", size = 22760, upload-time = "2025-03-12T01:42:48.764Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0f/15/5bf3b99495fb160b63f95972b81750f18f7f4e02ad051373b669d17d44f2/aiohappyeyeballs-2.6.1-py3-none-any.whl", hash = "sha256:f349ba8f4b75cb25c99c5c2d84e997e485204d2902a9597802b0371f09331fb8", size = 15265, upload-time = "2025-03-12T01:42:47.083Z" },
@@ -53,7 +53,7 @@ wheels = [
 [[package]]
 name = "aiohttp"
 version = "3.12.13"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "aiohappyeyeballs", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "aiosignal", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -139,7 +139,7 @@ wheels = [
 [[package]]
 name = "aiosignal"
 version = "1.3.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "frozenlist", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -149,9 +149,21 @@ wheels = [
 ]
 
 [[package]]
+name = "aiosqlite"
+version = "0.21.0"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
+dependencies = [
+    { name = "typing-extensions", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+]
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/13/7d/8bca2bf9a247c2c5dfeec1d7a5f40db6518f88d314b8bca9da29670d2671/aiosqlite-0.21.0.tar.gz", hash = "sha256:131bb8056daa3bc875608c631c678cda73922a2d4ba8aec373b19f18c17e7aa3", size = 13454, upload-time = "2025-02-03T07:30:16.235Z" }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f5/10/6c25ed6de94c49f88a91fa5018cb4c0f3625f31d5be9f771ebe5cc7cd506/aiosqlite-0.21.0-py3-none-any.whl", hash = "sha256:2549cf4057f95f53dcba16f2b64e8e2791d7e1adedb13197dd8ed77bb226d7d0", size = 15792, upload-time = "2025-02-03T07:30:13.6Z" },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ee/67/531ea369ba64dcff5ec9c3402f9f51bf748cec26dde048a2f973a4eea7f5/annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89", size = 16081, upload-time = "2024-05-20T21:33:25.928Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/78/b6/6307fbef88d9b5ee7421e68d78a9f162e0da4900bc5f5793f6d3d0e34fb8/annotated_types-0.7.0-py3-none-any.whl", hash = "sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53", size = 13643, upload-time = "2024-05-20T21:33:24.1Z" },
@@ -160,7 +172,7 @@ wheels = [
 [[package]]
 name = "anyio"
 version = "4.9.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "exceptiongroup", marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "idna", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -175,7 +187,7 @@ wheels = [
 [[package]]
 name = "async-timeout"
 version = "5.0.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a5/ae/136395dfbfe00dfc94da3f3e136d0b13f394cba8f4841120e34226265780/async_timeout-5.0.1.tar.gz", hash = "sha256:d9321a7a3d5a6a5e187e824d2fa0793ce379a202935782d555d6e9d2735677d3", size = 9274, upload-time = "2024-11-06T16:41:39.6Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/fe/ba/e2081de779ca30d473f21f5b30e0e737c438205440784c7dfc81efc2b029/async_timeout-5.0.1-py3-none-any.whl", hash = "sha256:39e3809566ff85354557ec2398b55e096c8364bacac9405a7a1fa429e77fe76c", size = 6233, upload-time = "2024-11-06T16:41:37.9Z" },
@@ -184,7 +196,7 @@ wheels = [
 [[package]]
 name = "attrs"
 version = "25.3.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/5a/b0/1367933a8532ee6ff8d63537de4f1177af4bff9f3e829baf7331f595bb24/attrs-25.3.0.tar.gz", hash = "sha256:75d7cefc7fb576747b2c81b4442d4d4a1ce0900973527c011d1030fd3bf4af1b", size = 812032, upload-time = "2025-03-13T11:10:22.779Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/77/06/bb80f5f86020c4551da315d78b3ab75e8228f89f0162f2c3a819e407941a/attrs-25.3.0-py3-none-any.whl", hash = "sha256:427318ce031701fea540783410126f03899a97ffc6f61596ad581ac2e40e3bc3", size = 63815, upload-time = "2025-03-13T11:10:21.14Z" },
@@ -193,7 +205,7 @@ wheels = [
 [[package]]
 name = "certifi"
 version = "2025.6.15"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/73/f7/f14b46d4bcd21092d7d3ccef689615220d8a08fb25e564b65d20738e672e/certifi-2025.6.15.tar.gz", hash = "sha256:d747aa5a8b9bbbb1bb8c22bb13e22bd1f18e9796defa16bab421f7f7a317323b", size = 158753, upload-time = "2025-06-15T02:45:51.329Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/84/ae/320161bd181fc06471eed047ecce67b693fd7515b16d495d8932db763426/certifi-2025.6.15-py3-none-any.whl", hash = "sha256:2e0c7ce7cb5d8f8634ca55d2ba7e6ec2689a2fd6537d8dec1296a477a4910057", size = 157650, upload-time = "2025-06-15T02:45:49.977Z" },
@@ -202,7 +214,7 @@ wheels = [
 [[package]]
 name = "charset-normalizer"
 version = "3.4.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/e4/33/89c2ced2b67d1c2a61c19c6751aa8902d46ce3dacb23600a283619f5a12d/charset_normalizer-3.4.2.tar.gz", hash = "sha256:5baececa9ecba31eff645232d59845c07aa030f0c81ee70184a90d35099a0e63", size = 126367, upload-time = "2025-05-02T08:34:42.01Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/95/28/9901804da60055b406e1a1c5ba7aac1276fb77f1dde635aabfc7fd84b8ab/charset_normalizer-3.4.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:7c48ed483eb946e6c04ccbe02c6b4d1d48e51944b6db70f697e089c193404941", size = 201818, upload-time = "2025-05-02T08:31:46.725Z" },
@@ -263,7 +275,7 @@ wheels = [
 [[package]]
 name = "click"
 version = "8.2.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "colorama", marker = "(platform_machine == 'x86_64' and sys_platform == 'win32') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (sys_platform != 'win32' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (sys_platform != 'win32' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -275,7 +287,7 @@ wheels = [
 [[package]]
 name = "colorama"
 version = "0.4.6"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
@@ -284,15 +296,15 @@ wheels = [
 [[package]]
 name = "datasets"
 version = "3.6.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "dill", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "filelock", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "fsspec", extra = ["http"], marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "huggingface-hub", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "multiprocess", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "packaging", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pandas", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pyarrow", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -309,7 +321,7 @@ wheels = [
 [[package]]
 name = "dill"
 version = "0.3.8"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/17/4d/ac7ffa80c69ea1df30a8aa11b3578692a5118e7cd1aa157e3ef73b092d15/dill-0.3.8.tar.gz", hash = "sha256:3ebe3c479ad625c4553aca177444d89b486b1d84982eeacded644afc0cf797ca", size = 184847, upload-time = "2024-01-27T23:42:16.145Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/c9/7a/cef76fd8438a42f96db64ddaa85280485a9c395e7df3db8158cfec1eee34/dill-0.3.8-py3-none-any.whl", hash = "sha256:c36ca9ffb54365bdd2f8eb3eff7d2a21237f8452b57ace88b1ac615b7e815bd7", size = 116252, upload-time = "2024-01-27T23:42:14.239Z" },
@@ -318,7 +330,7 @@ wheels = [
 [[package]]
 name = "distro"
 version = "1.9.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
@@ -327,7 +339,7 @@ wheels = [
 [[package]]
 name = "eval-type-backport"
 version = "0.2.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/30/ea/8b0ac4469d4c347c6a385ff09dc3c048c2d021696664e26c7ee6791631b5/eval_type_backport-0.2.2.tar.gz", hash = "sha256:f0576b4cf01ebb5bd358d02314d31846af5e07678387486e2c798af0e7d849c1", size = 9079, upload-time = "2024-12-21T20:09:46.005Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ce/31/55cd413eaccd39125368be33c46de24a1f639f2e12349b0361b4678f3915/eval_type_backport-0.2.2-py3-none-any.whl", hash = "sha256:cb6ad7c393517f476f96d456d0412ea80f0a8cf96f6892834cd9340149111b0a", size = 5830, upload-time = "2024-12-21T20:09:44.175Z" },
@@ -336,7 +348,7 @@ wheels = [
 [[package]]
 name = "exceptiongroup"
 version = "1.3.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "typing-extensions", marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -348,7 +360,7 @@ wheels = [
 [[package]]
 name = "filelock"
 version = "3.18.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0a/10/c23352565a6544bdc5353e0b15fc1c563352101f30e24bf500207a54df9a/filelock-3.18.0.tar.gz", hash = "sha256:adbc88eabb99d2fec8c9c1b229b171f18afa655400173ddc653d5d01501fb9f2", size = 18075, upload-time = "2025-03-14T07:11:40.47Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/4d/36/2a115987e2d8c300a974597416d9de88f2444426de9571f4b59b2cca3acc/filelock-3.18.0-py3-none-any.whl", hash = "sha256:c401f4f8377c4464e6db25fff06205fd89bdd83b65eb0488ed1b160f780e21de", size = 16215, upload-time = "2025-03-14T07:11:39.145Z" },
@@ -357,7 +369,7 @@ wheels = [
 [[package]]
 name = "frozenlist"
 version = "1.7.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/79/b1/b64018016eeb087db503b038296fd782586432b9c077fc5c7839e9cb6ef6/frozenlist-1.7.0.tar.gz", hash = "sha256:2e310d81923c2437ea8670467121cc3e9b0f76d3043cc1d2331d56c7fb7a3a8f", size = 45078, upload-time = "2025-06-09T23:02:35.538Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/af/36/0da0a49409f6b47cc2d060dc8c9040b897b5902a8a4e37d9bc1deb11f680/frozenlist-1.7.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:cc4df77d638aa2ed703b878dd093725b72a824c3c546c076e8fdf276f78ee84a", size = 81304, upload-time = "2025-06-09T22:59:46.226Z" },
@@ -451,7 +463,7 @@ wheels = [
 [[package]]
 name = "fsspec"
 version = "2025.3.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/34/f4/5721faf47b8c499e776bc34c6a8fc17efdf7fdef0b00f398128bc5dcb4ac/fsspec-2025.3.0.tar.gz", hash = "sha256:a935fd1ea872591f2b5148907d103488fc523295e6c64b835cfad8c3eca44972", size = 298491, upload-time = "2025-03-07T21:47:56.461Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/56/53/eb690efa8513166adef3e0669afd31e95ffde69fb3c52ec2ac7223ed6018/fsspec-2025.3.0-py3-none-any.whl", hash = "sha256:efb87af3efa9103f94ca91a7f8cb7a4df91af9f74fc106c9c7ea0efd7277c1b3", size = 193615, upload-time = "2025-03-07T21:47:54.809Z" },
@@ -465,7 +477,7 @@ http = [
 [[package]]
 name = "gitdb"
 version = "4.0.12"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "smmap", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -477,7 +489,7 @@ wheels = [
 [[package]]
 name = "gitpython"
 version = "3.1.44"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "gitdb", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -489,7 +501,7 @@ wheels = [
 [[package]]
 name = "gritlm"
 version = "1.0.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "accelerate", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "datasets", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -505,7 +517,7 @@ wheels = [
 [[package]]
 name = "grpcio"
 version = "1.67.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/20/53/d9282a66a5db45981499190b77790570617a604a38f3d103d0400974aeb5/grpcio-1.67.1.tar.gz", hash = "sha256:3dc2ed4cabea4dc14d5e708c2b426205956077cc5de419b4d4079315017e9732", size = 12580022, upload-time = "2024-10-29T06:30:07.787Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/4e/cd/f6ca5c49aa0ae7bc6d0757f7dae6f789569e9490a635eaabe02bc02de7dc/grpcio-1.67.1-cp310-cp310-linux_armv7l.whl", hash = "sha256:8b0341d66a57f8a3119b77ab32207072be60c9bf79760fa609c5609f2deb1f3f", size = 5112450, upload-time = "2024-10-29T06:23:38.202Z" },
@@ -549,7 +561,7 @@ wheels = [
 [[package]]
 name = "h11"
 version = "0.16.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/01/ee/02a2c011bdab74c6fb3c75474d40b3052059d95df7e73351460c8588d963/h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1", size = 101250, upload-time = "2025-04-24T03:35:25.427Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86", size = 37515, upload-time = "2025-04-24T03:35:24.344Z" },
@@ -558,7 +570,7 @@ wheels = [
 [[package]]
 name = "hf-xet"
 version = "1.1.5"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ed/d4/7685999e85945ed0d7f0762b686ae7015035390de1161dcea9d5276c134c/hf_xet-1.1.5.tar.gz", hash = "sha256:69ebbcfd9ec44fdc2af73441619eeb06b94ee34511bbcf57cd423820090f5694", size = 495969, upload-time = "2025-06-20T21:48:38.007Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/00/89/a1119eebe2836cb25758e7661d6410d3eae982e2b5e974bcc4d250be9012/hf_xet-1.1.5-cp37-abi3-macosx_10_12_x86_64.whl", hash = "sha256:f52c2fa3635b8c37c7764d8796dfa72706cc4eded19d638331161e82b0792e23", size = 2687929, upload-time = "2025-06-20T21:48:32.284Z" },
@@ -575,6 +587,7 @@ name = "hippo-modified"
 version = "2.1.3"
 source = { virtual = "." }
 dependencies = [
+    { name = "aiosqlite", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "filelock", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "openai", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pandas", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -583,6 +596,7 @@ dependencies = [
     { name = "tenacity", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "tqdm", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "transformers", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "wrapt", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
 
 [package.optional-dependencies]
@@ -622,6 +636,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiosqlite", specifier = ">=0.21.0" },
     { name = "filelock" },
     { name = "gritlm", marker = "extra == 'gritlm'", specifier = "==1.0.2" },
     { name = "nvidia-cublas-cu12", marker = "extra == 'cu126'", specifier = "~=12.0", index = "https://mirror.nju.edu.cn/pytorch/whl/cu126", conflict = { package = "hippo-modified", extra = "cu126" } },
@@ -648,6 +663,7 @@ requires-dist = [
     { name = "torch", marker = "extra == 'cu126'", index = "https://mirror.nju.edu.cn/pytorch/whl/cu126", conflict = { package = "hippo-modified", extra = "cu126" } },
     { name = "tqdm" },
     { name = "transformers", specifier = ">=4.51" },
+    { name = "wrapt", specifier = ">=1.17.2" },
 ]
 provides-extras = ["cpu", "cu126", "dev", "gritlm", "milvus"]
 
@@ -657,7 +673,7 @@ dev = [{ name = "ruff", specifier = "==0.11.0" }]
 [[package]]
 name = "httpcore"
 version = "1.0.9"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "certifi", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "h11", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -670,7 +686,7 @@ wheels = [
 [[package]]
 name = "httpx"
 version = "0.28.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "anyio", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "certifi", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -685,7 +701,7 @@ wheels = [
 [[package]]
 name = "huggingface-hub"
 version = "0.33.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "filelock", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "fsspec", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -704,7 +720,7 @@ wheels = [
 [[package]]
 name = "idna"
 version = "3.10"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f1/70/7703c29685631f5a7590aa73f1f1d3fa9a380e654b86af429e0934a32f7d/idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9", size = 190490, upload-time = "2024-09-15T18:07:39.745Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3", size = 70442, upload-time = "2024-09-15T18:07:37.964Z" },
@@ -713,7 +729,7 @@ wheels = [
 [[package]]
 name = "igraph"
 version = "0.11.8"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "texttable", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -740,7 +756,7 @@ wheels = [
 [[package]]
 name = "jinja2"
 version = "3.1.6"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "markupsafe", marker = "platform_machine == 'x86_64'" },
 ]
@@ -752,7 +768,7 @@ wheels = [
 [[package]]
 name = "jiter"
 version = "0.10.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ee/9d/ae7ddb4b8ab3fb1b51faf4deb36cb48a4fbbd7cb36bad6a5fca4741306f7/jiter-0.10.0.tar.gz", hash = "sha256:07a7142c38aacc85194391108dc91b5b57093c978a9932bd86a36862759d9500", size = 162759, upload-time = "2025-05-18T19:04:59.73Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/be/7e/4011b5c77bec97cb2b572f566220364e3e21b51c48c5bd9c4a9c26b41b67/jiter-0.10.0-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:cd2fb72b02478f06a900a5782de2ef47e0396b3e1f7d5aba30daeb1fce66f303", size = 317215, upload-time = "2025-05-18T19:03:04.303Z" },
@@ -824,7 +840,7 @@ wheels = [
 [[package]]
 name = "joblib"
 version = "1.5.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/dc/fe/0f5a938c54105553436dbff7a61dc4fed4b1b2c98852f8833beaf4d5968f/joblib-1.5.1.tar.gz", hash = "sha256:f4f86e351f39fe3d0d32a9f2c3d8af1ee4cec285aafcb27003dda5205576b444", size = 330475, upload-time = "2025-05-23T12:04:37.097Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/7d/4f/1195bbac8e0c2acc5f740661631d8d750dc38d4a32b23ee5df3cde6f4e0d/joblib-1.5.1-py3-none-any.whl", hash = "sha256:4719a31f054c7d766948dcd83e9613686b27114f190f717cec7eaa2084f8a74a", size = 307746, upload-time = "2025-05-23T12:04:35.124Z" },
@@ -833,7 +849,7 @@ wheels = [
 [[package]]
 name = "markdown-it-py"
 version = "3.0.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "mdurl", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -845,7 +861,7 @@ wheels = [
 [[package]]
 name = "markupsafe"
 version = "3.0.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b2/97/5d42485e71dfc078108a86d6de8fa46db44a1a9295e89c5d6d4a06e23a62/markupsafe-3.0.2.tar.gz", hash = "sha256:ee55d3edf80167e48ea11a923c7386f4669df67d7994554387f84e7d8b0a2bf0", size = 20537, upload-time = "2024-10-18T15:21:54.129Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/04/90/d08277ce111dd22f77149fd1a5d4653eeb3b3eaacbdfcbae5afb2600eebd/MarkupSafe-3.0.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:7e94c425039cde14257288fd61dcfb01963e658efbc0ff54f5306b06054700f8", size = 14357, upload-time = "2024-10-18T15:20:51.44Z" },
@@ -903,7 +919,7 @@ wheels = [
 [[package]]
 name = "mdurl"
 version = "0.1.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/d6/54/cfe61301667036ec958cb99bd3efefba235e65cdeb9c84d24a8293ba1d90/mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba", size = 8729, upload-time = "2022-08-14T12:40:10.846Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8", size = 9979, upload-time = "2022-08-14T12:40:09.779Z" },
@@ -912,7 +928,7 @@ wheels = [
 [[package]]
 name = "milvus-lite"
 version = "2.5.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "tqdm", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -926,7 +942,7 @@ wheels = [
 [[package]]
 name = "mpmath"
 version = "1.3.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/e0/47/dd32fa426cc72114383ac549964eecb20ecfd886d1e5ccf5340b55b02f57/mpmath-1.3.0.tar.gz", hash = "sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f", size = 508106, upload-time = "2023-03-07T16:47:11.061Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl", hash = "sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c", size = 536198, upload-time = "2023-03-07T16:47:09.197Z" },
@@ -935,22 +951,22 @@ wheels = [
 [[package]]
 name = "mteb"
 version = "1.38.33"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "datasets", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "eval-type-backport", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "polars", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pydantic", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pytrec-eval-terrier", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "requests", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "rich", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "scikit-learn", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "scipy", version = "1.16.0", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "scipy", version = "1.16.0", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "sentence-transformers", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "torch", version = "2.7.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "torch", version = "2.7.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "torch", version = "2.7.1+cpu", source = { registry = "https://mirror.nju.edu.cn/pytorch/whl/cpu" }, marker = "(platform_machine == 'x86_64' and extra == 'extra-14-hippo-modified-cpu') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "torch", version = "2.7.1+cu126", source = { registry = "https://mirror.nju.edu.cn/pytorch/whl/cu126" }, marker = "(platform_machine == 'x86_64' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "tqdm", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -964,7 +980,7 @@ wheels = [
 [[package]]
 name = "multidict"
 version = "6.6.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "typing-extensions", marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -1066,7 +1082,7 @@ wheels = [
 [[package]]
 name = "multiprocess"
 version = "0.70.16"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "dill", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -1084,7 +1100,7 @@ wheels = [
 [[package]]
 name = "networkx"
 version = "3.4.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/fd/1d/06475e1cd5264c0b870ea2cc6fdb3e37177c1e565c43f56ff17a10e3937f/networkx-3.4.2.tar.gz", hash = "sha256:307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1", size = 2151368, upload-time = "2024-10-21T12:39:38.695Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b9/54/dd730b32ea14ea797530a4479b2ed46a6fb250f682a9cfb997e968bf0261/networkx-3.4.2-py3-none-any.whl", hash = "sha256:df5d4365b724cf81b8c6a7312509d0c22386097011ad1abe274afd5e9d3bbc5f", size = 1723263, upload-time = "2024-10-21T12:39:36.247Z" },
@@ -1093,7 +1109,7 @@ wheels = [
 [[package]]
 name = "numpy"
 version = "2.2.6"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version < '3.11' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version < '3.11' and platform_machine == 'x86_64' and sys_platform != 'linux'",
@@ -1159,7 +1175,7 @@ wheels = [
 [[package]]
 name = "numpy"
 version = "2.3.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform != 'linux'",
@@ -1239,7 +1255,7 @@ wheels = [
 [[package]]
 name = "nvidia-cublas-cu12"
 version = "12.6.4.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -1270,7 +1286,7 @@ wheels = [
 [[package]]
 name = "nvidia-cuda-cupti-cu12"
 version = "12.6.80"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -1303,7 +1319,7 @@ wheels = [
 [[package]]
 name = "nvidia-cuda-nvrtc-cu12"
 version = "12.6.77"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -1334,7 +1350,7 @@ wheels = [
 [[package]]
 name = "nvidia-cuda-runtime-cu12"
 version = "12.6.77"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -1371,14 +1387,14 @@ wheels = [
 [[package]]
 name = "nvidia-cudnn-cu12"
 version = "9.5.1.17"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version < '3.11' and platform_machine == 'x86_64' and sys_platform == 'linux'",
 ]
 dependencies = [
-    { name = "nvidia-cublas-cu12", version = "12.6.4.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cublas-cu12", version = "12.6.4.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/99/93/a201a12d3ec1caa8c6ac34c1c2f9eeb696b886f0c36ff23c638b46603bd0/nvidia_cudnn_cu12-9.5.1.17-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:9fd4584468533c61873e5fda8ca41bac3a38bcb2d12350830c69b0a96a7e4def", size = 570523509, upload-time = "2024-10-25T19:53:03.148Z" },
@@ -1408,14 +1424,14 @@ wheels = [
 [[package]]
 name = "nvidia-cufft-cu12"
 version = "11.3.0.4"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version < '3.11' and platform_machine == 'x86_64' and sys_platform == 'linux'",
 ]
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/1f/37/c50d2b2f2c07e146776389e3080f4faf70bcc4fa6e19d65bb54ca174ebc3/nvidia_cufft_cu12-11.3.0.4-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d16079550df460376455cba121db6564089176d9bac9e4f360493ca4741b22a6", size = 200164144, upload-time = "2024-11-20T17:40:58.288Z" },
@@ -1428,7 +1444,7 @@ wheels = [
 [[package]]
 name = "nvidia-cufile-cu12"
 version = "1.11.1.6"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b2/66/cc9876340ac68ae71b15c743ddb13f8b30d5244af344ec8322b449e35426/nvidia_cufile_cu12-1.11.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:cc23469d1c7e52ce6c1d55253273d32c565dd22068647f3aa59b3c6b005bf159", size = 1142103, upload-time = "2024-11-20T17:42:11.83Z" },
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/17/bf/cc834147263b929229ce4aadd62869f0b195e98569d4c28b23edc72b85d9/nvidia_cufile_cu12-1.11.1.6-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:8f57a0051dcf2543f6dc2b98a98cb2719c37d3cee1baba8965d57f3bbc90d4db", size = 1066155, upload-time = "2024-11-20T17:41:49.376Z" },
@@ -1453,7 +1469,7 @@ wheels = [
 [[package]]
 name = "nvidia-curand-cu12"
 version = "10.3.7.77"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -1491,16 +1507,16 @@ wheels = [
 [[package]]
 name = "nvidia-cusolver-cu12"
 version = "11.7.1.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version < '3.11' and platform_machine == 'x86_64' and sys_platform == 'linux'",
 ]
 dependencies = [
-    { name = "nvidia-cublas-cu12", version = "12.6.4.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cusparse-cu12", version = "12.5.4.2", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cublas-cu12", version = "12.6.4.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cusparse-cu12", version = "12.5.4.2", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/93/17/dbe1aa865e4fdc7b6d4d0dd308fdd5aaab60f939abfc0ea1954eac4fb113/nvidia_cusolver_cu12-11.7.1.2-py3-none-manylinux2014_aarch64.whl", hash = "sha256:0ce237ef60acde1efc457335a2ddadfd7610b892d94efee7b776c64bb1cac9e0", size = 157833628, upload-time = "2024-10-01T17:05:05.591Z" },
@@ -1532,14 +1548,14 @@ wheels = [
 [[package]]
 name = "nvidia-cusparse-cu12"
 version = "12.5.4.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version < '3.11' and platform_machine == 'x86_64' and sys_platform == 'linux'",
 ]
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/eb/eb/6681efd0aa7df96b4f8067b3ce7246833dd36830bb4cec8896182773db7d/nvidia_cusparse_cu12-12.5.4.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d25b62fb18751758fe3c93a4a08eff08effedfe4edf1c6bb5afd0890fe88f887", size = 216451147, upload-time = "2024-11-20T17:44:18.055Z" },
@@ -1571,7 +1587,7 @@ wheels = [
 [[package]]
 name = "nvidia-cusparselt-cu12"
 version = "0.6.3"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -1603,7 +1619,7 @@ wheels = [
 [[package]]
 name = "nvidia-nccl-cu12"
 version = "2.26.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -1633,7 +1649,7 @@ wheels = [
 [[package]]
 name = "nvidia-nvjitlink-cu12"
 version = "12.6.85"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -1664,7 +1680,7 @@ wheels = [
 [[package]]
 name = "nvidia-nvtx-cu12"
 version = "12.6.77"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -1681,7 +1697,7 @@ wheels = [
 [[package]]
 name = "openai"
 version = "1.93.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "anyio", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "distro", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -1700,7 +1716,7 @@ wheels = [
 [[package]]
 name = "packaging"
 version = "25.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a1/d4/1fc4078c65507b51b96ca8f8c3ba19e6a61c8253c72794544580a7b6c24d/packaging-25.0.tar.gz", hash = "sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f", size = 165727, upload-time = "2025-04-19T11:48:59.673Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl", hash = "sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484", size = 66469, upload-time = "2025-04-19T11:48:57.875Z" },
@@ -1709,10 +1725,10 @@ wheels = [
 [[package]]
 name = "pandas"
 version = "2.3.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "python-dateutil", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pytz", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "tzdata", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -1758,7 +1774,7 @@ wheels = [
 [[package]]
 name = "pillow"
 version = "11.2.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/af/cb/bb5c01fcd2a69335b86c22142b2bccfc3464087efb7fd382eee5ffc7fdf7/pillow-11.2.1.tar.gz", hash = "sha256:a64dd61998416367b7ef979b73d3a85853ba9bec4c2925f74e588879a58716b6", size = 47026707, upload-time = "2025-04-12T17:50:03.289Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0d/8b/b158ad57ed44d3cc54db8d68ad7c0a58b8fc0e4c7a3f995f9d62d5b464a1/pillow-11.2.1-cp310-cp310-macosx_10_10_x86_64.whl", hash = "sha256:d57a75d53922fc20c165016a20d9c44f73305e67c351bbc60d1adaf662e74047", size = 3198442, upload-time = "2025-04-12T17:47:10.666Z" },
@@ -1835,7 +1851,7 @@ wheels = [
 [[package]]
 name = "platformdirs"
 version = "4.3.8"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/fe/8b/3c73abc9c759ecd3f1f7ceff6685840859e8070c4d947c93fae71f6a0bf2/platformdirs-4.3.8.tar.gz", hash = "sha256:3d512d96e16bcb959a814c9f348431070822a6496326a4be0911c40b5a74c2bc", size = 21362, upload-time = "2025-05-07T22:47:42.121Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/fe/39/979e8e21520d4e47a0bbe349e2713c0aac6f3d853d0e5b34d76206c439aa/platformdirs-4.3.8-py3-none-any.whl", hash = "sha256:ff7059bb7eb1179e2685604f4aaf157cfd9535242bd23742eadc3c13542139b4", size = 18567, upload-time = "2025-05-07T22:47:40.376Z" },
@@ -1844,7 +1860,7 @@ wheels = [
 [[package]]
 name = "polars"
 version = "1.31.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/fd/f5/de1b5ecd7d0bd0dd87aa392937f759f9cc3997c5866a9a7f94eabf37cd48/polars-1.31.0.tar.gz", hash = "sha256:59a88054a5fc0135386268ceefdbb6a6cc012d21b5b44fed4f1d3faabbdcbf32", size = 4681224, upload-time = "2025-06-18T12:00:46.24Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/3d/6e/bdd0937653c1e7a564a09ae3bc7757ce83fedbf19da600c8b35d62c0182a/polars-1.31.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:ccc68cd6877deecd46b13cbd2663ca89ab2a2cb1fe49d5cfc66a9cef166566d9", size = 34511354, upload-time = "2025-06-18T11:59:40.048Z" },
@@ -1858,7 +1874,7 @@ wheels = [
 [[package]]
 name = "propcache"
 version = "0.3.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a6/16/43264e4a779dd8588c21a70f0709665ee8f611211bdd2c87d952cfa7c776/propcache-0.3.2.tar.gz", hash = "sha256:20d7d62e4e7ef05f221e0db2856b979540686342e7dd9973b815599c7057e168", size = 44139, upload-time = "2025-06-09T22:56:06.081Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ab/14/510deed325e262afeb8b360043c5d7c960da7d3ecd6d6f9496c9c56dc7f4/propcache-0.3.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:22d9962a358aedbb7a2e36187ff273adeaab9743373a272976d2e348d08c7770", size = 73178, upload-time = "2025-06-09T22:53:40.126Z" },
@@ -1947,7 +1963,7 @@ wheels = [
 [[package]]
 name = "protobuf"
 version = "6.31.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/52/f3/b9655a711b32c19720253f6f06326faf90580834e2e83f840472d752bc8b/protobuf-6.31.1.tar.gz", hash = "sha256:d8cac4c982f0b957a4dc73a80e2ea24fab08e679c0de9deb835f4a12d69aca9a", size = 441797, upload-time = "2025-05-28T19:25:54.947Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f3/6f/6ab8e4bf962fd5570d3deaa2d5c38f0a363f57b4501047b5ebeb83ab1125/protobuf-6.31.1-cp310-abi3-win32.whl", hash = "sha256:7fa17d5a29c2e04b7d90e5e32388b8bfd0e7107cd8e616feef7ed3fa6bdab5c9", size = 423603, upload-time = "2025-05-28T19:25:41.198Z" },
@@ -1961,7 +1977,7 @@ wheels = [
 [[package]]
 name = "psutil"
 version = "7.0.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/2a/80/336820c1ad9286a4ded7e845b2eccfcb27851ab8ac6abece774a6ff4d3de/psutil-7.0.0.tar.gz", hash = "sha256:7be9c3eba38beccb6495ea33afd982a44074b78f28c434a1f51cc07fd315c456", size = 497003, upload-time = "2025-02-13T21:54:07.946Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ed/e6/2d26234410f8b8abdbf891c9da62bee396583f713fb9f3325a4760875d22/psutil-7.0.0-cp36-abi3-macosx_10_9_x86_64.whl", hash = "sha256:101d71dc322e3cffd7cea0650b09b3d08b8e7c4109dd6809fe452dfd00e58b25", size = 238051, upload-time = "2025-02-13T21:54:12.36Z" },
@@ -1976,7 +1992,7 @@ wheels = [
 [[package]]
 name = "pyarrow"
 version = "20.0.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a2/ee/a7810cb9f3d6e9238e61d312076a9859bf3668fd21c69744de9532383912/pyarrow-20.0.0.tar.gz", hash = "sha256:febc4a913592573c8d5805091a6c2b5064c8bd6e002131f01061797d91c783c1", size = 1125187, upload-time = "2025-04-27T12:34:23.264Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/5b/23/77094eb8ee0dbe88441689cb6afc40ac312a1e15d3a7acc0586999518222/pyarrow-20.0.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:c7dd06fd7d7b410ca5dc839cc9d485d2bc4ae5240851bcd45d85105cc90a47d7", size = 30832591, upload-time = "2025-04-27T12:27:27.89Z" },
@@ -2029,7 +2045,7 @@ wheels = [
 [[package]]
 name = "pydantic"
 version = "2.11.7"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "annotated-types", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pydantic-core", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -2044,7 +2060,7 @@ wheels = [
 [[package]]
 name = "pydantic-core"
 version = "2.33.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "typing-extensions", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -2131,7 +2147,7 @@ wheels = [
 [[package]]
 name = "pygments"
 version = "2.19.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887", size = 4968631, upload-time = "2025-06-21T13:39:12.283Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217, upload-time = "2025-06-21T13:39:07.939Z" },
@@ -2140,7 +2156,7 @@ wheels = [
 [[package]]
 name = "pymilvus"
 version = "2.5.11"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "grpcio", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "milvus-lite", marker = "(platform_machine == 'x86_64' and sys_platform != 'win32') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (sys_platform == 'win32' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (sys_platform == 'win32' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -2158,7 +2174,7 @@ wheels = [
 [[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "six", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -2170,7 +2186,7 @@ wheels = [
 [[package]]
 name = "python-dotenv"
 version = "1.1.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f6/b0/4bc07ccd3572a2f9df7e6782f52b0c6c90dcbb803ac4a167702d7d0dfe1e/python_dotenv-1.1.1.tar.gz", hash = "sha256:a8a6399716257f45be6a007360200409fce5cda2661e3dec71d23dc15f6189ab", size = 41978, upload-time = "2025-06-24T04:21:07.341Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/5f/ed/539768cf28c661b5b068d66d96a2f155c4971a5d55684a514c1a0e0dec2f/python_dotenv-1.1.1-py3-none-any.whl", hash = "sha256:31f23644fe2602f88ff55e1f5c79ba497e01224ee7737937930c448e4d0e24dc", size = 20556, upload-time = "2025-06-24T04:21:06.073Z" },
@@ -2179,7 +2195,7 @@ wheels = [
 [[package]]
 name = "python-igraph"
 version = "0.11.8"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "igraph", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -2191,7 +2207,7 @@ wheels = [
 [[package]]
 name = "pytrec-eval-terrier"
 version = "0.5.7"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/dc/61/9003ffdb64f74a91208d69235dbcd380ae1a8d267089348eb8f7aab9819a/pytrec_eval_terrier-0.5.7.tar.gz", hash = "sha256:47e01ef52bfbe2f1df27c43842aa2faae542044e550983cd1a3100a4d9f62b48", size = 16935, upload-time = "2025-04-03T19:59:37.565Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/13/b2/dae5de21544ee77fed7c83dfd9d03dfef22b873f8689daf084fa930f637b/pytrec_eval_terrier-0.5.7-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:ec6242a3123e0115531ec76b183f406a5b1c21bc815e70937d771131d94f89ac", size = 135484, upload-time = "2025-04-03T20:07:51.212Z" },
@@ -2221,7 +2237,7 @@ wheels = [
 [[package]]
 name = "pytz"
 version = "2025.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3", size = 320884, upload-time = "2025-03-25T02:25:00.538Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00", size = 509225, upload-time = "2025-03-25T02:24:58.468Z" },
@@ -2230,7 +2246,7 @@ wheels = [
 [[package]]
 name = "pyyaml"
 version = "6.0.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/54/ed/79a089b6be93607fa5cdaedf301d7dfb23af5f25c398d5ead2525b063e17/pyyaml-6.0.2.tar.gz", hash = "sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e", size = 130631, upload-time = "2024-08-06T20:33:50.674Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/9b/95/a3fac87cb7158e231b5a6012e438c647e1a87f09f8e0d123acec8ab8bf71/PyYAML-6.0.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:0a9a2848a5b7feac301353437eb7d5957887edbf81d56e903999a75a3d743086", size = 184199, upload-time = "2024-08-06T20:31:40.178Z" },
@@ -2274,7 +2290,7 @@ wheels = [
 [[package]]
 name = "regex"
 version = "2024.11.6"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/8e/5f/bd69653fbfb76cf8604468d3b4ec4c403197144c7bfe0e6a5fc9e02a07cb/regex-2024.11.6.tar.gz", hash = "sha256:7ab159b063c52a0333c884e4679f8d7a85112ee3078fe3d9004b2dd875585519", size = 399494, upload-time = "2024-11-06T20:12:31.635Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/95/3c/4651f6b130c6842a8f3df82461a8950f923925db8b6961063e82744bddcc/regex-2024.11.6-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:ff590880083d60acc0433f9c3f713c51f7ac6ebb9adf889c79a261ecf541aa91", size = 482674, upload-time = "2024-11-06T20:08:57.575Z" },
@@ -2343,7 +2359,7 @@ wheels = [
 [[package]]
 name = "requests"
 version = "2.32.4"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "certifi", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "charset-normalizer", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -2358,7 +2374,7 @@ wheels = [
 [[package]]
 name = "rich"
 version = "14.0.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "markdown-it-py", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pygments", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -2372,7 +2388,7 @@ wheels = [
 [[package]]
 name = "ruff"
 version = "0.11.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/77/2b/7ca27e854d92df5e681e6527dc0f9254c9dc06c8408317893cf96c851cdd/ruff-0.11.0.tar.gz", hash = "sha256:e55c620690a4a7ee6f1cccb256ec2157dc597d109400ae75bbf944fc9d6462e2", size = 3799407, upload-time = "2025-03-14T13:52:36.539Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/48/40/3d0340a9e5edc77d37852c0cd98c5985a5a8081fc3befaeb2ae90aaafd2b/ruff-0.11.0-py3-none-linux_armv6l.whl", hash = "sha256:dc67e32bc3b29557513eb7eeabb23efdb25753684b913bebb8a0c62495095acb", size = 10098158, upload-time = "2025-03-14T13:51:55.69Z" },
@@ -2397,7 +2413,7 @@ wheels = [
 [[package]]
 name = "safetensors"
 version = "0.5.3"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/71/7e/2d5d6ee7b40c0682315367ec7475693d110f512922d582fef1bd4a63adc3/safetensors-0.5.3.tar.gz", hash = "sha256:b6b0d6ecacec39a4fdd99cc19f4576f5219ce858e6fd8dbe7609df0b8dc56965", size = 67210, upload-time = "2025-02-26T09:15:13.155Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/18/ae/88f6c49dbd0cc4da0e08610019a3c78a7d390879a919411a410a1876d03a/safetensors-0.5.3-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:bd20eb133db8ed15b40110b7c00c6df51655a2998132193de2f75f72d99c7073", size = 436917, upload-time = "2025-02-26T09:15:03.702Z" },
@@ -2419,13 +2435,13 @@ wheels = [
 [[package]]
 name = "scikit-learn"
 version = "1.7.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "joblib", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "scipy", version = "1.16.0", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "scipy", version = "1.16.0", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "threadpoolctl", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/df/3b/29fa87e76b1d7b3b77cc1fcbe82e6e6b8cd704410705b008822de530277c/scikit_learn-1.7.0.tar.gz", hash = "sha256:c01e869b15aec88e2cdb73d27f15bdbe03bce8e2fb43afbe77c45d399e73a5a3", size = 7178217, upload-time = "2025-06-05T22:02:46.703Z" }
@@ -2459,13 +2475,13 @@ wheels = [
 [[package]]
 name = "scipy"
 version = "1.15.3"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version < '3.11' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version < '3.11' and platform_machine == 'x86_64' and sys_platform != 'linux'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0f/37/6964b830433e654ec7485e45a00fc9a27cf868d622838f6b6d9c5ec0d532/scipy-1.15.3.tar.gz", hash = "sha256:eae3cf522bc7df64b42cad3925c876e1b0b6c35c1337c93e12c0f366f55b0eaf", size = 59419214, upload-time = "2025-05-08T16:13:05.955Z" }
 wheels = [
@@ -2519,7 +2535,7 @@ wheels = [
 [[package]]
 name = "scipy"
 version = "1.16.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform != 'linux'",
@@ -2527,7 +2543,7 @@ resolution-markers = [
     "python_full_version == '3.11.*' and platform_machine == 'x86_64' and sys_platform != 'linux'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/81/18/b06a83f0c5ee8cddbde5e3f3d0bb9b702abfa5136ef6d4620ff67df7eee5/scipy-1.16.0.tar.gz", hash = "sha256:b5ef54021e832869c8cfb03bc3bf20366cbcd426e02a58e8a58d7584dfbb8f62", size = 30581216, upload-time = "2025-06-22T16:27:55.782Z" }
 wheels = [
@@ -2572,14 +2588,14 @@ wheels = [
 [[package]]
 name = "sentence-transformers"
 version = "4.1.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "huggingface-hub", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pillow", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "scikit-learn", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "scipy", version = "1.16.0", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "torch", version = "2.7.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "scipy", version = "1.16.0", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "torch", version = "2.7.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "torch", version = "2.7.1+cpu", source = { registry = "https://mirror.nju.edu.cn/pytorch/whl/cpu" }, marker = "(platform_machine == 'x86_64' and extra == 'extra-14-hippo-modified-cpu') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "torch", version = "2.7.1+cu126", source = { registry = "https://mirror.nju.edu.cn/pytorch/whl/cu126" }, marker = "(platform_machine == 'x86_64' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "tqdm", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -2594,7 +2610,7 @@ wheels = [
 [[package]]
 name = "sentry-sdk"
 version = "2.32.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "certifi", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "urllib3", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -2607,7 +2623,7 @@ wheels = [
 [[package]]
 name = "setproctitle"
 version = "1.3.6"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/9e/af/56efe21c53ac81ac87e000b15e60b3d8104224b4313b6eacac3597bd183d/setproctitle-1.3.6.tar.gz", hash = "sha256:c9f32b96c700bb384f33f7cf07954bb609d35dd82752cef57fb2ee0968409169", size = 26889, upload-time = "2025-04-29T13:35:00.184Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/7d/db/8214810cae49e2e474ea741aaa7d6111486f27377e864f0eb6d297c9be56/setproctitle-1.3.6-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:ebcf34b69df4ca0eabaaaf4a3d890f637f355fed00ba806f7ebdd2d040658c26", size = 17412, upload-time = "2025-04-29T13:32:38.795Z" },
@@ -2679,7 +2695,7 @@ wheels = [
 [[package]]
 name = "setuptools"
 version = "80.9.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/18/5d/3bf57dcd21979b887f014ea83c24ae194cfcd12b9e0fda66b957c69d1fca/setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c", size = 1319958, upload-time = "2025-05-27T00:56:51.443Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922", size = 1201486, upload-time = "2025-05-27T00:56:49.664Z" },
@@ -2688,7 +2704,7 @@ wheels = [
 [[package]]
 name = "six"
 version = "1.17.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
@@ -2697,7 +2713,7 @@ wheels = [
 [[package]]
 name = "smmap"
 version = "5.0.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/44/cd/a040c4b3119bbe532e5b0732286f805445375489fceaec1f48306068ee3b/smmap-5.0.2.tar.gz", hash = "sha256:26ea65a03958fa0c8a1c7e8c7a58fdc77221b8910f6be2131affade476898ad5", size = 22329, upload-time = "2025-01-02T07:14:40.909Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl", hash = "sha256:b30115f0def7d7531d22a0fb6502488d879e75b260a9db4d0819cfb25403af5e", size = 24303, upload-time = "2025-01-02T07:14:38.724Z" },
@@ -2706,7 +2722,7 @@ wheels = [
 [[package]]
 name = "sniffio"
 version = "1.3.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a2/87/a6771e1546d97e7e041b6ae58d80074f81b7d5121207425c964ddf5cfdbd/sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc", size = 20372, upload-time = "2024-02-25T23:20:04.057Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/e9/44/75a9c9421471a6c4805dbf2356f7c181a29c1879239abab1ea2cc8f38b40/sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2", size = 10235, upload-time = "2024-02-25T23:20:01.196Z" },
@@ -2715,7 +2731,7 @@ wheels = [
 [[package]]
 name = "sympy"
 version = "1.14.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "mpmath", marker = "platform_machine == 'x86_64'" },
 ]
@@ -2727,7 +2743,7 @@ wheels = [
 [[package]]
 name = "tenacity"
 version = "9.1.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0a/d4/2b0cd0fe285e14b36db076e78c93766ff1d529d70408bd1d2a5a84f1d929/tenacity-9.1.2.tar.gz", hash = "sha256:1169d376c297e7de388d18b4481760d478b0e99a777cad3a9c86e556f4b697cb", size = 48036, upload-time = "2025-04-02T08:25:09.966Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/e5/30/643397144bfbfec6f6ef821f36f33e57d35946c44a2352d3c9f0ae847619/tenacity-9.1.2-py3-none-any.whl", hash = "sha256:f77bf36710d8b73a50b2dd155c97b870017ad21afe6ab300326b0371b3b05138", size = 28248, upload-time = "2025-04-02T08:25:07.678Z" },
@@ -2736,7 +2752,7 @@ wheels = [
 [[package]]
 name = "texttable"
 version = "1.7.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/1c/dc/0aff23d6036a4d3bf4f1d8c8204c5c79c4437e25e0ae94ffe4bbb55ee3c2/texttable-1.7.0.tar.gz", hash = "sha256:2d2068fb55115807d3ac77a4ca68fa48803e84ebb0ee2340f858107a36522638" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/24/99/4772b8e00a136f3e01236de33b0efda31ee7077203ba5967fcc76da94d65/texttable-1.7.0-py2.py3-none-any.whl", hash = "sha256:72227d592c82b3d7f672731ae73e4d1f88cd8e2ef5b075a7a7f01a23a3743917" },
@@ -2745,7 +2761,7 @@ wheels = [
 [[package]]
 name = "threadpoolctl"
 version = "3.6.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b7/4d/08c89e34946fce2aec4fbb45c9016efd5f4d7f24af8e5d93296e935631d8/threadpoolctl-3.6.0.tar.gz", hash = "sha256:8ab8b4aa3491d812b623328249fab5302a68d2d71745c8a4c719a2fcaba9f44e", size = 21274, upload-time = "2025-03-13T13:49:23.031Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/32/d5/f9a850d79b0851d1d4ef6456097579a9005b31fea68726a4ae5f2d82ddd9/threadpoolctl-3.6.0-py3-none-any.whl", hash = "sha256:43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb", size = 18638, upload-time = "2025-03-13T13:49:21.846Z" },
@@ -2754,7 +2770,7 @@ wheels = [
 [[package]]
 name = "tokenizers"
 version = "0.21.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "huggingface-hub", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -2779,7 +2795,7 @@ wheels = [
 [[package]]
 name = "torch"
 version = "2.7.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform != 'linux'",
@@ -2793,20 +2809,20 @@ dependencies = [
     { name = "fsspec", marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "jinja2", marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "networkx", marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cublas-cu12", version = "12.6.4.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cuda-cupti-cu12", version = "12.6.80", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cuda-nvrtc-cu12", version = "12.6.77", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cuda-runtime-cu12", version = "12.6.77", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cudnn-cu12", version = "9.5.1.17", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cufft-cu12", version = "11.3.0.4", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cublas-cu12", version = "12.6.4.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cuda-cupti-cu12", version = "12.6.80", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cuda-nvrtc-cu12", version = "12.6.77", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cuda-runtime-cu12", version = "12.6.77", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cudnn-cu12", version = "9.5.1.17", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cufft-cu12", version = "11.3.0.4", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "nvidia-cufile-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-curand-cu12", version = "10.3.7.77", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cusolver-cu12", version = "11.7.1.2", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cusparse-cu12", version = "12.5.4.2", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-cusparselt-cu12", version = "0.6.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-nccl-cu12", version = "2.26.2", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "nvidia-nvtx-cu12", version = "12.6.77", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-curand-cu12", version = "10.3.7.77", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cusolver-cu12", version = "11.7.1.2", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cusparse-cu12", version = "12.5.4.2", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-cusparselt-cu12", version = "0.6.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-nccl-cu12", version = "2.26.2", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "nvidia-nvtx-cu12", version = "12.6.77", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "setuptools", marker = "(python_full_version >= '3.12' and platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "sympy", marker = "(platform_machine == 'x86_64' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "triton", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-14-hippo-modified-cpu' and extra != 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -2866,6 +2882,7 @@ wheels = [
     { url = "https://mirror.nju.edu.cn/pytorch/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:3bf2db5adf77b433844f080887ade049c4705ddf9fe1a32023ff84ff735aa5ad" },
     { url = "https://mirror.nju.edu.cn/pytorch/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:8f8b3cfc53010a4b4a3c7ecb88c212e9decc4f5eeb6af75c3c803937d2d60947" },
     { url = "https://mirror.nju.edu.cn/pytorch/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-win_amd64.whl", hash = "sha256:0bc887068772233f532b51a3e8c8cfc682ae62bef74bf4e0c53526c8b9e4138f" },
+    { url = "https://mirror.nju.edu.cn/pytorch/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-win_arm64.whl", hash = "sha256:a2618775f32eb4126c5b2050686da52001a08cffa331637d9cf51c8250931e00" },
     { url = "https://mirror.nju.edu.cn/pytorch/whl/cpu/torch-2.7.1%2Bcpu-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:eb17646792ac4374ffc87e42369f45d21eff17c790868963b90483ef0b6db4ef" },
     { url = "https://mirror.nju.edu.cn/pytorch/whl/cpu/torch-2.7.1%2Bcpu-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:84ea1f6a1d15663037d01b121d6e33bb9da3c90af8e069e5072c30f413455a57" },
     { url = "https://mirror.nju.edu.cn/pytorch/whl/cpu/torch-2.7.1%2Bcpu-cp313-cp313-win_amd64.whl", hash = "sha256:b66f77f6f67317344ee083aa7ac4751a14395fcb38060d564bf513978d267153" },
@@ -2926,7 +2943,7 @@ wheels = [
 [[package]]
 name = "tqdm"
 version = "4.67.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "colorama", marker = "(platform_machine == 'x86_64' and sys_platform == 'win32') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (sys_platform != 'win32' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (sys_platform != 'win32' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -2938,12 +2955,12 @@ wheels = [
 [[package]]
 name = "transformers"
 version = "4.53.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "filelock", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "huggingface-hub", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
-    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version < '3.11' and platform_machine == 'x86_64') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version >= '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
+    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "(python_full_version >= '3.11' and platform_machine == 'x86_64') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (python_full_version < '3.11' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (platform_machine != 'x86_64' and extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "packaging", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "pyyaml", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "regex", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -2960,7 +2977,7 @@ wheels = [
 [[package]]
 name = "triton"
 version = "3.3.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "setuptools", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
@@ -2975,7 +2992,7 @@ wheels = [
 [[package]]
 name = "typing-extensions"
 version = "4.14.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/d1/bc/51647cd02527e87d05cb083ccc402f93e441606ff1f01739a62c8ad09ba5/typing_extensions-4.14.0.tar.gz", hash = "sha256:8676b788e32f02ab42d9e7c61324048ae4c6d844a399eebace3d4979d75ceef4", size = 107423, upload-time = "2025-06-02T14:52:11.399Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/69/e0/552843e0d356fbb5256d21449fa957fa4eff3bbc135a74a691ee70c7c5da/typing_extensions-4.14.0-py3-none-any.whl", hash = "sha256:a1514509136dd0b477638fc68d6a91497af5076466ad0fa6c338e44e359944af", size = 43839, upload-time = "2025-06-02T14:52:10.026Z" },
@@ -2984,7 +3001,7 @@ wheels = [
 [[package]]
 name = "typing-inspection"
 version = "0.4.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "typing-extensions", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
 ]
@@ -2996,7 +3013,7 @@ wheels = [
 [[package]]
 name = "tzdata"
 version = "2025.2"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/95/32/1a225d6164441be760d75c2c42e2780dc0873fe382da3e98a2e1e48361e5/tzdata-2025.2.tar.gz", hash = "sha256:b60a638fcc0daffadf82fe0f57e53d06bdec2f36c4df66280ae79bce6bd6f2b9", size = 196380, upload-time = "2025-03-23T13:54:43.652Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/5c/23/c7abc0ca0a1526a0774eca151daeb8de62ec457e77262b66b359c3c7679e/tzdata-2025.2-py2.py3-none-any.whl", hash = "sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8", size = 347839, upload-time = "2025-03-23T13:54:41.845Z" },
@@ -3005,7 +3022,7 @@ wheels = [
 [[package]]
 name = "ujson"
 version = "5.10.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f0/00/3110fd566786bfa542adb7932d62035e0c0ef662a8ff6544b6643b3d6fd7/ujson-5.10.0.tar.gz", hash = "sha256:b3cd8f3c5d8c7738257f1018880444f7b7d9b66232c64649f562d7ba86ad4bc1", size = 7154885, upload-time = "2024-05-14T02:02:34.233Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/7d/91/91678e49a9194f527e60115db84368c237ac7824992224fac47dcb23a5c6/ujson-5.10.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:2601aa9ecdbee1118a1c2065323bda35e2c5a2cf0797ef4522d485f9d3ef65bd", size = 55354, upload-time = "2024-05-14T02:00:27.054Z" },
@@ -3059,7 +3076,7 @@ wheels = [
 [[package]]
 name = "urllib3"
 version = "2.5.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/15/22/9ee70a2574a4f4599c47dd506532914ce044817c7752a79b6a51286319bc/urllib3-2.5.0.tar.gz", hash = "sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760", size = 393185, upload-time = "2025-06-18T14:07:41.644Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a7/c2/fe1e52489ae3122415c51f387e221dd0773709bad6c6cdaa599e8a2c5185/urllib3-2.5.0-py3-none-any.whl", hash = "sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc", size = 129795, upload-time = "2025-06-18T14:07:40.39Z" },
@@ -3068,7 +3085,7 @@ wheels = [
 [[package]]
 name = "wandb"
 version = "0.20.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "click", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "gitpython", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
@@ -3098,9 +3115,73 @@ wheels = [
 ]
 
 [[package]]
+name = "wrapt"
+version = "1.17.2"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/c3/fc/e91cc220803d7bc4db93fb02facd8461c37364151b8494762cc88b0fbcef/wrapt-1.17.2.tar.gz", hash = "sha256:41388e9d4d1522446fe79d3213196bd9e3b301a336965b9e27ca2788ebd122f3", size = 55531, upload-time = "2025-01-14T10:35:45.465Z" }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/5a/d1/1daec934997e8b160040c78d7b31789f19b122110a75eca3d4e8da0049e1/wrapt-1.17.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:3d57c572081fed831ad2d26fd430d565b76aa277ed1d30ff4d40670b1c0dd984", size = 53307, upload-time = "2025-01-14T10:33:13.616Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/1b/7b/13369d42651b809389c1a7153baa01d9700430576c81a2f5c5e460df0ed9/wrapt-1.17.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b5e251054542ae57ac7f3fba5d10bfff615b6c2fb09abeb37d2f1463f841ae22", size = 38486, upload-time = "2025-01-14T10:33:15.947Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/62/bf/e0105016f907c30b4bd9e377867c48c34dc9c6c0c104556c9c9126bd89ed/wrapt-1.17.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:80dd7db6a7cb57ffbc279c4394246414ec99537ae81ffd702443335a61dbf3a7", size = 38777, upload-time = "2025-01-14T10:33:17.462Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/27/70/0f6e0679845cbf8b165e027d43402a55494779295c4b08414097b258ac87/wrapt-1.17.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0a6e821770cf99cc586d33833b2ff32faebdbe886bd6322395606cf55153246c", size = 83314, upload-time = "2025-01-14T10:33:21.282Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0f/77/0576d841bf84af8579124a93d216f55d6f74374e4445264cb378a6ed33eb/wrapt-1.17.2-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b60fb58b90c6d63779cb0c0c54eeb38941bae3ecf7a73c764c52c88c2dcb9d72", size = 74947, upload-time = "2025-01-14T10:33:24.414Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/90/ec/00759565518f268ed707dcc40f7eeec38637d46b098a1f5143bff488fe97/wrapt-1.17.2-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b870b5df5b71d8c3359d21be8f0d6c485fa0ebdb6477dda51a1ea54a9b558061", size = 82778, upload-time = "2025-01-14T10:33:26.152Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f8/5a/7cffd26b1c607b0b0c8a9ca9d75757ad7620c9c0a9b4a25d3f8a1480fafc/wrapt-1.17.2-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:4011d137b9955791f9084749cba9a367c68d50ab8d11d64c50ba1688c9b457f2", size = 81716, upload-time = "2025-01-14T10:33:27.372Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/7e/09/dccf68fa98e862df7e6a60a61d43d644b7d095a5fc36dbb591bbd4a1c7b2/wrapt-1.17.2-cp310-cp310-musllinux_1_2_i686.whl", hash = "sha256:1473400e5b2733e58b396a04eb7f35f541e1fb976d0c0724d0223dd607e0f74c", size = 74548, upload-time = "2025-01-14T10:33:28.52Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b7/8e/067021fa3c8814952c5e228d916963c1115b983e21393289de15128e867e/wrapt-1.17.2-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:3cedbfa9c940fdad3e6e941db7138e26ce8aad38ab5fe9dcfadfed9db7a54e62", size = 81334, upload-time = "2025-01-14T10:33:29.643Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/4b/0d/9d4b5219ae4393f718699ca1c05f5ebc0c40d076f7e65fd48f5f693294fb/wrapt-1.17.2-cp310-cp310-win32.whl", hash = "sha256:582530701bff1dec6779efa00c516496968edd851fba224fbd86e46cc6b73563", size = 36427, upload-time = "2025-01-14T10:33:30.832Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/72/6a/c5a83e8f61aec1e1aeef939807602fb880e5872371e95df2137142f5c58e/wrapt-1.17.2-cp310-cp310-win_amd64.whl", hash = "sha256:58705da316756681ad3c9c73fd15499aa4d8c69f9fd38dc8a35e06c12468582f", size = 38774, upload-time = "2025-01-14T10:33:32.897Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/cd/f7/a2aab2cbc7a665efab072344a8949a71081eed1d2f451f7f7d2b966594a2/wrapt-1.17.2-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:ff04ef6eec3eee8a5efef2401495967a916feaa353643defcc03fc74fe213b58", size = 53308, upload-time = "2025-01-14T10:33:33.992Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/50/ff/149aba8365fdacef52b31a258c4dc1c57c79759c335eff0b3316a2664a64/wrapt-1.17.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:4db983e7bca53819efdbd64590ee96c9213894272c776966ca6306b73e4affda", size = 38488, upload-time = "2025-01-14T10:33:35.264Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/65/46/5a917ce85b5c3b490d35c02bf71aedaa9f2f63f2d15d9949cc4ba56e8ba9/wrapt-1.17.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:9abc77a4ce4c6f2a3168ff34b1da9b0f311a8f1cfd694ec96b0603dff1c79438", size = 38776, upload-time = "2025-01-14T10:33:38.28Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ca/74/336c918d2915a4943501c77566db41d1bd6e9f4dbc317f356b9a244dfe83/wrapt-1.17.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0b929ac182f5ace000d459c59c2c9c33047e20e935f8e39371fa6e3b85d56f4a", size = 83776, upload-time = "2025-01-14T10:33:40.678Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/09/99/c0c844a5ccde0fe5761d4305485297f91d67cf2a1a824c5f282e661ec7ff/wrapt-1.17.2-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f09b286faeff3c750a879d336fb6d8713206fc97af3adc14def0cdd349df6000", size = 75420, upload-time = "2025-01-14T10:33:41.868Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b4/b0/9fc566b0fe08b282c850063591a756057c3247b2362b9286429ec5bf1721/wrapt-1.17.2-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1a7ed2d9d039bd41e889f6fb9364554052ca21ce823580f6a07c4ec245c1f5d6", size = 83199, upload-time = "2025-01-14T10:33:43.598Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/9d/4b/71996e62d543b0a0bd95dda485219856def3347e3e9380cc0d6cf10cfb2f/wrapt-1.17.2-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:129a150f5c445165ff941fc02ee27df65940fcb8a22a61828b1853c98763a64b", size = 82307, upload-time = "2025-01-14T10:33:48.499Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/39/35/0282c0d8789c0dc9bcc738911776c762a701f95cfe113fb8f0b40e45c2b9/wrapt-1.17.2-cp311-cp311-musllinux_1_2_i686.whl", hash = "sha256:1fb5699e4464afe5c7e65fa51d4f99e0b2eadcc176e4aa33600a3df7801d6662", size = 75025, upload-time = "2025-01-14T10:33:51.191Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/4f/6d/90c9fd2c3c6fee181feecb620d95105370198b6b98a0770cba090441a828/wrapt-1.17.2-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:9a2bce789a5ea90e51a02dfcc39e31b7f1e662bc3317979aa7e5538e3a034f72", size = 81879, upload-time = "2025-01-14T10:33:52.328Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/8f/fa/9fb6e594f2ce03ef03eddbdb5f4f90acb1452221a5351116c7c4708ac865/wrapt-1.17.2-cp311-cp311-win32.whl", hash = "sha256:4afd5814270fdf6380616b321fd31435a462019d834f83c8611a0ce7484c7317", size = 36419, upload-time = "2025-01-14T10:33:53.551Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/47/f8/fb1773491a253cbc123c5d5dc15c86041f746ed30416535f2a8df1f4a392/wrapt-1.17.2-cp311-cp311-win_amd64.whl", hash = "sha256:acc130bc0375999da18e3d19e5a86403667ac0c4042a094fefb7eec8ebac7cf3", size = 38773, upload-time = "2025-01-14T10:33:56.323Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a1/bd/ab55f849fd1f9a58ed7ea47f5559ff09741b25f00c191231f9f059c83949/wrapt-1.17.2-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:d5e2439eecc762cd85e7bd37161d4714aa03a33c5ba884e26c81559817ca0925", size = 53799, upload-time = "2025-01-14T10:33:57.4Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/53/18/75ddc64c3f63988f5a1d7e10fb204ffe5762bc663f8023f18ecaf31a332e/wrapt-1.17.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:3fc7cb4c1c744f8c05cd5f9438a3caa6ab94ce8344e952d7c45a8ed59dd88392", size = 38821, upload-time = "2025-01-14T10:33:59.334Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/48/2a/97928387d6ed1c1ebbfd4efc4133a0633546bec8481a2dd5ec961313a1c7/wrapt-1.17.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:8fdbdb757d5390f7c675e558fd3186d590973244fab0c5fe63d373ade3e99d40", size = 38919, upload-time = "2025-01-14T10:34:04.093Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/73/54/3bfe5a1febbbccb7a2f77de47b989c0b85ed3a6a41614b104204a788c20e/wrapt-1.17.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5bb1d0dbf99411f3d871deb6faa9aabb9d4e744d67dcaaa05399af89d847a91d", size = 88721, upload-time = "2025-01-14T10:34:07.163Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/25/cb/7262bc1b0300b4b64af50c2720ef958c2c1917525238d661c3e9a2b71b7b/wrapt-1.17.2-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:d18a4865f46b8579d44e4fe1e2bcbc6472ad83d98e22a26c963d46e4c125ef0b", size = 80899, upload-time = "2025-01-14T10:34:09.82Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/2a/5a/04cde32b07a7431d4ed0553a76fdb7a61270e78c5fd5a603e190ac389f14/wrapt-1.17.2-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bc570b5f14a79734437cb7b0500376b6b791153314986074486e0b0fa8d71d98", size = 89222, upload-time = "2025-01-14T10:34:11.258Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/09/28/2e45a4f4771fcfb109e244d5dbe54259e970362a311b67a965555ba65026/wrapt-1.17.2-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:6d9187b01bebc3875bac9b087948a2bccefe464a7d8f627cf6e48b1bbae30f82", size = 86707, upload-time = "2025-01-14T10:34:12.49Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/c6/d2/dcb56bf5f32fcd4bd9aacc77b50a539abdd5b6536872413fd3f428b21bed/wrapt-1.17.2-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:9e8659775f1adf02eb1e6f109751268e493c73716ca5761f8acb695e52a756ae", size = 79685, upload-time = "2025-01-14T10:34:15.043Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/80/4e/eb8b353e36711347893f502ce91c770b0b0929f8f0bed2670a6856e667a9/wrapt-1.17.2-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:e8b2816ebef96d83657b56306152a93909a83f23994f4b30ad4573b00bd11bb9", size = 87567, upload-time = "2025-01-14T10:34:16.563Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/17/27/4fe749a54e7fae6e7146f1c7d914d28ef599dacd4416566c055564080fe2/wrapt-1.17.2-cp312-cp312-win32.whl", hash = "sha256:468090021f391fe0056ad3e807e3d9034e0fd01adcd3bdfba977b6fdf4213ea9", size = 36672, upload-time = "2025-01-14T10:34:17.727Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/15/06/1dbf478ea45c03e78a6a8c4be4fdc3c3bddea5c8de8a93bc971415e47f0f/wrapt-1.17.2-cp312-cp312-win_amd64.whl", hash = "sha256:ec89ed91f2fa8e3f52ae53cd3cf640d6feff92ba90d62236a81e4e563ac0e991", size = 38865, upload-time = "2025-01-14T10:34:19.577Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ce/b9/0ffd557a92f3b11d4c5d5e0c5e4ad057bd9eb8586615cdaf901409920b14/wrapt-1.17.2-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:6ed6ffac43aecfe6d86ec5b74b06a5be33d5bb9243d055141e8cabb12aa08125", size = 53800, upload-time = "2025-01-14T10:34:21.571Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/c0/ef/8be90a0b7e73c32e550c73cfb2fa09db62234227ece47b0e80a05073b375/wrapt-1.17.2-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:35621ae4c00e056adb0009f8e86e28eb4a41a4bfa8f9bfa9fca7d343fe94f998", size = 38824, upload-time = "2025-01-14T10:34:22.999Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/36/89/0aae34c10fe524cce30fe5fc433210376bce94cf74d05b0d68344c8ba46e/wrapt-1.17.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:a604bf7a053f8362d27eb9fefd2097f82600b856d5abe996d623babd067b1ab5", size = 38920, upload-time = "2025-01-14T10:34:25.386Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/3b/24/11c4510de906d77e0cfb5197f1b1445d4fec42c9a39ea853d482698ac681/wrapt-1.17.2-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5cbabee4f083b6b4cd282f5b817a867cf0b1028c54d445b7ec7cfe6505057cf8", size = 88690, upload-time = "2025-01-14T10:34:28.058Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/71/d7/cfcf842291267bf455b3e266c0c29dcb675b5540ee8b50ba1699abf3af45/wrapt-1.17.2-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:49703ce2ddc220df165bd2962f8e03b84c89fee2d65e1c24a7defff6f988f4d6", size = 80861, upload-time = "2025-01-14T10:34:29.167Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/d5/66/5d973e9f3e7370fd686fb47a9af3319418ed925c27d72ce16b791231576d/wrapt-1.17.2-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8112e52c5822fc4253f3901b676c55ddf288614dc7011634e2719718eaa187dc", size = 89174, upload-time = "2025-01-14T10:34:31.702Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a7/d3/8e17bb70f6ae25dabc1aaf990f86824e4fd98ee9cadf197054e068500d27/wrapt-1.17.2-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:9fee687dce376205d9a494e9c121e27183b2a3df18037f89d69bd7b35bcf59e2", size = 86721, upload-time = "2025-01-14T10:34:32.91Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/6f/54/f170dfb278fe1c30d0ff864513cff526d624ab8de3254b20abb9cffedc24/wrapt-1.17.2-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:18983c537e04d11cf027fbb60a1e8dfd5190e2b60cc27bc0808e653e7b218d1b", size = 79763, upload-time = "2025-01-14T10:34:34.903Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/4a/98/de07243751f1c4a9b15c76019250210dd3486ce098c3d80d5f729cba029c/wrapt-1.17.2-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:703919b1633412ab54bcf920ab388735832fdcb9f9a00ae49387f0fe67dad504", size = 87585, upload-time = "2025-01-14T10:34:36.13Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f9/f0/13925f4bd6548013038cdeb11ee2cbd4e37c30f8bfd5db9e5a2a370d6e20/wrapt-1.17.2-cp313-cp313-win32.whl", hash = "sha256:abbb9e76177c35d4e8568e58650aa6926040d6a9f6f03435b7a522bf1c487f9a", size = 36676, upload-time = "2025-01-14T10:34:37.962Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/bf/ae/743f16ef8c2e3628df3ddfd652b7d4c555d12c84b53f3d8218498f4ade9b/wrapt-1.17.2-cp313-cp313-win_amd64.whl", hash = "sha256:69606d7bb691b50a4240ce6b22ebb319c1cfb164e5f6569835058196e0f3a845", size = 38871, upload-time = "2025-01-14T10:34:39.13Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/3d/bc/30f903f891a82d402ffb5fda27ec1d621cc97cb74c16fea0b6141f1d4e87/wrapt-1.17.2-cp313-cp313t-macosx_10_13_universal2.whl", hash = "sha256:4a721d3c943dae44f8e243b380cb645a709ba5bd35d3ad27bc2ed947e9c68192", size = 56312, upload-time = "2025-01-14T10:34:40.604Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/8a/04/c97273eb491b5f1c918857cd26f314b74fc9b29224521f5b83f872253725/wrapt-1.17.2-cp313-cp313t-macosx_10_13_x86_64.whl", hash = "sha256:766d8bbefcb9e00c3ac3b000d9acc51f1b399513f44d77dfe0eb026ad7c9a19b", size = 40062, upload-time = "2025-01-14T10:34:45.011Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/4e/ca/3b7afa1eae3a9e7fefe499db9b96813f41828b9fdb016ee836c4c379dadb/wrapt-1.17.2-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:e496a8ce2c256da1eb98bd15803a79bee00fc351f5dfb9ea82594a3f058309e0", size = 40155, upload-time = "2025-01-14T10:34:47.25Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/89/be/7c1baed43290775cb9030c774bc53c860db140397047cc49aedaf0a15477/wrapt-1.17.2-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:40d615e4fe22f4ad3528448c193b218e077656ca9ccb22ce2cb20db730f8d306", size = 113471, upload-time = "2025-01-14T10:34:50.934Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/32/98/4ed894cf012b6d6aae5f5cc974006bdeb92f0241775addad3f8cd6ab71c8/wrapt-1.17.2-cp313-cp313t-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a5aaeff38654462bc4b09023918b7f21790efb807f54c000a39d41d69cf552cb", size = 101208, upload-time = "2025-01-14T10:34:52.297Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ea/fd/0c30f2301ca94e655e5e057012e83284ce8c545df7661a78d8bfca2fac7a/wrapt-1.17.2-cp313-cp313t-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9a7d15bbd2bc99e92e39f49a04653062ee6085c0e18b3b7512a4f2fe91f2d681", size = 109339, upload-time = "2025-01-14T10:34:53.489Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/75/56/05d000de894c4cfcb84bcd6b1df6214297b8089a7bd324c21a4765e49b14/wrapt-1.17.2-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:e3890b508a23299083e065f435a492b5435eba6e304a7114d2f919d400888cc6", size = 110232, upload-time = "2025-01-14T10:34:55.327Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/53/f8/c3f6b2cf9b9277fb0813418e1503e68414cd036b3b099c823379c9575e6d/wrapt-1.17.2-cp313-cp313t-musllinux_1_2_i686.whl", hash = "sha256:8c8b293cd65ad716d13d8dd3624e42e5a19cc2a2f1acc74b30c2c13f15cb61a6", size = 100476, upload-time = "2025-01-14T10:34:58.055Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a7/b1/0bb11e29aa5139d90b770ebbfa167267b1fc548d2302c30c8f7572851738/wrapt-1.17.2-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:4c82b8785d98cdd9fed4cac84d765d234ed3251bd6afe34cb7ac523cb93e8b4f", size = 106377, upload-time = "2025-01-14T10:34:59.3Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/6a/e1/0122853035b40b3f333bbb25f1939fc1045e21dd518f7f0922b60c156f7c/wrapt-1.17.2-cp313-cp313t-win32.whl", hash = "sha256:13e6afb7fe71fe7485a4550a8844cc9ffbe263c0f1a1eea569bc7091d4898555", size = 37986, upload-time = "2025-01-14T10:35:00.498Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/09/5e/1655cf481e079c1f22d0cabdd4e51733679932718dc23bf2db175f329b76/wrapt-1.17.2-cp313-cp313t-win_amd64.whl", hash = "sha256:eaf675418ed6b3b31c7a989fd007fa7c3be66ce14e5c3b27336383604c9da85c", size = 40750, upload-time = "2025-01-14T10:35:03.378Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/2d/82/f56956041adef78f849db6b289b282e72b55ab8045a75abad81898c28d19/wrapt-1.17.2-py3-none-any.whl", hash = "sha256:b18f2d1533a71f069c7f82d524a52599053d4c7166e9dd374ae2136b7f40f7c8", size = 23594, upload-time = "2025-01-14T10:35:44.018Z" },
+]
+
+[[package]]
 name = "xxhash"
 version = "3.5.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/00/5e/d6e5258d69df8b4ed8c83b6664f2b47d30d2dec551a29ad72a6c69eafd31/xxhash-3.5.0.tar.gz", hash = "sha256:84f2caddf951c9cbf8dc2e22a89d4ccf5d86391ac6418fe81e3c67d0cf60b45f", size = 84241, upload-time = "2024-08-17T09:20:38.972Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/bb/8a/0e9feca390d512d293afd844d31670e25608c4a901e10202aa98785eab09/xxhash-3.5.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:ece616532c499ee9afbb83078b1b952beffef121d989841f7f4b3dc5ac0fd212", size = 31970, upload-time = "2024-08-17T09:17:35.675Z" },
@@ -3173,7 +3254,7 @@ wheels = [
 [[package]]
 name = "yarl"
 version = "1.20.1"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
 dependencies = [
     { name = "idna", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
     { name = "multidict", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },

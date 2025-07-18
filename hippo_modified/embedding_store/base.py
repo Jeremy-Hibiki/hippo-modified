@@ -47,6 +47,28 @@ class BaseEmbeddingStore(ABC):
         """
         pass
 
+    async def async_search(
+        self,
+        query_text: str,
+        instruction: str = "",
+        top_k: int = 10,
+    ) -> list[tuple[dict, float]]:
+        """
+        Async version of search method.
+        Default implementation falls back to sync search method.
+        Subclasses can override this for true async behavior.
+
+        Args:
+            query_text: The text to search for.
+            instruction: An optional instruction for the embedding model.
+            top_k: The number of results to return.
+
+        Returns:
+            A list of tuples, where each tuple contains the a document and
+            its similarity score. The list is sorted by score in descending order.
+        """
+        return self.search(query_text, instruction, top_k)
+
     @abstractmethod
     def internal_cross_knn(self, top_k: int) -> dict[str, tuple[list[str], list[float]]]:
         """
