@@ -210,15 +210,17 @@ class CacheOpenAI(BaseLLM):
         if high_throughput:
             limits = httpx.Limits(max_connections=500, max_keepalive_connections=100)
             client = httpx.Client(limits=limits, timeout=httpx.Timeout(5 * 60, read=5 * 60))
+            async_client = httpx.AsyncClient(limits=limits, timeout=httpx.Timeout(5 * 60, read=5 * 60))
         else:
             client = None
+            async_client = None
 
         self.max_retries = kwargs.get("max_retries", 2)
 
         if self.global_config.azure_endpoint is None:
             self.openai_client = OpenAI(base_url=self.llm_base_url, http_client=client, max_retries=self.max_retries)
             self.async_openai_client = AsyncOpenAI(
-                base_url=self.llm_base_url, http_client=client, max_retries=self.max_retries
+                base_url=self.llm_base_url, http_client=async_client, max_retries=self.max_retries
             )
         else:
             self.openai_client = AzureOpenAI(
