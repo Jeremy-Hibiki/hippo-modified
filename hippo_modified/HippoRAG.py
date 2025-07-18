@@ -374,7 +374,7 @@ class HippoRAG:
 
         retrieval_results = []
 
-        for q_idx, query in tqdm(enumerate(queries), desc="Retrieving", total=len(queries)):
+        for q_idx, query in enumerate(queries):
             rerank_start = time.time()
             top_k_facts, fact_scores_dict, rerank_log = self.rerank_facts(
                 query,
