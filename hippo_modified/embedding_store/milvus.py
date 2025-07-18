@@ -300,7 +300,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             )
         else:
             text_to_embed = query_text
-        query_embedding = await self._embedding_model.async_batch_encode([text_to_embed])[0]
+        query_embedding = (await self._embedding_model.async_batch_encode([text_to_embed]))[0]
         if not self._enable_hybrid_search:
             results = await self.async_client.search(
                 self._collection_name,
