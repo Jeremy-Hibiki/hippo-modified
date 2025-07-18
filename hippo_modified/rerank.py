@@ -47,6 +47,7 @@ class DSPyFilter:
         self.rerank_num = 5
         self.message_template = self.make_template(dspy_file_path, num=self.rerank_num)
         self.llm_infer_fn = hipporag.llm_model.infer
+        self.llm_async_infer_fn = hipporag.llm_model.async_infer
         self.model_name = hipporag.global_config.llm_name
         self.default_gen_kwargs = {}
 
@@ -129,6 +130,25 @@ class DSPyFilter:
             return response[0]
         return response
 
+    async def async_llm_call(self, question, fact_before_filter):
+        # make prompt
+        messages = deepcopy(self.message_template)
+        messages.append(
+            {
+                "role": "user",
+                "content": self.one_input_template.format(question=question, fact_before_filter=fact_before_filter),
+            }
+        )
+        # call openai
+
+        self.default_gen_kwargs["max_completion_tokens"] = 512
+
+        response = await self.llm_async_infer_fn(messages=messages, model=self.model_name, **self.default_gen_kwargs)
+
+        if len(response) > 1:
+            return response[0]
+        return response
+
     def __call__(self, *args, **kwargs):
         return self.rerank(*args, **kwargs)
 
@@ -180,3 +200,56 @@ class DSPyFilter:
             sorted_candidate_items[:len_after_rerank],
             {"confidence": None},
         )
+
+    async def async_rerank(
+        self,
+        query: str,
+        candidate_items: list[tuple],
+        candidate_indices: list[int],
+        len_after_rerank: int = None,
+        batch_num: int = 10,
+    ) -> tuple[list[int], list[tuple], dict]:
+        candidate = [list(candidate_item) for candidate_item in candidate_items]
+        sorted_candidate_indices = []
+        sorted_candidate_items = []
+        # logger.info('===' * 10 + " start " + '===' * 10, candidate, sep='\r\n')
+        while len(candidate) > 0:
+            batch_candidate = candidate[:batch_num]
+            # candidate = candidate[batch_num:]
+            fact_before_filter = {"fact": batch_candidate}
+            try:
+                # prediction = self.program(question=query, fact_before_filter=json.dumps(fact_before_filter))
+                response = await self.async_llm_call(query, json.dumps(fact_before_filter))
+                # logger.info(response, sep='\r\n')
+                generated_facts = self.parse_filter(response)
+                candidate = candidate[batch_num:]
+            except Exception as e:
+                logger.error("exception", e)
+                if batch_num > 6:
+                    batch_num -= 1
+                else:
+                    candidate = candidate[batch_num:]
+                generated_facts = []
+
+            result_indices = []
+            for generated_fact in generated_facts:
+                closest_matched_fact = difflib.get_close_matches(
+                    str(generated_fact), [str(i) for i in candidate_items], n=1, cutoff=0.0
+                )[0]
+                try:
+                    result_indices.append(candidate_items.index(eval(closest_matched_fact)))
+                except Exception as e:
+                    logger.info("result_indices exception", e)
+
+            sorted_candidate_indices.extend([candidate_indices[i] for i in result_indices])
+            sorted_candidate_items.extend([candidate_items[i] for i in result_indices])
+        # logger.info([], '===' * 10 + " end " + '===' * 10, sep='\r\n')
+        return (
+            sorted_candidate_indices[:len_after_rerank],
+            sorted_candidate_items[:len_after_rerank],
+            {"confidence": None},
+        )
+
+
+DSPyFilter.call = DSPyFilter.rerank
+DSPyFilter.acall = DSPyFilter.async_rerank
