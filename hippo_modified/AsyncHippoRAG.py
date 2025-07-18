@@ -376,7 +376,7 @@ class AsyncHippoRAG:
 
         for q_idx, query in tqdm(enumerate(queries), desc="Retrieving", total=len(queries)):
             rerank_start = time.time()
-            top_k_facts, fact_scores_dict, rerank_log = await self.async_rerank_facts(
+            top_k_facts, fact_scores_dict, rerank_log = await self.rerank_facts(
                 query,
                 batch_num=rerank_batch_num,
             )
