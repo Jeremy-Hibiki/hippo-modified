@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
+from uuid import uuid4
 
 import numpy as np
 
@@ -37,7 +38,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         self._collection_name = f"{collection_prefix}_{namespace}"
         self._enable_hybrid_search = enable_hybrid_search
 
-        self._client = MilvusClient(uri=uri, token=token, db_name=db_name)
+        self._client = MilvusClient(uri=uri, token=token, db_name=db_name, alias=uuid4().hex)
 
         self._setup_collection()
 
