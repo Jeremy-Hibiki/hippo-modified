@@ -1146,7 +1146,7 @@ class AsyncHippoRAG:
             logger.info(f"query: {query}")
             logger.info(f"candidate_facts: {candidate_facts}")
             # Rerank the facts
-            top_k_facts = await self.async_rerank_filter_fn(
+            top_k_facts: list[tuple] = await self.rerank_filter_fn(
                 query,
                 candidate_facts,
                 list(range(len(candidate_facts))),
