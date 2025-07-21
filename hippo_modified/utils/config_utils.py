@@ -15,6 +15,7 @@ class BaseConfig:
     llm_base_url: str = field(
         default=None, metadata={"help": "Base URL for the LLM model, if none, means using OPENAI service."}
     )
+    cache_llm_response: bool = field(default=True, metadata={"help": "Whether to cache the LLM response."})
     embedding_base_url: str = field(
         default=None,
         metadata={"help": "Base URL for an OpenAI compatible embedding model, if none, means using OPENAI service."},

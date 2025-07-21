@@ -51,6 +51,10 @@ def cache_response(func: Callable[..., _R]) -> Callable[..., _R]:
 
     @wrapt.decorator
     def sync_wrapper(wrapped, instance, args, kwargs):
+        if not instance.cache_llm_response:
+            message, metadata = wrapped(*args, **kwargs)
+            return message, metadata, False
+
         # get messages from args or kwargs
         messages = args[0] if args else kwargs.get("messages")
         if messages is None:
@@ -109,6 +113,10 @@ def cache_response(func: Callable[..., _R]) -> Callable[..., _R]:
 
     @wrapt.decorator
     async def async_wrapper(wrapped, instance, args, kwargs):
+        if not instance.cache_llm_response:
+            message, metadata = await wrapped(*args, **kwargs)
+            return message, metadata, False
+
         # get messages from args or kwargs
         messages = args[0] if args else kwargs.get("messages")
         if messages is None:
@@ -204,7 +212,12 @@ class CacheOpenAI(BaseLLM):
         return cls(cache_dir=cache_dir, global_config=global_config)
 
     def __init__(
-        self, cache_dir, global_config, cache_filename: str = None, high_throughput: bool = True, **kwargs
+        self,
+        cache_dir: str,
+        global_config: BaseConfig,
+        cache_filename: str = None,
+        high_throughput: bool = True,
+        **kwargs,
     ) -> None:
         super().__init__()
         self.cache_dir = cache_dir
@@ -212,6 +225,7 @@ class CacheOpenAI(BaseLLM):
 
         self.llm_name = global_config.llm_name
         self.llm_base_url = global_config.llm_base_url
+        self.cache_llm_response = global_config.cache_llm_response
 
         os.makedirs(self.cache_dir, exist_ok=True)
         if cache_filename is None:
