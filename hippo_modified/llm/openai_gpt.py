@@ -36,12 +36,14 @@ def cache_response(func: Callable[..., _R]) -> Callable[..., _R]:
         model = kwargs.get("model", gen_params.get("model"))
         seed = kwargs.get("seed", gen_params.get("seed"))
         temperature = kwargs.get("temperature", gen_params.get("temperature"))
+        max_completion_tokens = kwargs.get("max_completion_tokens", gen_params.get("max_completion_tokens"))
 
         key_data = {
             "messages": messages,
             "model": model,
             "seed": seed,
             "temperature": temperature,
+            "max_completion_tokens": max_completion_tokens,
         }
         key_str = json.dumps(key_data, sort_keys=True, default=str)
         key_hash = hashlib.sha256(key_str.encode("utf-8")).hexdigest()
