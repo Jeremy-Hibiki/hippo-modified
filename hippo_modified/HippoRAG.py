@@ -180,8 +180,8 @@ class HippoRAG:
         self.pike_patch_path = os.path.join(self.global_config.save_dir, "pike_patch.json")
         self.pike_patch()
 
-        rerank_filter = DSPyFilter(self)
-        self.rerank_filter_fn = rerank_filter.rerank
+        self.rerank_filter = DSPyFilter(self)
+        self.rerank_filter_fn = self.rerank_filter.rerank
 
         self.ready_to_retrieve = False
 
@@ -445,7 +445,7 @@ class HippoRAG:
 
         logger.info("Adding OpenIE triples to graph.")
 
-        for chunk_key, triples in tqdm(zip(chunk_ids, chunk_triples, strict=False)):
+        for chunk_key, triples in zip(chunk_ids, chunk_triples, strict=False):
             entities_in_chunk = set()
 
             if chunk_key not in current_graph_nodes:

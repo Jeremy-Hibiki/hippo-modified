@@ -122,7 +122,8 @@ class DSPyFilter:
         )
         # call openai
 
-        self.default_gen_kwargs["max_completion_tokens"] = 512
+        if self.default_gen_kwargs.get("max_completion_tokens") is None:
+            self.default_gen_kwargs["max_completion_tokens"] = 512
 
         response = self.llm_infer_fn(messages=messages, model=self.model_name, **self.default_gen_kwargs)
 
@@ -141,7 +142,8 @@ class DSPyFilter:
         )
         # call openai
 
-        self.default_gen_kwargs["max_completion_tokens"] = 512
+        if self.default_gen_kwargs.get("max_completion_tokens") is None:
+            self.default_gen_kwargs["max_completion_tokens"] = 512
 
         response = await self.llm_async_infer_fn(messages=messages, model=self.model_name, **self.default_gen_kwargs)
 

@@ -584,7 +584,7 @@ wheels = [
 
 [[package]]
 name = "hippo-modified"
-version = "2.2.0"
+version = "2.2.1"
 source = { virtual = "." }
 dependencies = [
     { name = "aiosqlite", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126') or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-nvidia')" },
