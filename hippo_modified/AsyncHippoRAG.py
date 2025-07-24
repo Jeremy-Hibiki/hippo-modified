@@ -185,10 +185,6 @@ class AsyncHippoRAG:
 
         self.ready_to_retrieve = False
 
-        self.ppr_time = 0
-        self.rerank_time = 0
-        self.all_retrieval_time = 0
-
         self.ent_node_to_chunk_ids = None
 
     def initialize_graph(self) -> ig.Graph:
@@ -382,13 +378,13 @@ class AsyncHippoRAG:
             )
             rerank_end = time.time()
 
-            self.rerank_time += rerank_end - rerank_start
+            rerank_time = rerank_end - rerank_start
 
             if len(top_k_facts) == 0:
                 logger.info("No facts found after reranking")
-                sorted_doc_ids, sorted_doc_scores = np.array([]), np.array([])
+                sorted_doc_ids, sorted_doc_scores, ppr_time = np.array([]), np.array([]), 0.0
             else:
-                sorted_doc_ids, sorted_doc_scores = await self.graph_search_with_fact_entities(
+                sorted_doc_ids, sorted_doc_scores, ppr_time = await self.graph_search_with_fact_entities(
                     query=query,
                     link_top_k=self.global_config.linking_top_k,
                     top_k_facts=top_k_facts,
@@ -398,8 +394,12 @@ class AsyncHippoRAG:
                 )
 
             top_k_docs = [
-                self.chunk_embedding_store.get_row(self.passage_node_keys[idx])["content"]
-                for idx in sorted_doc_ids[:num_to_retrieve]
+                v["content"]
+                for v in (
+                    await self.chunk_embedding_store.async_get_rows(
+                        [self.passage_node_keys[idx] for idx in sorted_doc_ids[:num_to_retrieve]],
+                    )
+                ).values()
             ]
 
             retrieval_results.append(
@@ -410,14 +410,14 @@ class AsyncHippoRAG:
                 )
             )
 
-        retrieve_end_time = time.time()  # Record end time
+            retrieve_end_time = time.time()  # Record end time
 
-        self.all_retrieval_time += retrieve_end_time - retrieve_start_time
+            retrieval_time = retrieve_end_time - retrieve_start_time
 
-        logger.info(f"Total Retrieval Time {self.all_retrieval_time:.2f}s")
-        logger.info(f"Total Recognition Memory Time {self.rerank_time:.2f}s")
-        logger.info(f"Total PPR Time {self.ppr_time:.2f}s")
-        logger.info(f"Total Misc Time {self.all_retrieval_time - (self.rerank_time + self.ppr_time):.2f}s")
+            logger.info(f"Retrieval Time {retrieval_time:.2f}s")
+            logger.info(f"  LLM Rerank Time {rerank_time:.2f}s")
+            logger.info(f"  PPR Time {ppr_time:.2f}s")
+            logger.info(f"  Misc Time {retrieval_time - (rerank_time + ppr_time):.2f}s")
 
         return retrieval_results
 
@@ -1002,7 +1002,7 @@ class AsyncHippoRAG:
         fact_scores_dict: dict[str, float],
         passage_node_weight: float = 0.05,
         pike_node_weight: float = 1.0,
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, float]:
         """
         Computes document scores based on fact-based similarity and relevance using personalized
         PageRank (PPR) and dense retrieval models. This function combines the signal from the relevant
@@ -1102,13 +1102,13 @@ class AsyncHippoRAG:
         ppr_sorted_doc_ids, ppr_sorted_doc_scores = self.run_ppr(node_weights, damping=self.global_config.damping)
         ppr_end = time.time()
 
-        self.ppr_time += ppr_end - ppr_start
+        ppr_time = ppr_end - ppr_start
 
         assert len(ppr_sorted_doc_ids) == len(self.passage_node_idxs), (
             f"Doc prob length {len(ppr_sorted_doc_ids)} != corpus length {len(self.passage_node_idxs)}"
         )
 
-        return ppr_sorted_doc_ids, ppr_sorted_doc_scores
+        return ppr_sorted_doc_ids, ppr_sorted_doc_scores, ppr_time
 
     async def rerank_facts(
         self,

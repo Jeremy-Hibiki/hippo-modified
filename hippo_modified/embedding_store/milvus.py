@@ -144,11 +144,27 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
 
         return results[0]
 
+    async def async_get_row(self, hash_id: str) -> dict:
+        results = await self.async_client.get(ids=[hash_id], collection_name=self._collection_name)
+
+        if not results:
+            raise KeyError(f"Hash ID {hash_id} not found")
+
+        return results[0]
+
     def get_rows(self, hash_ids: Sequence[str], dtype=np.float32) -> dict[str, dict]:
         if not hash_ids:
             return {}
 
         results = self.client.get(ids=list(hash_ids), collection_name=self._collection_name)
+
+        return {result["hash_id"]: result for result in results}
+
+    async def async_get_rows(self, hash_ids: Sequence[str], dtype=np.float32) -> dict[str, dict]:
+        if not hash_ids:
+            return {}
+
+        results = await self.async_client.get(ids=list(hash_ids), collection_name=self._collection_name)
 
         return {result["hash_id"]: result for result in results}
 

@@ -235,8 +235,8 @@ class CacheOpenAI(BaseLLM):
         self._init_llm_config()
         if high_throughput:
             limits = httpx.Limits(max_connections=500, max_keepalive_connections=100)
-            client = httpx.Client(limits=limits, timeout=httpx.Timeout(5 * 60, read=5 * 60))
-            async_client = httpx.AsyncClient(limits=limits, timeout=httpx.Timeout(5 * 60, read=5 * 60))
+            client = httpx.Client(limits=limits, timeout=httpx.Timeout(5 * 60))
+            async_client = httpx.AsyncClient(limits=limits, timeout=httpx.Timeout(5 * 60))
         else:
             client = None
             async_client = None

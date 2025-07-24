@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import ast
+import asyncio
 import difflib
+import functools
 import json
 import logging
+import operator
 import re
 from copy import deepcopy
 from typing import TYPE_CHECKING
@@ -213,42 +216,56 @@ class DSPyFilter:
         batch_size: int = 10,
         concurrency: int = 4,
     ) -> tuple[list[int], list[tuple], dict]:
-        candidate = [list(candidate_item) for candidate_item in candidate_items]
-        sorted_candidate_indices = []
-        sorted_candidate_items = []
-        # logger.info('===' * 10 + " start " + '===' * 10, candidate, sep='\r\n')
-        while len(candidate) > 0:
-            batch_candidate = candidate[:batch_size]
-            # candidate = candidate[batch_size:]
-            fact_before_filter = {"fact": batch_candidate}
-            try:
-                # prediction = self.program(question=query, fact_before_filter=json.dumps(fact_before_filter))
-                response = await self.async_llm_call(query, json.dumps(fact_before_filter))
-                # logger.info(response, sep='\r\n')
-                generated_facts = self.parse_filter(response)
-                candidate = candidate[batch_size:]
-            except Exception as e:
-                logger.error("exception", e)
-                if batch_size > 6:
-                    batch_size -= 1
-                    continue
-                else:
-                    candidate = candidate[batch_size:]
-                generated_facts = []
+        candidate_lists: list[list[str]] = [list(candidate_item) for candidate_item in candidate_items]
 
-            result_indices = []
-            for generated_fact in generated_facts:
-                closest_matched_fact = difflib.get_close_matches(
-                    str(generated_fact), [str(i) for i in candidate_items], n=1, cutoff=0.0
-                )[0]
+        semaphore = asyncio.Semaphore(concurrency)
+
+        async def _process_one_batch(batch: list[list[str]]):
+            """Process one batch with local retry logic that reduces batch_size on JSON errors."""
+            local_batch_size = len(batch)
+            generated_facts: list[list[str]] = []
+
+            # Retry loop which progressively decreases the batch size in case of parsing errors
+            while True:
+                fact_before_filter = {"fact": batch[:local_batch_size]}
                 try:
-                    result_indices.append(candidate_items.index(eval(closest_matched_fact)))
+                    async with semaphore:
+                        response = await self.async_llm_call(query, json.dumps(fact_before_filter))
+                    generated_facts = self.parse_filter(response)
                 except Exception as e:
-                    logger.info("result_indices exception", e)
+                    logger.error("exception", e)
 
-            sorted_candidate_indices.extend([candidate_indices[i] for i in result_indices])
-            sorted_candidate_items.extend([candidate_items[i] for i in result_indices])
-        # logger.info([], '===' * 10 + " end " + '===' * 10, sep='\r\n')
+                # Break if we got valid facts or cannot shrink further
+                if generated_facts or local_batch_size <= 6:
+                    break
+
+                # Otherwise reduce the batch and retry
+                local_batch_size -= 1
+            return generated_facts
+
+        tasks = [
+            asyncio.create_task(_process_one_batch(candidate_lists[i : i + batch_size]))
+            for i in range(0, len(candidate_lists), batch_size)
+        ]
+
+        generated_facts = functools.reduce(operator.iadd, await asyncio.gather(*tasks, return_exceptions=False), [])
+        closest_matched_indices = [
+            candidate_items.index(
+                ast.literal_eval(
+                    difflib.get_close_matches(
+                        str(generated_fact),
+                        [str(i) for i in candidate_items],
+                        n=1,
+                        cutoff=0.0,
+                    )[0]
+                )
+            )
+            for generated_fact in generated_facts
+        ]
+
+        sorted_candidate_indices = [candidate_indices[i] for i in closest_matched_indices]
+        sorted_candidate_items = [candidate_items[i] for i in closest_matched_indices]
+
         return (
             sorted_candidate_indices[:len_after_rerank],
             sorted_candidate_items[:len_after_rerank],

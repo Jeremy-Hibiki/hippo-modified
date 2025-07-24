@@ -17,9 +17,15 @@ class BaseEmbeddingStore(ABC):
     def get_row(self, hash_id: str) -> dict:
         pass
 
+    async def async_get_row(self, hash_id: str) -> dict:
+        return self.get_row(hash_id)
+
     @abstractmethod
     def get_rows(self, hash_ids: Sequence[str], dtype: npt.DTypeLike = np.float32) -> dict[str, dict]:
         pass
+
+    async def async_get_rows(self, hash_ids: Sequence[str], dtype: npt.DTypeLike = np.float32) -> dict[str, dict]:
+        return self.get_rows(hash_ids, dtype)
 
     @abstractmethod
     def get_all_ids(self) -> list[str]:
