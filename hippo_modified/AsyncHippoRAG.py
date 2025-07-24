@@ -378,7 +378,7 @@ class AsyncHippoRAG:
             rerank_start = time.time()
             top_k_facts, fact_scores_dict, rerank_log = await self.rerank_facts(
                 query,
-                batch_num=rerank_batch_num,
+                batch_size=rerank_batch_num,
             )
             rerank_end = time.time()
 
@@ -1113,7 +1113,7 @@ class AsyncHippoRAG:
     async def rerank_facts(
         self,
         query: str,
-        batch_num: int = 10,
+        batch_size: int = 10,
     ) -> tuple[list[tuple], dict[str, float], dict]:
         """
         Args:
@@ -1152,7 +1152,7 @@ class AsyncHippoRAG:
                     candidate_facts,
                     list(range(len(candidate_facts))),
                     len_after_rerank=link_top_k,
-                    batch_num=batch_num,
+                    batch_size=batch_size,
                 )
             )[1]
             logger.info(f"top_k_facts: {top_k_facts}")

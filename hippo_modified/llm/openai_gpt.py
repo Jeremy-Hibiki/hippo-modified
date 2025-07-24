@@ -279,12 +279,12 @@ class CacheOpenAI(BaseLLM):
 
     @cache_response
     @dynamic_retry_decorator
-    def infer(self, messages: list[TextChatMessage], **kwargs) -> tuple[list[TextChatMessage], dict]:
+    def infer(self, messages: list[TextChatMessage], **kwargs) -> tuple[str, dict]:
         params = deepcopy(self.llm_config.generate_params)
         if kwargs:
             params.update(kwargs)
-        params["messages"] = messages
         logger.info(f"Calling OpenAI GPT API with:\n{params}")
+        params["messages"] = messages
 
         if (
             "gpt" not in params["model"] or version.parse(openai.__version__) < version.parse("1.45.0")
@@ -309,12 +309,12 @@ class CacheOpenAI(BaseLLM):
 
     @cache_response
     @dynamic_retry_decorator
-    async def async_infer(self, messages: list[TextChatMessage], **kwargs) -> tuple[list[TextChatMessage], dict]:
+    async def async_infer(self, messages: list[TextChatMessage], **kwargs) -> tuple[str, dict]:
         params = deepcopy(self.llm_config.generate_params)
         if kwargs:
             params.update(kwargs)
-        params["messages"] = messages
         logger.info(f"Calling OpenAI GPT API with:\n{params}")
+        params["messages"] = messages
 
         if (
             "gpt" not in params["model"] or version.parse(openai.__version__) < version.parse("1.45.0")
