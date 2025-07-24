@@ -1,4 +1,5 @@
 import ast
+import asyncio
 import json
 import logging
 import os
@@ -183,6 +184,7 @@ class AsyncHippoRAG:
         self.rerank_filter = DSPyFilter(self)
         self.rerank_filter_fn = self.rerank_filter.async_rerank
 
+        self._prepare_lock = asyncio.Lock()
         self.ready_to_retrieve = False
 
         self.ent_node_to_chunk_ids = None
@@ -366,7 +368,9 @@ class AsyncHippoRAG:
             self.atom_query_num = atom_query_num
 
         if not self.ready_to_retrieve:
-            self.prepare_retrieval_objects()
+            async with self._prepare_lock:
+                if not self.ready_to_retrieve:
+                    self.prepare_retrieval_objects()
 
         retrieval_results = []
 
