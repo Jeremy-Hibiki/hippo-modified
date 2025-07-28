@@ -1,7 +1,7 @@
 import logging
-import os
 from collections.abc import Sequence
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -45,11 +45,9 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         self.batch_size = batch_size
         self.namespace = namespace
 
-        if not os.path.exists(db_filename):
-            logger.info(f"Creating working directory: {db_filename}")
-            os.makedirs(db_filename, exist_ok=True)
+        Path(db_filename).mkdir(parents=True, exist_ok=True)
 
-        self.filename = os.path.join(db_filename, f"vdb_{self.namespace}.parquet")
+        self.filename = Path(db_filename) / f"vdb_{self.namespace}.parquet"
         self._load_data()
 
     def insert_strings(self, texts: Sequence[str]) -> dict | None:
@@ -89,7 +87,7 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         return None
 
     def _load_data(self) -> None:
-        if os.path.exists(self.filename):
+        if Path(self.filename).exists():
             df = pd.read_parquet(self.filename)
             self.hash_ids, self.texts, self.embeddings = (
                 df["hash_id"].values.tolist(),

@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from typing_extensions import override
 from uuid import uuid4
 
 import numpy as np
 
-from ..embedding_model import BaseEmbeddingModel
-from ..utils.config_utils import BaseConfig
 from ..utils.misc_utils import compute_mdhash_id, load_hit_stopwords
 from .base import BaseEmbeddingStore
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from ..embedding_model import BaseEmbeddingModel
+    from ..utils.config_utils import BaseConfig
 
 logger = logging.getLogger(__name__)
 

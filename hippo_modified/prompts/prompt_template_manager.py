@@ -1,6 +1,6 @@
 import importlib
-import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from string import Template
 from typing import Any
 
@@ -37,11 +37,11 @@ class PromptTemplateManager:
         #     current_file_path = os.path.abspath(__file__)
         #     package_dir = os.path.dirname(current_file_path)
         #     self.templates_dir = os.path.join(package_dir, "templates")
-        current_file_path = os.path.abspath(__file__)
-        package_dir = os.path.dirname(current_file_path)
+        current_file_path = Path(__file__).resolve()
+        package_dir = Path(current_file_path).parent
 
         # abs path to dir where each *.py file (exclude __init__.py) contains a variable prompt_template (a str or a chat history with content as raw str for being converted to a Template)
-        self.templates_dir = os.path.join(package_dir, "templates")
+        self.templates_dir = Path(package_dir) / "templates"
 
         self._load_templates()
 
@@ -49,14 +49,14 @@ class PromptTemplateManager:
         """
         Load all templates from Python scripts in the templates directory.
         """
-        if not os.path.exists(self.templates_dir):
+        if not Path(self.templates_dir).exists():
             logger.error(f"Templates directory '{self.templates_dir}' does not exist.")
             raise FileNotFoundError(f"Templates directory '{self.templates_dir}' does not exist.")
 
         logger.info(f"Loading templates from directory: {self.templates_dir}")
-        for filename in os.listdir(self.templates_dir):
-            if filename.endswith(".py") and filename != "__init__.py":
-                script_name = os.path.splitext(filename)[0]
+        for filename in Path.iterdir(self.templates_dir):
+            if filename.suffix == ".py" and filename.name != "__init__.py":
+                script_name = filename.stem
 
                 try:
                     try:

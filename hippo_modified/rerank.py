@@ -5,10 +5,11 @@ import asyncio
 import difflib
 import json
 import logging
-import re
 from copy import deepcopy
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import regex as re
 from pydantic import BaseModel, Field, TypeAdapter
 
 from .prompts.filter_default_prompt import best_dspy_prompt
@@ -56,8 +57,7 @@ class DSPyFilter:
 
     def make_template(self, dspy_file_path: str | None, num: int = 5) -> list[dict[str, str]]:
         if dspy_file_path is not None:
-            with open(dspy_file_path) as f:
-                dspy_saved = json.load(f)
+            dspy_saved: dict = json.loads(Path(dspy_file_path).read_bytes())
         else:
             dspy_saved = best_dspy_prompt
 
@@ -67,25 +67,21 @@ class DSPyFilter:
         ]
         demos = dspy_saved["prog"]["demos"]
         for demo in demos:
-            message_template.append(
-                {
-                    "role": "user",
-                    "content": self.one_input_template.format(
-                        question=demo["question"], fact_before_filter=demo["fact_before_filter"]
-                    ),
-                }
-            )
-            message_template.append(
-                {
-                    "role": "assistant",
-                    "content": self.one_output_template.format(fact_after_filter=demo["fact_after_filter"]),
-                }
-            )
+            message_template.append({
+                "role": "user",
+                "content": self.one_input_template.format(
+                    question=demo["question"], fact_before_filter=demo["fact_before_filter"]
+                ),
+            })
+            message_template.append({
+                "role": "assistant",
+                "content": self.one_output_template.format(fact_after_filter=demo["fact_after_filter"]),
+            })
         return message_template
 
     def parse_filter(self, response: str) -> list[list[str]]:
         sections: list[tuple[str | None, list[str]]] = [(None, [])]
-        field_header_pattern = re.compile("\\[\\[ ## (\\w+) ## \\]\\]")
+        field_header_pattern = re.compile(r"\[\[ ## (\w+) ## \]\]")
         for line in response.splitlines():
             match = field_header_pattern.match(line.strip())
             if match:
@@ -117,12 +113,10 @@ class DSPyFilter:
     def llm_call(self, question: str, fact_before_filter: str):
         # make prompt
         messages = deepcopy(self.message_template)
-        messages.append(
-            {
-                "role": "user",
-                "content": self.one_input_template.format(question=question, fact_before_filter=fact_before_filter),
-            }
-        )
+        messages.append({
+            "role": "user",
+            "content": self.one_input_template.format(question=question, fact_before_filter=fact_before_filter),
+        })
         # call openai
 
         if self.default_gen_kwargs.get("max_completion_tokens") is None:
@@ -137,12 +131,10 @@ class DSPyFilter:
     async def async_llm_call(self, question: str, fact_before_filter: str):
         # make prompt
         messages = deepcopy(self.message_template)
-        messages.append(
-            {
-                "role": "user",
-                "content": self.one_input_template.format(question=question, fact_before_filter=fact_before_filter),
-            }
-        )
+        messages.append({
+            "role": "user",
+            "content": self.one_input_template.format(question=question, fact_before_filter=fact_before_filter),
+        })
         # call openai
 
         if self.default_gen_kwargs.get("max_completion_tokens") is None:

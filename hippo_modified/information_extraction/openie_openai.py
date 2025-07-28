@@ -86,7 +86,7 @@ class OpenIE:
                         all_entites.append(entity)
                 merge -= 1
 
-            except Exception as e:
+            except Exception as e:  # noqa: PERF203
                 chance -= 1
                 temperature += 0.1
                 unique_entities = []
@@ -148,7 +148,7 @@ class OpenIE:
                 else:
                     chance -= 1
                     temperature += 0.1
-            except Exception as e:
+            except Exception as e:  # noqa: PERF203
                 chance -= 1
                 temperature += 0.1
                 if chance == 0 and merge == self.merge:
@@ -208,13 +208,11 @@ class OpenIE:
                 if metadata.get("cache_hit"):
                     num_cache_hit += 1
 
-                pbar.set_postfix(
-                    {
-                        "total_prompt_tokens": total_prompt_tokens,
-                        "total_completion_tokens": total_completion_tokens,
-                        "num_cache_hit": num_cache_hit,
-                    }
-                )
+                pbar.set_postfix({
+                    "total_prompt_tokens": total_prompt_tokens,
+                    "total_completion_tokens": total_completion_tokens,
+                    "num_cache_hit": num_cache_hit,
+                })
         logger.info(f"ner_results_list: {ner_results_list}")
         triple_results_list = []
         total_prompt_tokens, total_completion_tokens, num_cache_hit = 0, 0, 0
@@ -239,13 +237,11 @@ class OpenIE:
                 total_completion_tokens += metadata.get("completion_tokens", 0)
                 if metadata.get("cache_hit"):
                     num_cache_hit += 1
-                pbar.set_postfix(
-                    {
-                        "total_prompt_tokens": total_prompt_tokens,
-                        "total_completion_tokens": total_completion_tokens,
-                        "num_cache_hit": num_cache_hit,
-                    }
-                )
+                pbar.set_postfix({
+                    "total_prompt_tokens": total_prompt_tokens,
+                    "total_completion_tokens": total_completion_tokens,
+                    "num_cache_hit": num_cache_hit,
+                })
         logger.info(f"triple_results_list: {triple_results_list}")
         ner_results_dict = {res.chunk_id: res for res in ner_results_list}
         triple_results_dict = {res.chunk_id: res for res in triple_results_list}

@@ -1,10 +1,10 @@
 import hashlib
 import inspect
 import json
-import os
 import sqlite3
 from collections.abc import Callable, Coroutine
 from copy import deepcopy
+from pathlib import Path
 from typing import Any, ParamSpec, TypeVar
 from typing_extensions import overload
 
@@ -222,8 +222,8 @@ class CacheOpenAI(BaseLLM):
     def from_experiment_config(cls, global_config: BaseConfig) -> "CacheOpenAI":
         config_dict = global_config.__dict__
         config_dict["max_retries"] = global_config.max_retry_attempts
-        cache_dir = os.path.join(global_config.save_dir, "llm_cache")
-        return cls(cache_dir=cache_dir, global_config=global_config)
+        cache_dir = Path(global_config.save_dir) / "llm_cache"
+        return cls(cache_dir=str(cache_dir), global_config=global_config)
 
     def __init__(
         self,
@@ -241,10 +241,10 @@ class CacheOpenAI(BaseLLM):
         self.llm_base_url = global_config.llm_base_url
         self.cache_llm_response = global_config.cache_llm_response
 
-        os.makedirs(self.cache_dir, exist_ok=True)
+        Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
         if cache_filename is None:
             cache_filename = f"{self.llm_name.replace('/', '_')}_cache.sqlite"
-        self.cache_file_name = os.path.join(self.cache_dir, cache_filename)
+        self.cache_file_name = Path(self.cache_dir) / cache_filename
 
         self._init_llm_config()
         if high_throughput:

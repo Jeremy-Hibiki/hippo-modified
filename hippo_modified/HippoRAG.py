@@ -1,16 +1,17 @@
+from __future__ import annotations
+
 import ast
 import json
 import logging
-import os
-import re
 import time
 from collections import defaultdict
-from collections.abc import Sequence
 from dataclasses import asdict
+from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import igraph as ig
 import numpy as np
+import regex as re
 from tqdm import tqdm
 
 from .embedding_model import get_embedding_model_class
@@ -33,6 +34,9 @@ from .utils.misc_utils import (
     text_processing,
 )
 from .utils.typing import NOT_GIVEN, NotGiven
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -112,17 +116,17 @@ class HippoRAG:
         if not isinstance(azure_embedding_endpoint, NotGiven):
             self.global_config.azure_embedding_endpoint = azure_embedding_endpoint
 
-        _print_config = ",\n  ".join([f"{k} = {v}" for k, v in asdict(self.global_config).items()])
-        logger.info(f"HippoRAG init with config:\n  {_print_config}\n")
+        print_config = ",\n  ".join([f"{k} = {v}" for k, v in asdict(self.global_config).items()])
+        logger.info(f"HippoRAG init with config:\n  {print_config}\n")
 
         # LLM and embedding model specific working directories are created under every specified saving directories
         llm_label = self.global_config.llm_name.replace("/", "_")
         embedding_label = self.global_config.embedding_model_name.replace("/", "_")
-        self.working_dir = os.path.join(self.global_config.save_dir, f"{llm_label}_{embedding_label}")
+        self.working_dir = Path(self.global_config.save_dir) / f"{llm_label}_{embedding_label}"
 
-        if not os.path.exists(self.working_dir):
+        if not Path(self.working_dir).exists():
             logger.info(f"Creating working directory: {self.working_dir}")
-            os.makedirs(self.working_dir, exist_ok=True)
+            self.working_dir.mkdir(parents=True, exist_ok=True)
 
         self.llm_model = get_llm_class(self.global_config)
 
@@ -140,21 +144,21 @@ class HippoRAG:
 
         self.chunk_embedding_store = create_embedding_store(
             embedding_model=self.embedding_model,
-            db_name=os.path.join(self.working_dir, "chunk_embeddings"),
+            db_name=str(Path(self.working_dir) / "chunk_embeddings"),
             batch_size=self.global_config.embedding_batch_size,
             namespace="chunk",
             global_config=self.global_config,
         )
         self.entity_embedding_store = create_embedding_store(
             embedding_model=self.embedding_model,
-            db_name=os.path.join(self.working_dir, "entity_embeddings"),
+            db_name=str(Path(self.working_dir) / "entity_embeddings"),
             batch_size=self.global_config.embedding_batch_size,
             namespace="entity",
             global_config=self.global_config,
         )
         self.fact_embedding_store = create_embedding_store(
             embedding_model=self.embedding_model,
-            db_name=os.path.join(self.working_dir, "fact_embeddings"),
+            db_name=str(Path(self.working_dir) / "fact_embeddings"),
             batch_size=self.global_config.embedding_batch_size,
             namespace="fact",
             global_config=self.global_config,
@@ -163,7 +167,7 @@ class HippoRAG:
 
         self.query_embedding_store = create_embedding_store(
             embedding_model=self.embedding_model,
-            db_name=os.path.join(self.working_dir, "query_embeddings"),
+            db_name=str(Path(self.working_dir) / "query_embeddings"),
             batch_size=self.global_config.embedding_batch_size,
             namespace="query",
             global_config=self.global_config,
@@ -174,12 +178,12 @@ class HippoRAG:
             role_mapping={"system": "system", "user": "user", "assistant": "assistant"}
         )
 
-        self.openie_results_path = os.path.join(
+        self.openie_results_path = Path(
             self.global_config.save_dir,
             f"openie_results_ner_{self.global_config.llm_name.replace('/', '_')}.json",
         )
 
-        self.pike_patch_path = os.path.join(self.global_config.save_dir, "pike_patch.json")
+        self.pike_patch_path = Path(self.global_config.save_dir) / "pike_patch.json"
         self.pike_patch()
 
         self.rerank_filter = DSPyFilter(self)
@@ -204,12 +208,12 @@ class HippoRAG:
         Raises:
             None
         """
-        self._graph_pickle_filename = os.path.join(self.working_dir, "graph.pickle")
+        self._graph_pickle_filename = Path(self.working_dir) / "graph.pickle"
 
         preloaded_graph = None
 
-        if not self.global_config.force_index_from_scratch and os.path.exists(self._graph_pickle_filename):
-            preloaded_graph = cast(ig.Graph, ig.Graph.Read_Pickle(self._graph_pickle_filename))
+        if not self.global_config.force_index_from_scratch and Path(self._graph_pickle_filename).exists():
+            preloaded_graph = cast("ig.Graph", ig.Graph.Read_Pickle(self._graph_pickle_filename))
 
         if preloaded_graph is None:
             return ig.Graph(directed=self.global_config.is_directed_graph)
@@ -223,25 +227,20 @@ class HippoRAG:
         if queries is None:
             queries = {}
         logger.info("Indexing PIKE queriers")
-        if os.path.exists(self.pike_patch_path):
-            with open(self.pike_patch_path) as f:
-                old_queries = json.load(f)
+        if Path(self.pike_patch_path).exists():
+            old_queries: dict = json.loads(self.pike_patch_path.read_bytes())
             old_queries.update(queries)
         else:
             old_queries = queries.copy()
 
         # for query in list(old_queries.keys()):
         self.query_embedding_store.insert_strings(list(old_queries.keys()))
-        with open(self.pike_patch_path, "w") as f:
-            json.dump(old_queries, f)
+        self.pike_patch_path.write_bytes(json.dumps(old_queries, ensure_ascii=False).encode())
         query_to_chunk_ids = {}
         all_ids = set(self.chunk_embedding_store.get_all_ids())
         for query in old_queries:
             chunk_ids = old_queries[query]
-            query_chunk_ids = []
-            for chunk_id in chunk_ids:
-                if chunk_id in all_ids:
-                    query_chunk_ids.append(chunk_id)
+            query_chunk_ids = [chunk_id for chunk_id in chunk_ids if chunk_id in all_ids]
             query_to_chunk_ids[query] = query_chunk_ids
         self.query_to_chunk_ids = query_to_chunk_ids
 
@@ -376,7 +375,7 @@ class HippoRAG:
 
         for q_idx, query in enumerate(queries):
             rerank_start = time.time()
-            top_k_facts, fact_scores_dict, rerank_log = self.rerank_facts(
+            top_k_facts, fact_scores_dict, _rerank_log = self.rerank_facts(
                 query,
                 batch_size=rerank_batch_num,
             )
@@ -459,10 +458,10 @@ class HippoRAG:
                     node_key = compute_mdhash_id(content=triple[0], prefix=("entity-"))
                     node_2_key = compute_mdhash_id(content=triple[2], prefix=("entity-"))
 
-                    self.node_to_node_stats[(node_key, node_2_key)] = (
+                    self.node_to_node_stats[node_key, node_2_key] = (
                         self.node_to_node_stats.get((node_key, node_2_key), 0.0) + 1
                     )
-                    self.node_to_node_stats[(node_2_key, node_key)] = (
+                    self.node_to_node_stats[node_2_key, node_key] = (
                         self.node_to_node_stats.get((node_2_key, node_key), 0.0) + 1
                     )
 
@@ -508,7 +507,7 @@ class HippoRAG:
                 for chunk_ent in chunk_triple_entities[idx]:
                     node_key = compute_mdhash_id(chunk_ent, prefix="entity-")
 
-                    self.node_to_node_stats[(chunk_key, node_key)] = 1.0
+                    self.node_to_node_stats[chunk_key, node_key] = 1.0
 
                 num_new_chunks += 1
 
@@ -549,7 +548,7 @@ class HippoRAG:
 
             entity = self.entity_id_to_row[node_key]["content"]
 
-            if len(re.sub("[^A-Za-z0-9]", "", entity)) > 2:
+            if len(re.sub(r"[^A-Za-z0-9]", "", entity)) > 2:
                 nns = query_node_key2knn_node_keys[node_key]
 
                 num_nns = 0
@@ -590,9 +589,8 @@ class HippoRAG:
         # combine openie_results with contents already in file, if file exists
         chunk_keys_to_save = set[str]()
 
-        if not self.global_config.force_openie_from_scratch and os.path.isfile(self.openie_results_path):
-            with open(self.openie_results_path, encoding="utf-8") as f:
-                openie_results = json.load(f)
+        if not self.global_config.force_openie_from_scratch and Path(self.openie_results_path).is_file():
+            openie_results: dict = json.loads(self.openie_results_path.read_bytes())
             all_openie_info = openie_results.get("docs", [])
 
             # Standardizing indices for OpenIE Files.
@@ -690,8 +688,7 @@ class HippoRAG:
                 "avg_ent_words": avg_ent_words,
             }
 
-            with open(self.openie_results_path, "w") as f:
-                json.dump(openie_dict, f)
+            self.openie_results_path.write_bytes(json.dumps(openie_dict, ensure_ascii=False).encode())
             logger.info(f"OpenIE results saved to {self.openie_results_path}")
 
     def augment_graph(self):
@@ -902,7 +899,7 @@ class HippoRAG:
 
         logger.info("Loading embeddings.")
 
-        all_openie_info, chunk_keys_to_process = self.load_existing_openie([])
+        all_openie_info, _chunk_keys_to_process = self.load_existing_openie([])
 
         self.proc_triples_to_docs = {}
 
@@ -982,9 +979,9 @@ class HippoRAG:
 
         # only keep the top_k phrases in all_phrase_weights
         top_k_phrases = set(linking_score_map.keys())
-        top_k_phrases_keys = set(
-            [compute_mdhash_id(content=top_k_phrase, prefix="entity-") for top_k_phrase in top_k_phrases]
-        )
+        top_k_phrases_keys = set([
+            compute_mdhash_id(content=top_k_phrase, prefix="entity-") for top_k_phrase in top_k_phrases
+        ])
 
         for phrase_key in self.node_name_to_vertex_idx:
             if phrase_key not in top_k_phrases_keys:

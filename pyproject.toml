@@ -49,6 +49,7 @@ extend-exclude = ["*.pyi"]
 line-length = 119
 indent-width = 4
 target-version = "py310"
+preview = true
 
 [tool.ruff.lint]
 select = [
@@ -62,11 +63,18 @@ select = [
     "FA",
     # flake8-simplify
     "SIM",
+    # flake8-use-pathlib
+    "PTH",
+    # flake8-type-checking
+    "TC",
     # isort
     "I",
     # pyupgrade
     "UP",
+    # ruff
     "RUF",
+    # Perflint
+    "PERF",
 ]
 ignore = [
     "B007",
@@ -96,6 +104,15 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402"]
+
+[tool.ruff.lint.flake8-type-checking]
+exempt-modules = ["typing", "typing_extensions"]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+runtime-evaluated-decorators = [
+    "pydantic.validate_call",
+    "attrs.define",
+    "fastapi.FastAPI.get",
+]
 
 [tool.ruff.lint.isort]
 extra-standard-library = ["typing_extensions"]

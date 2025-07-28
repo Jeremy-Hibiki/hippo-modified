@@ -29,24 +29,24 @@ def convert_format_to_template(
         str: The converted string in Template-style format.
     """
     # Initialize mappings
-    _placeholder_mapping: dict[str, Any] = placeholder_mapping or {}
-    _static_values: dict[str, Any] = static_values or {}
+    placeholder_mapping_: dict[str, Any] = placeholder_mapping or {}
+    static_values_: dict[str, Any] = static_values or {}
 
     # Regular expression to find .format() style placeholders
     placeholder_pattern = re.compile(r"\{(\w+)\}")
 
     # Substitute placeholders in the string
     def replace_placeholder(match: re.Match[str]) -> str:
-        nonlocal _placeholder_mapping, _static_values
+        nonlocal placeholder_mapping_, static_values_
 
         original_placeholder: str = match.group(1)
 
         # If the placeholder is in static_values, substitute its value directly
-        if original_placeholder in _static_values:
-            return str(_static_values[original_placeholder])
+        if original_placeholder in static_values_:
+            return str(static_values_[original_placeholder])
 
         # Otherwise, rename the placeholder if needed, or keep it as is
-        new_placeholder = _placeholder_mapping.get(original_placeholder, original_placeholder)
+        new_placeholder = placeholder_mapping_.get(original_placeholder, original_placeholder)
         return f"${{{new_placeholder}}}"
 
     # Replace all placeholders

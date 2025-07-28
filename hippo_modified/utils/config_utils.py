@@ -46,7 +46,7 @@ class BaseConfig:
         metadata={"help": "Specifying the format that the model must output."},
     )
 
-    ## LLM specific attributes -> Async hyperparameters
+    # LLM specific attributes -> Async hyperparameters
     max_retry_attempts: int = field(
         default=5, metadata={"help": "Max number of retry attempts for an asynchronous API calling."}
     )
