@@ -1,7 +1,8 @@
 import json
-import re
 from string import Template
-from typing import TypedDict
+from typing import Any, TypedDict
+
+import regex as re
 
 
 class TextChatMessage(TypedDict):
@@ -12,7 +13,9 @@ class TextChatMessage(TypedDict):
 
 
 def convert_format_to_template(
-    original_string: str, placeholder_mapping: dict | None = None, static_values: dict | None = None
+    original_string: str,
+    placeholder_mapping: dict[str, Any] | None = None,
+    static_values: dict[str, Any] | None = None,
 ) -> str:
     """
     Converts a .format() style string to a Template-style string.
@@ -26,22 +29,24 @@ def convert_format_to_template(
         str: The converted string in Template-style format.
     """
     # Initialize mappings
-    placeholder_mapping = placeholder_mapping or {}
-    static_values = static_values or {}
+    _placeholder_mapping: dict[str, Any] = placeholder_mapping or {}
+    _static_values: dict[str, Any] = static_values or {}
 
     # Regular expression to find .format() style placeholders
     placeholder_pattern = re.compile(r"\{(\w+)\}")
 
     # Substitute placeholders in the string
-    def replace_placeholder(match):
-        original_placeholder = match.group(1)
+    def replace_placeholder(match: re.Match[str]) -> str:
+        nonlocal _placeholder_mapping, _static_values
+
+        original_placeholder: str = match.group(1)
 
         # If the placeholder is in static_values, substitute its value directly
-        if original_placeholder in static_values:
-            return str(static_values[original_placeholder])
+        if original_placeholder in _static_values:
+            return str(_static_values[original_placeholder])
 
         # Otherwise, rename the placeholder if needed, or keep it as is
-        new_placeholder = placeholder_mapping.get(original_placeholder, original_placeholder)
+        new_placeholder = _placeholder_mapping.get(original_placeholder, original_placeholder)
         return f"${{{new_placeholder}}}"
 
     # Replace all placeholders
@@ -93,7 +98,7 @@ def fix_broken_generated_json(json_str: str) -> str:
                     inside_string = True
                 elif char in "{[":
                     unclosed.append(char)
-                elif char in "}]":
+                elif char in "}]":  # noqa: SIM102
                     if unclosed and ((char == "}" and unclosed[-1] == "{") or (char == "]" and unclosed[-1] == "[")):
                         unclosed.pop()
 

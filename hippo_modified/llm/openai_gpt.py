@@ -3,9 +3,10 @@ import inspect
 import json
 import os
 import sqlite3
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from copy import deepcopy
-from typing import TypeVar
+from typing import Any, ParamSpec, TypeVar
+from typing_extensions import overload
 
 import aiosqlite
 import httpx
@@ -24,15 +25,28 @@ from .base import BaseLLM, LLMConfig
 logger = get_logger(__name__)
 
 _R = TypeVar("_R")
+_P = ParamSpec("_P")
 
 
-def cache_response(func: Callable[..., _R]) -> Callable[..., _R]:
+@overload
+def cache_response(func: Callable[_P, tuple[str, dict]]) -> Callable[_P, tuple[str, dict, bool]]: ...
+
+
+@overload
+def cache_response(
+    func: Callable[_P, Coroutine[Any, Any, tuple[str, dict]]],
+) -> Callable[_P, Coroutine[Any, Any, tuple[str, dict, bool]]]: ...
+
+
+def cache_response(
+    func: Callable[_P, tuple[str, dict]] | Callable[_P, Coroutine[Any, Any, tuple[str, dict]]],
+) -> Callable[_P, tuple[str, dict, bool]] | Callable[_P, Coroutine[Any, Any, tuple[str, dict, bool]]]:
     def _build_cache_key(instance, args, kwargs):
         messages = args[0] if args else kwargs.get("messages")
         if messages is None:
             raise ValueError("Missing required 'messages' parameter for caching.")
 
-        gen_params = getattr(instance, "llm_config", {}).generate_params if hasattr(instance, "llm_config") else {}
+        gen_params = instance.llm_config.generate_params if hasattr(instance, "llm_config") else {}
         model = kwargs.get("model", gen_params.get("model"))
         seed = kwargs.get("seed", gen_params.get("seed"))
         temperature = kwargs.get("temperature", gen_params.get("temperature"))
@@ -179,7 +193,7 @@ def cache_response(func: Callable[..., _R]) -> Callable[..., _R]:
         return sync_wrapper(func)
 
 
-def dynamic_retry_decorator(func: Callable[..., _R]) -> Callable[..., _R]:
+def dynamic_retry_decorator(func: Callable[_P, _R]) -> Callable[_P, _R]:
     @wrapt.decorator
     def sync_wrapper(wrapped, instance, args, kwargs):
         max_retries = getattr(instance, "max_retries", 5)
@@ -215,7 +229,7 @@ class CacheOpenAI(BaseLLM):
         self,
         cache_dir: str,
         global_config: BaseConfig,
-        cache_filename: str = None,
+        cache_filename: str | None = None,
         high_throughput: bool = True,
         **kwargs,
     ) -> None:

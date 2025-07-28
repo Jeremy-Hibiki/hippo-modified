@@ -1,5 +1,5 @@
 import json
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -111,6 +111,7 @@ class BaseLLM(ABC):
         self.llm_name = self.global_config.llm_name
         logger.info(f"Init {self.__class__.__name__}'s llm_name with: {self.llm_name}")
 
+    @abstractmethod
     def _init_llm_config(self) -> None:
         """
         Each LLM model should extract its own running parameters from global_config and raise exception if any mandatory parameter is not defined in global_config.
@@ -134,31 +135,36 @@ class BaseLLM(ABC):
             f"Updated {self.__class__.__name__}'s llm_config with {updates} to eventually obtain llm_config as: {self.llm_config}"
         )
 
-    def ainfer(self, chat: list[TextChatMessage]) -> tuple[list[TextChatMessage], dict]:
-        """
-        Perform asynchronous inference using the LLM.
-
-        Args:
-            chat (List[TextChatMessage]): Input chat history for the LLM.
-
-        Returns:
-            Tuple[List[TextChatMessage], dict]: The list of n (number of choices) LLM response message (a single dict of role + content), and additional metadata (all input params including input chat) as a dictionary.
-        """
-        pass
-
-    def infer(self, chat: list[TextChatMessage]) -> tuple[list[TextChatMessage], dict]:
+    @abstractmethod
+    def infer(
+        self,
+        messages: list[TextChatMessage],
+        **kwargs,
+    ) -> tuple[list[TextChatMessage] | str, dict, bool]:
         """
         Perform synchronous inference using the LLM.
 
         Args:
-            chat (List[TextChatMessage]): Input chat history for the LLM.
+            messages (List[TextChatMessage]): Input chat history for the LLM.
 
         Returns:
             Tuple[List[TextChatMessage], dict]: The list of n (number of choices) LLM response message (a single dict of role + content), and additional metadata (all input params including input chat) as a dictionary.
         """
         pass
 
-    def batch_infer(self, batch_chat: list[list[TextChatMessage]]) -> tuple[list[list[TextChatMessage]], list[dict]]:
+    async def async_infer(
+        self,
+        messages: list[TextChatMessage],
+        **kwargs,
+    ) -> tuple[list[TextChatMessage] | str, dict, bool]:
+        """
+        Perform asynchronous inference using the LLM.
+        """
+        return self.infer(messages, **kwargs)
+
+    def batch_infer(
+        self, batch_chat: list[list[TextChatMessage]]
+    ) -> tuple[list[list[TextChatMessage] | str], list[dict]]:
         """
         Perform batched synchronous inference using the LLM.
 
@@ -169,7 +175,14 @@ class BaseLLM(ABC):
             Tuple[List[List[TextChatMessage]], List[dict]]: The batch list of length-n (number of choices) list of LLM response message (a single dict of role + content), and corresponding batch of additional metadata (all input params including input chat) as a list of dictionaries.
         """
 
-        pass
+        responses: list[list[TextChatMessage] | str] = []
+        metadatas: list[dict] = []
+        for chat in batch_chat:
+            res, metadata, _ = self.infer(chat)
+            responses.append(res)
+            metadatas.append(metadata)
+
+        return responses, metadatas
 
 
 # # Example usage

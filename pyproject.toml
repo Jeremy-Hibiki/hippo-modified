@@ -1,6 +1,6 @@
 [project]
 name = "hippo-modified"
-version = "2.2.5"
+version = "2.3.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -9,38 +9,22 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "aiosqlite>=0.21.0",
+    "filelock",
     "openai>=1.58.1",
-    "python-igraph==0.11.8",
     "pandas",
     "pydantic>=2.10.4",
+    "python-igraph==0.11.8",
     "tenacity>=8.5.0",
     "tqdm",
     "transformers>=4.51",
-    "filelock",
     "wrapt>=1.17.2",
-    "aiosqlite>=0.21.0",
 ]
 
+[dependency-groups]
+dev = ["mypy>=1.17.0", "ruff>=0.12.5", "ty>=0.0.1a15", "hippo-modified[milvus]"]
+
 [project.optional-dependencies]
-cpu = ["torch"]
-cu126 = [
-    "torch",
-    "nvidia-cublas-cu12~=12.0",
-    "nvidia-cuda-cupti-cu12~=12.0",
-    "nvidia-cuda-nvrtc-cu12~=12.0",
-    "nvidia-cuda-runtime-cu12~=12.0",
-    "nvidia-cudnn-cu12~=9.0",
-    "nvidia-cufft-cu12~=11.0",
-    "nvidia-curand-cu12~=10.0",
-    "nvidia-cusolver-cu12~=11.0",
-    "nvidia-cusparse-cu12~=12.0",
-    "nvidia-cusparselt-cu12~=0.0",
-    "nvidia-nccl-cu12~=2.0",
-    "nvidia-nvtx-cu12~=12.0",
-    "nvidia-nvjitlink-cu12~=12.0",
-]
-dev = ["ruff==0.11.0"]
-gritlm = ["gritlm==1.0.2"]
 milvus = ["pymilvus>=2.5"]
 
 [build-system]
@@ -51,55 +35,14 @@ build-backend = "hatchling.build"
 managed = true
 prerelease = "if-necessary-or-explicit"
 no-sources = false
-package = false
 index-strategy = "unsafe-best-match"
 environments = ["platform_machine == 'x86_64'"]
-conflicts = [
-    [
-        { extra = "cpu" },
-        { extra = "cu126" },
-    ],
-    [
-        { extra = "cpu" },
-        { extra = "nvidia" },
-    ],
-]
-
-
-[tool.uv.sources]
-torch = [
-    { index = "pytorch-cpu", extra = "cpu" },
-    { index = "pytorch-cu126", extra = "cu126" },
-]
-nvidia-cuda-nvrtc-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-cuda-runtime-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-cuda-cupti-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-cudnn-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-cublas-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-cufft-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-curand-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-cusolver-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-cusparse-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-cusparselt-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-nccl-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-nvtx-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
-nvidia-nvjitlink-cu12 = [{ index = "pytorch-cu126", extra = "cu126" }]
+conflicts = [[{ extra = "cpu" }, { extra = "cu126" }]]
 
 [[tool.uv.index]]
 name = "tuna"
 url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
 default = true
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://mirror.nju.edu.cn/pytorch/whl/cpu"
-explicit = true
-
-[[tool.uv.index]]
-name = "pytorch-cu126"
-url = "https://mirror.nju.edu.cn/pytorch/whl/cu126"
-# url = "https://download.pytorch.org/whl/cu126"
-explicit = true
 
 [tool.ruff]
 extend-exclude = ["*.pyi"]
@@ -157,5 +100,12 @@ ignore = [
 [tool.ruff.lint.isort]
 extra-standard-library = ["typing_extensions"]
 
-[dependency-groups]
-dev = ["ruff==0.11.0"]
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+disable_error_code = "import-untyped"
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true

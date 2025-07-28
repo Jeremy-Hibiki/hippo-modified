@@ -2,7 +2,6 @@ from copy import deepcopy
 
 import numpy as np
 import numpy.typing as npt
-import torch
 from openai import AsyncAzureOpenAI, AsyncOpenAI, AzureOpenAI, OpenAI
 from tqdm import tqdm
 
@@ -117,9 +116,6 @@ class OpenAIEmbeddingModel(BaseEmbeddingModel):
                     pbar.update(batch_size)
             results = np.concatenate(results)
 
-        if isinstance(results, torch.Tensor):
-            results = results.cpu()
-            results = results.numpy()
         if self.embedding_config.norm:
             results = (results.T / np.linalg.norm(results, axis=1)).T
 
@@ -152,9 +148,6 @@ class OpenAIEmbeddingModel(BaseEmbeddingModel):
                     pbar.update(batch_size)
             results = np.concatenate(results)
 
-        if isinstance(results, torch.Tensor):
-            results = results.cpu()
-            results = results.numpy()
         if self.embedding_config.norm:
             results = (results.T / np.linalg.norm(results, axis=1)).T
 

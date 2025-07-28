@@ -63,7 +63,7 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         # Get all hash_ids from the input dictionary.
         all_hash_ids = list(nodes_dict.keys())
         if not all_hash_ids:
-            return  # Nothing to insert.
+            return None  # Nothing to insert.
 
         existing = self.hash_id_to_row.keys()
 
@@ -85,6 +85,8 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         missing_embeddings = self.embedding_model.batch_encode(texts_to_encode)
 
         self._upsert(missing_ids, texts_to_encode, missing_embeddings)
+
+        return None
 
     def _load_data(self) -> None:
         if os.path.exists(self.filename):

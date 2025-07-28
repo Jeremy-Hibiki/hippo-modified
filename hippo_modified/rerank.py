@@ -3,19 +3,19 @@ from __future__ import annotations
 import ast
 import asyncio
 import difflib
-import functools
 import json
 import logging
-import operator
 import re
 from copy import deepcopy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, TypeAdapter
 
 from .prompts.filter_default_prompt import best_dspy_prompt
+from .utils.misc_utils import flatten_list
 
 if TYPE_CHECKING:
+    from .AsyncHippoRAG import AsyncHippoRAG
     from .HippoRAG import HippoRAG
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class Fact(BaseModel):
 
 
 class DSPyFilter:
-    def __init__(self, hipporag: HippoRAG):
+    def __init__(self, hipporag: HippoRAG | AsyncHippoRAG):
         """
         Initializes the object with the necessary configurations and templates for processing input and output messages.
 
@@ -52,9 +52,9 @@ class DSPyFilter:
         self.llm_infer_fn = hipporag.llm_model.infer
         self.llm_async_infer_fn = hipporag.llm_model.async_infer
         self.model_name = hipporag.global_config.llm_name
-        self.default_gen_kwargs = {}
+        self.default_gen_kwargs: dict[str, Any] = {}
 
-    def make_template(self, dspy_file_path, num=5):
+    def make_template(self, dspy_file_path: str | None, num: int = 5) -> list[dict[str, str]]:
         if dspy_file_path is not None:
             with open(dspy_file_path) as f:
                 dspy_saved = json.load(f)
@@ -84,7 +84,7 @@ class DSPyFilter:
         return message_template
 
     def parse_filter(self, response: str) -> list[list[str]]:
-        sections = [(None, [])]
+        sections: list[tuple[str | None, list[str]]] = [(None, [])]
         field_header_pattern = re.compile("\\[\\[ ## (\\w+) ## \\]\\]")
         for line in response.splitlines():
             match = field_header_pattern.match(line.strip())
@@ -93,9 +93,9 @@ class DSPyFilter:
             else:
                 sections[-1][1].append(line)
 
-        sections = [(k, "\n".join(v).strip()) for k, v in sections]
+        sections2 = [(k, "\n".join(v).strip()) for k, v in sections]
         parsed = []
-        for k, value in sections:
+        for k, value in sections2:
             if k == "fact_after_filter":
                 try:
                     # fields[k] = parse_value(v, signature.output_fields[k].annotation) if _parse_values else v
@@ -248,7 +248,7 @@ class DSPyFilter:
             for i in range(0, len(candidate_lists), batch_size)
         ]
 
-        generated_facts = functools.reduce(operator.iadd, await asyncio.gather(*tasks, return_exceptions=False), [])
+        generated_facts = flatten_list(await asyncio.gather(*tasks, return_exceptions=False))
         closest_matched_indices = [
             candidate_items.index(
                 ast.literal_eval(
@@ -271,7 +271,3 @@ class DSPyFilter:
             sorted_candidate_items[:len_after_rerank],
             {"confidence": None},
         )
-
-
-DSPyFilter.call = DSPyFilter.rerank
-DSPyFilter.acall = DSPyFilter.async_rerank

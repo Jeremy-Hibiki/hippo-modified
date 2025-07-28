@@ -219,7 +219,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
 
         all_hash_ids = list(nodes_dict.keys())
         if not all_hash_ids:
-            return  # Nothing to insert.
+            return None  # Nothing to insert.
 
         embeddings = self._embedding_model.batch_encode(list(texts))
         for hash_id, embedding in zip(all_hash_ids, embeddings, strict=True):
@@ -230,6 +230,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             collection_name=self._collection_name,
             data=data,
         )
+        return None
 
     @override
     async def async_insert_strings(self, texts: Sequence[str]) -> dict | None:
@@ -239,7 +240,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
 
         all_hash_ids = list(nodes_dict.keys())
         if not all_hash_ids:
-            return  # Nothing to insert.
+            return None  # Nothing to insert.
 
         embeddings = await self._embedding_model.async_batch_encode(list(texts))
         for hash_id, embedding in zip(all_hash_ids, embeddings, strict=True):
@@ -250,6 +251,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             collection_name=self._collection_name,
             data=data,
         )
+        return None
 
     def search(
         self,

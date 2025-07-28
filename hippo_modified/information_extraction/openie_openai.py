@@ -1,3 +1,4 @@
+import ast
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -24,7 +25,7 @@ class ChunkInfo(TypedDict):
 
 
 class Triple(BaseModel):
-    triple: list[str, str, str] = Field(
+    triple: list[str] = Field(
         description="A list of named entity triple which contains two named entities and their relation"
     )
 
@@ -39,10 +40,12 @@ class LLMInput:
     input_message: list[dict]
 
 
-def _extract_ner_from_response(real_response):
+def _extract_ner_from_response(real_response) -> list[str]:
     pattern = r'\{[^{}]*"named_entities"\s*:\s*\[[^\]]*\][^{}]*\}'
     match = re.search(pattern, real_response, re.DOTALL)
-    return eval(match.group())["named_entities"]
+    if not match:
+        return []
+    return ast.literal_eval(match.group())["named_entities"]
 
 
 class OpenIE:
@@ -59,16 +62,17 @@ class OpenIE:
         # PREPROCESSING
         ner_input_message = self.prompt_template_manager.render(name="ner", passage=passage)
         raw_response = ""
-        metadata = {}
+        metadata: dict[str, Any] = {}
         chance = self.chance
         merge = self.merge
         all_entites = []
-        temperature = 0
+        temperature = 0.0
         while chance > 0 and merge != 0:
             try:
                 # LLM INFERENCE
                 raw_response, metadata, cache_hit = self.llm_model.infer(
-                    messages=ner_input_message, temperature=temperature
+                    messages=ner_input_message,  # type: ignore
+                    temperature=temperature,
                 )
                 metadata["cache_hit"] = cache_hit
                 if metadata["finish_reason"] == "length":
@@ -101,27 +105,31 @@ class OpenIE:
         return NerRawOutput(chunk_id=chunk_key, response=raw_response, unique_entities=all_entites, metadata=metadata)
 
     def triple_extraction(self, chunk_key: str, passage: str, named_entities: list[str]) -> TripleRawOutput:
-        def _extract_triples_from_response(real_response):
+        def _extract_triples_from_response(real_response: str) -> list[list[str]]:
             pattern = r'\{[^{}]*"triples"\s*:\s*\[[^\]]*\][^{}]*\}'
             match = re.search(pattern, real_response, re.DOTALL)
-            return eval(match.group())["triples"]
+            if not match:
+                return []
+            return ast.literal_eval(match.group())["triples"]
 
         # PREPROCESSING
         messages = self.prompt_template_manager.render(
-            name="triple_extraction", passage=passage, named_entity_json=json.dumps({"named_entities": named_entities})
+            name="triple_extraction",
+            passage=passage,
+            named_entity_json=json.dumps({"named_entities": named_entities}),
         )
 
         raw_response = ""
-        metadata = {}
+        metadata: dict[str, Any] = {}
         chance = self.chance
         merge = self.merge
-        temperature = 0
+        temperature = 0.0
         all_triples = []
         while chance > 0 and merge != 0:
             try:
                 # LLM INFERENCE
                 raw_response, metadata, cache_hit = self.llm_model.infer(
-                    messages=messages,
+                    messages=messages,  # type: ignore
                     temperature=temperature,
                     # response_format={"type": "json_schema", "json_schema": TriplesList.model_json_schema()},
                 )
@@ -131,9 +139,9 @@ class OpenIE:
                 else:
                     real_response = raw_response
                 extracted_triples = _extract_triples_from_response(real_response)
-                triples = filter_invalid_triples(triples=extracted_triples)
-                if len(triples) > 0:
-                    for triple in triples:
+                valid_triples = filter_invalid_triples(triples=extracted_triples)
+                if len(valid_triples) > 0:
+                    for triple in valid_triples:
                         if triple not in all_triples:
                             all_triples.append(triple)
                     merge -= 1
@@ -143,7 +151,6 @@ class OpenIE:
             except Exception as e:
                 chance -= 1
                 temperature += 0.1
-                triplets = []
                 if chance == 0 and merge == self.merge:
                     logger.warning(f"Exception for chunk {chunk_key}: {e}")
                     logger.warning(raw_response)

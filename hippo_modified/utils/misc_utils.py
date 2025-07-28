@@ -1,8 +1,9 @@
+import itertools
 import logging
 from dataclasses import dataclass
 from hashlib import md5
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 import numpy as np
 import regex
@@ -13,10 +14,13 @@ from .typing import Triple
 logger = logging.getLogger(__name__)
 
 
+_T = TypeVar("_T")
+
+
 @dataclass
 class NerRawOutput:
     chunk_id: str
-    response: str
+    response: str | None
     unique_entities: list[str]
     metadata: dict[str, Any]
 
@@ -24,7 +28,7 @@ class NerRawOutput:
 @dataclass
 class TripleRawOutput:
     chunk_id: str
-    response: str
+    response: str | None
     triples: list[list[str]]
     metadata: dict[str, Any]
 
@@ -33,8 +37,8 @@ class TripleRawOutput:
 class QuerySolution:
     question: str
     docs: list[str]
-    doc_scores: np.ndarray = None
-    answer: str = None
+    doc_scores: np.ndarray | None = None
+    answer: str | None = None
 
     def to_dict(self):
         return {
@@ -50,7 +54,7 @@ NON_ALPHA_NUM_CJK_PATTERN = regex.compile(r"[^a-zA-Z0-9\p{Han}]")
 
 def text_processing(text: str | list[str]) -> list[str] | str:
     if isinstance(text, list):
-        return [text_processing(t) for t in text]
+        return [text_processing(t) for t in text]  # type: ignore
     if not isinstance(text, str):
         text = str(text)
     # return re.sub("[^A-Za-z0-9 ]", " ", text.lower()).strip()
@@ -99,7 +103,7 @@ def flatten_facts(chunk_triples: list[Triple]) -> list[Triple]:
     for triples in chunk_triples:
         graph_triples.extend([tuple(t) for t in triples])
     graph_triples = list(set(graph_triples))
-    return graph_triples
+    return graph_triples  # type: ignore
 
 
 def min_max_normalize(x):
@@ -122,3 +126,7 @@ def compute_mdhash_id(content: str, prefix: str = "") -> str:
 
 def load_hit_stopwords():
     return (Path(__file__).parent / "hit_stopwords.txt").read_text(encoding="utf-8").splitlines()
+
+
+def flatten_list(a: list[list[_T]]) -> list[_T]:
+    return list(itertools.chain.from_iterable(a))

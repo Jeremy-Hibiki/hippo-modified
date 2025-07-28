@@ -12,11 +12,11 @@ class BaseConfig:
 
     # LLM specific attributes
     llm_name: str = field(default="gpt-4o-mini", metadata={"help": "Class name indicating which LLM model to use."})
-    llm_base_url: str = field(
+    llm_base_url: str | None = field(
         default=None, metadata={"help": "Base URL for the LLM model, if none, means using OPENAI service."}
     )
     cache_llm_response: bool = field(default=True, metadata={"help": "Whether to cache the LLM response."})
-    embedding_base_url: str = field(
+    embedding_base_url: str | None = field(
         default=None,
         metadata={"help": "Base URL for an OpenAI compatible embedding model, if none, means using OPENAI service."},
     )
@@ -24,21 +24,22 @@ class BaseConfig:
         default=False, metadata={"help": "Whether add instruction when embedding."}
     )
     embedding_instruction_format: str = field(default="{instruction} {text}", metadata={"help": ""})
-    azure_endpoint: str = field(
-        default=None, metadata={"help": "Azure Endpoint URI for the LLM model, if none, uses OPENAI service directly."}
+    azure_endpoint: str | None = field(
+        default=None,
+        metadata={"help": "Azure Endpoint URI for the LLM model, if none, uses OPENAI service directly."},
     )
-    azure_embedding_endpoint: str = field(
+    azure_embedding_endpoint: str | None = field(
         default=None,
         metadata={"help": "Azure Endpoint URI for the OpenAI embedding model, if none, uses OPENAI service directly."},
     )
-    max_new_tokens: None | int = field(
+    max_new_tokens: int | None = field(
         default=8192, metadata={"help": "Max new tokens to generate in each inference."}
     )
-    max_completion_tokens: None | int = field(default=65536, metadata={"help": "Max processed tokens"})
+    max_completion_tokens: int | None = field(default=65536, metadata={"help": "Max processed tokens"})
     num_gen_choices: int = field(
         default=1, metadata={"help": "How many chat completion choices to generate for each input message."}
     )
-    seed: None | int = field(default=None, metadata={"help": "Random seed."})
+    seed: int | None = field(default=None, metadata={"help": "Random seed."})
     temperature: float = field(default=0, metadata={"help": "Temperature for sampling in each inference."})
     response_format: dict | None = field(
         default_factory=lambda: {"type": "json_object"},
@@ -62,13 +63,14 @@ class BaseConfig:
             "help": "If set to True, will ignore all existing storage files and graph data and will rebuild from scratch."
         },
     )
-    rerank_dspy_file_path: str = field(default=None, metadata={"help": "Path to the rerank dspy file."})
+    rerank_dspy_file_path: str | None = field(default=None, metadata={"help": "Path to the rerank dspy file."})
     passage_node_weight: float = field(
         default=0.05, metadata={"help": "Multiplicative factor that modified the passage node weights in PPR."}
     )
     save_openie: bool = field(default=True, metadata={"help": "If set to True, will save the OpenIE model to disk."})
 
     # Embedding specific attributes
+    embedding_type: Literal["openai"] = field(default="openai", metadata={"help": "Type of embedding model to use."})
     embedding_model_name: str = field(
         default="nvidia/NV-Embed-v2", metadata={"help": "Class name indicating which embedding model to use."}
     )
@@ -107,7 +109,7 @@ class BaseConfig:
     damping: float = field(default=0.5, metadata={"help": "Damping factor for ppr algorithm."})
 
     # Save dir (highest level directory)
-    save_dir: str = field(
+    save_dir: str = field(  # type: ignore
         default=None,
         metadata={
             "help": "Directory to save all related information. If it's given, will overwrite all default save_dir setups. If it's not given, then if we're not running specific datasets, default to `outputs`, otherwise, default to a dataset-customized output dir."

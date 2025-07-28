@@ -8,16 +8,16 @@ import time
 from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import asdict
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import igraph as ig
 import numpy as np
 from tqdm import tqdm
 
-from .embedding_model import _get_embedding_model_class
+from .embedding_model import get_embedding_model_class
 from .embedding_store import create_embedding_store
 from .information_extraction import OpenIE
-from .llm import _get_llm_class
+from .llm import get_llm_class
 from .prompts.linking import get_query_instruction
 from .prompts.prompt_template_manager import PromptTemplateManager
 from .rerank import DSPyFilter
@@ -33,6 +33,7 @@ from .utils.misc_utils import (
     reformat_openie_results,
     text_processing,
 )
+from .utils.typing import NOT_GIVEN, NotGiven
 
 logger = logging.getLogger(__name__)
 
@@ -40,14 +41,14 @@ logger = logging.getLogger(__name__)
 class AsyncHippoRAG:
     def __init__(
         self,
-        global_config: BaseConfig = None,
-        save_dir=None,
-        llm_model_name=None,
-        llm_base_url=None,
-        embedding_model_name=None,
-        embedding_base_url=None,
-        azure_endpoint=None,
-        azure_embedding_endpoint=None,
+        global_config: BaseConfig | None = None,
+        save_dir: str | NotGiven = NOT_GIVEN,
+        llm_model_name: str | NotGiven = NOT_GIVEN,
+        llm_base_url: str | NotGiven = NOT_GIVEN,
+        embedding_model_name: str | NotGiven = NOT_GIVEN,
+        embedding_base_url: str | NotGiven = NOT_GIVEN,
+        azure_endpoint: str | NotGiven = NOT_GIVEN,
+        azure_embedding_endpoint: str | NotGiven = NOT_GIVEN,
     ):
         """
         Initializes an async version of the class and its related components.
@@ -91,25 +92,25 @@ class AsyncHippoRAG:
             self.global_config = global_config
 
         # Overwriting Configuration if Specified
-        if save_dir is not None:
+        if not isinstance(save_dir, NotGiven):
             self.global_config.save_dir = save_dir
 
-        if llm_model_name is not None:
+        if not isinstance(llm_model_name, NotGiven):
             self.global_config.llm_name = llm_model_name
 
-        if embedding_model_name is not None:
+        if not isinstance(embedding_model_name, NotGiven):
             self.global_config.embedding_model_name = embedding_model_name
 
-        if llm_base_url is not None:
+        if not isinstance(llm_base_url, NotGiven):
             self.global_config.llm_base_url = llm_base_url
 
-        if embedding_base_url is not None:
+        if not isinstance(embedding_base_url, NotGiven):
             self.global_config.embedding_base_url = embedding_base_url
 
-        if azure_endpoint is not None:
+        if not isinstance(azure_endpoint, NotGiven):
             self.global_config.azure_endpoint = azure_endpoint
 
-        if azure_embedding_endpoint is not None:
+        if not isinstance(azure_embedding_endpoint, NotGiven):
             self.global_config.azure_embedding_endpoint = azure_embedding_endpoint
 
         _print_config = ",\n  ".join([f"{k} = {v}" for k, v in asdict(self.global_config).items()])
@@ -124,14 +125,15 @@ class AsyncHippoRAG:
             logger.info(f"Creating working directory: {self.working_dir}")
             os.makedirs(self.working_dir, exist_ok=True)
 
-        self.llm_model = _get_llm_class(self.global_config)
+        self.llm_model = get_llm_class(self.global_config)
 
         self.openie = OpenIE(llm_model=self.llm_model)
 
         self.graph = self.initialize_graph()
 
-        self.embedding_model = _get_embedding_model_class(
-            embedding_model_name=self.global_config.embedding_model_name
+        self.embedding_model = get_embedding_model_class(
+            embedding_type=self.global_config.embedding_type,
+            embedding_model_name=self.global_config.embedding_model_name,
         )(
             global_config=self.global_config,
             embedding_model_name=self.global_config.embedding_model_name,
@@ -187,7 +189,7 @@ class AsyncHippoRAG:
         self._prepare_lock = asyncio.Lock()
         self.ready_to_retrieve = False
 
-        self.ent_node_to_chunk_ids = None
+        self.ent_node_to_chunk_ids: dict[str, set[str]] | None = None
 
     def initialize_graph(self) -> ig.Graph:
         """
@@ -219,7 +221,9 @@ class AsyncHippoRAG:
             )
             return preloaded_graph
 
-    def pike_patch(self, queries: dict = {}):
+    def pike_patch(self, queries: dict | None = None):
+        if queries is None:
+            queries = {}
         logger.info("Indexing PIKE queriers")
         if os.path.exists(self.pike_patch_path):
             with open(self.pike_patch_path) as f:
@@ -261,10 +265,10 @@ class AsyncHippoRAG:
         chunk_to_rows = self.chunk_embedding_store.get_all_id_to_rows()
 
         all_openie_info, chunk_keys_to_process = self.load_existing_openie(list(chunk_to_rows.keys()))
-        new_openie_rows = {k: chunk_to_rows[k] for k in chunk_keys_to_process}
+        new_openie_rows: dict[str, dict] = {k: chunk_to_rows[k] for k in chunk_keys_to_process}
 
         if len(chunk_keys_to_process) > 0:
-            new_ner_results_dict, new_triple_results_dict = self.openie.batch_openie(new_openie_rows)
+            new_ner_results_dict, new_triple_results_dict = self.openie.batch_openie(new_openie_rows)  # type: ignore
             self.merge_openie_results(
                 all_openie_info,
                 new_openie_rows,
@@ -285,8 +289,8 @@ class AsyncHippoRAG:
         chunk_ids = list(chunk_to_rows.keys())
 
         chunk_triples = [[text_processing(t) for t in triple_results_dict[chunk_id].triples] for chunk_id in chunk_ids]
-        entity_nodes, chunk_triple_entities = extract_entity_nodes(chunk_triples)
-        facts = flatten_facts(chunk_triples)
+        entity_nodes, chunk_triple_entities = extract_entity_nodes(chunk_triples)  # type: ignore
+        facts = flatten_facts(chunk_triples)  # type: ignore
 
         logger.info("Encoding Entities")
         await self.entity_embedding_store.async_insert_strings(entity_nodes)
@@ -296,10 +300,10 @@ class AsyncHippoRAG:
 
         logger.info("Constructing Graph")
 
-        self.node_to_node_stats = {}
+        self.node_to_node_stats: dict[tuple[str, str], float] = {}
         self.ent_node_to_chunk_ids = {}
 
-        self.add_fact_edges(chunk_ids, chunk_triples)
+        self.add_fact_edges(chunk_ids, chunk_triples)  # type: ignore
         num_new_chunks = self.add_passage_edges(chunk_ids, chunk_triple_entities)
 
         if num_new_chunks > 0:
@@ -312,12 +316,12 @@ class AsyncHippoRAG:
     async def retrieve(
         self,
         queries: list[str],
-        num_to_retrieve: int = None,
-        num_to_link: int = None,
-        passage_node_weight: float = None,
-        pike_node_weight: float = None,
+        num_to_retrieve: int | NotGiven = NOT_GIVEN,
+        num_to_link: int | NotGiven = NOT_GIVEN,
+        passage_node_weight: float | NotGiven = NOT_GIVEN,
+        pike_node_weight: float | NotGiven = NOT_GIVEN,
         rerank_batch_num: int = 10,
-        rerank_file_path: str = None,
+        rerank_file_path: str | NotGiven = NOT_GIVEN,
         atom_query_num: int = 5,
     ) -> list[QuerySolution]:
         """
@@ -345,26 +349,26 @@ class AsyncHippoRAG:
         """
         retrieve_start_time = time.time()  # Record start time
 
-        if num_to_retrieve is None:
+        if isinstance(num_to_retrieve, NotGiven):
             num_to_retrieve = self.global_config.retrieval_top_k
 
-        if num_to_link is not None:
+        if not isinstance(num_to_link, NotGiven):
             self.global_config.linking_top_k = num_to_link
 
-        if passage_node_weight is not None:
+        if not isinstance(passage_node_weight, NotGiven):
             self.passage_node_weight = passage_node_weight
         else:
             self.passage_node_weight = self.global_config.passage_node_weight
 
-        if pike_node_weight is not None:
+        if not isinstance(pike_node_weight, NotGiven):
             self.pike_node_weight = pike_node_weight
         else:
             self.pike_node_weight = self.global_config.passage_node_weight
 
-        if rerank_file_path is not None:
+        if not isinstance(rerank_file_path, NotGiven):
             self.global_config.rerank_dspy_file_path = rerank_file_path
 
-        if atom_query_num is not None:
+        if not isinstance(atom_query_num, NotGiven):
             self.atom_query_num = atom_query_num
 
         if not self.ready_to_retrieve:
@@ -425,7 +429,7 @@ class AsyncHippoRAG:
 
         return retrieval_results
 
-    def add_fact_edges(self, chunk_ids: list[str], chunk_triples: list[tuple]):
+    def add_fact_edges(self, chunk_ids: list[str], chunk_triples: list[list[Sequence[str] | tuple[str, str, str]]]):
         """
         Adds fact edges from given triples to the graph.
 
@@ -444,6 +448,8 @@ class AsyncHippoRAG:
         Raises:
             Does not explicitly raise exceptions within the provided function logic.
         """
+        if TYPE_CHECKING:
+            assert self.ent_node_to_chunk_ids is not None
 
         current_graph_nodes = set(self.graph.vs["name"]) if "name" in self.graph.vs else set()
 
@@ -614,7 +620,7 @@ class AsyncHippoRAG:
                     chunk_keys_to_save.add(chunk_key)
         else:
             all_openie_info = []
-            chunk_keys_to_save = chunk_keys
+            chunk_keys_to_save = set(chunk_keys)
 
         return all_openie_info, chunk_keys_to_save
 
@@ -1002,7 +1008,7 @@ class AsyncHippoRAG:
         self,
         query: str,
         link_top_k: int,
-        top_k_facts: list[tuple],
+        top_k_facts: list[tuple[str, str, str]],
         fact_scores_dict: dict[str, float],
         passage_node_weight: float = 0.05,
         pike_node_weight: float = 1.0,
@@ -1027,9 +1033,14 @@ class AsyncHippoRAG:
                 - The first array corresponds to document IDs sorted based on their scores.
                 - The second array consists of the PPR scores associated with the sorted document IDs.
         """
+        if TYPE_CHECKING:
+            assert self.ent_node_to_chunk_ids is not None
+
         # Assigning phrase weights based on selected facts from previous steps.
         linking_score_map = {}  # from phrase to the average scores of the facts that contain the phrase
-        phrase_scores = {}  # store all fact scores for each phrase regardless of whether they exist in the knowledge graph or not
+        phrase_scores: dict[
+            str, list[float]
+        ] = {}  # store all fact scores for each phrase regardless of whether they exist in the knowledge graph or not
         phrase_weights = np.zeros(len(self.graph.vs["name"]))
         passage_weights = np.zeros(len(self.graph.vs["name"]))
         pike_passage_weights = np.zeros(len(self.graph.vs["name"]))
@@ -1118,7 +1129,7 @@ class AsyncHippoRAG:
         self,
         query: str,
         batch_size: int = 10,
-    ) -> tuple[list[tuple], dict[str, float], dict]:
+    ) -> tuple[list[tuple[str, str, str]], dict[str, float], dict]:
         """
         Args:
 

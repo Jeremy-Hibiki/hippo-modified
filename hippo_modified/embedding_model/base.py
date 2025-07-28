@@ -1,7 +1,5 @@
-import hashlib
 import json
 import multiprocessing
-import sqlite3
 import threading
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -9,8 +7,6 @@ from typing_extensions import Self
 
 import numpy as np
 import numpy.typing as npt
-import torch
-from filelock import FileLock
 
 from ..utils.config_utils import BaseConfig
 from ..utils.logging_utils import get_logger
@@ -99,74 +95,6 @@ class EmbeddingConfig:
     def __str__(self) -> str:
         """Provide a user-friendly string representation of the configuration."""
         return json.dumps(self._data, indent=4)
-
-
-def make_cache_embed(encode_func, cache_file_name, device):
-    def wrapper(**kwargs):
-        # FOCUS_KEYS = ["instruction", "prompts", "max_length"]
-        instruction = kwargs.get("instruction", "")
-        max_length = kwargs.get("max_length", "")
-
-        hash_strs = []
-        for prompt in kwargs["prompts"]:
-            key_str = json.dumps(
-                {"instruction": instruction, "promps": prompt, "max_length": max_length}, sort_keys=True, default=str
-            )
-            hash_strs.append(hashlib.sha256(key_str.encode("utf-8")).hexdigest())
-
-        missed_prompts = []
-        lock_file = cache_file_name + ".lock"
-
-        with FileLock(lock_file), sqlite3.connect(cache_file_name) as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS embeddings (
-                        hash TEXT PRIMARY KEY,
-                        embedding BLOB
-                    )
-                """)
-            conn.commit()
-
-            embeddings = []
-            for i, hash_str in enumerate(hash_strs):
-                cursor.execute("SELECT embedding FROM embeddings WHERE hash = ?", (hash_str,))
-                result = cursor.fetchone()
-                if result:
-                    # Convert the BLOB back to a NumPy array
-                    emb = np.frombuffer(result[0], dtype=np.float32)
-                    embeddings.append(emb)
-                else:
-                    missed_prompts.append(i)
-                    embeddings.append(None)
-
-        if missed_prompts:
-            # Update kwargs to include only the missed prompts.
-            kwargs["prompts"] = [kwargs["prompts"][i] for i in missed_prompts]
-            # Call the encoder function (which returns a 2D torch tensor)
-            new_embeddings = encode_func(**kwargs)
-            # Insert the new embeddings back into the correct positions.
-            for idx, embedding in enumerate(new_embeddings):
-                embeddings[missed_prompts[idx]] = embedding
-
-            # Save the new embeddings to the cache.
-            with FileLock(lock_file), sqlite3.connect(cache_file_name) as conn:
-                cursor = conn.cursor()
-                for i in missed_prompts:
-                    hash_str = hash_strs[i]
-                    emb = embeddings[i]
-                    # Convert torch tensor to numpy bytes if necessary.
-                    emb_bytes = emb.cpu().numpy().tobytes() if isinstance(emb, torch.Tensor) else emb.tobytes()
-                    cursor.execute("INSERT INTO embeddings (hash, embedding) VALUES (?, ?)", (hash_str, emb_bytes))
-                conn.commit()
-
-        # Convert all embeddings to torch tensors if they're not already
-        final_embeddings = [emb if isinstance(emb, torch.Tensor) else torch.Tensor(emb.copy()) for emb in embeddings]
-
-        final_embeddings = [emb.to(device) for emb in final_embeddings]
-        # Return a 2D tensor where each row is an embedding.
-        return torch.stack(final_embeddings)
-
-    return wrapper
 
 
 class BaseEmbeddingModel:

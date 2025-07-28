@@ -137,6 +137,7 @@ class PromptTemplateManager:
             except KeyError as e:
                 logger.error(f"Missing variable in chat history template '{name}': {e}")
                 raise ValueError(f"Missing variable in chat history template '{name}': {e}") from None
+        raise ValueError(f"Invalid template type: {type(template)}")
 
     def list_template_names(self) -> list[str]:
         """
