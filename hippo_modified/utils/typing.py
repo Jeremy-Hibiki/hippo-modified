@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-from typing import Literal, TypeVar
+from collections.abc import Sequence
+from typing import Annotated, Literal, TypeVar
 from typing_extensions import override
 
-Triple = tuple[str, str, str]
+from pydantic import BaseModel, Field
+
+ListTriple = Annotated[list[str], Field(min_length=3, max_length=3)]
+TupleTriple = tuple[str, str, str]
+Triple = TupleTriple | ListTriple
 
 _T = TypeVar("_T")
 
@@ -35,3 +40,16 @@ class NotGiven:
 
 
 NOT_GIVEN = NotGiven()
+
+
+class OpenIEDocItem(BaseModel):
+    idx: str
+    passage: str
+    extracted_triples: Sequence[Triple] = Field(default_factory=list)
+    extracted_entities: list[str] = Field(default_factory=list)
+
+
+class OpenIEResult(BaseModel):
+    docs: list[OpenIEDocItem] = Field(default_factory=list)
+    avg_ent_words: float = Field(default=0.0)
+    avg_ent_chars: float = Field(default=0.0)

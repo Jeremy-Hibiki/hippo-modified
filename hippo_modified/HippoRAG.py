@@ -33,7 +33,7 @@ from .utils.misc_utils import (
     reformat_openie_results,
     text_processing,
 )
-from .utils.typing import NOT_GIVEN, NotGiven
+from .utils.typing import NOT_GIVEN, NotGiven, OpenIEDocItem, OpenIEResult, Triple
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -242,7 +242,7 @@ class HippoRAG:
             chunk_ids = old_queries[query]
             query_chunk_ids = [chunk_id for chunk_id in chunk_ids if chunk_id in all_ids]
             query_to_chunk_ids[query] = query_chunk_ids
-        self.query_to_chunk_ids = query_to_chunk_ids
+        self.query_to_chunk_ids: dict[str, list[str]] = query_to_chunk_ids
 
     def index(self, docs: list[str]):
         """
@@ -309,6 +309,127 @@ class HippoRAG:
 
             self.augment_graph()
             self.save_igraph()
+
+    def delete(
+        self,
+        docs_to_delete: list[str] | None = None,
+        doc_ids_to_delete: list[str] | None = None,
+    ):
+        """
+        Deletes the given documents from all data structures within the HippoRAG class.
+        Note that triples and entities which are indexed from chunks that are not being removed will not be removed.
+
+        Parameters:
+            docs : List[str]
+                A list of documents to be deleted.
+        """
+
+        # Making sure that all the necessary structures have been built.
+        if not self.ready_to_retrieve:
+            self.prepare_retrieval_objects()
+
+        if TYPE_CHECKING:
+            assert self.ent_node_to_chunk_ids is not None
+
+        merged_docs_to_delete = docs_to_delete or []
+        if doc_ids_to_delete:
+            merged_docs_to_delete += [
+                chunk["content"] for chunk in self.chunk_embedding_store.get_rows(doc_ids_to_delete).values()
+            ]
+
+        if not merged_docs_to_delete:
+            logger.warning("No documents to delete")
+            return
+
+        all_chunks = self.chunk_embedding_store.get_all_id_to_rows()
+        chunk_ids_to_delete = [
+            chunk_id for chunk_id, row in all_chunks.items() if row["content"] in merged_docs_to_delete
+        ]
+
+        # Find triples in chunks to delete
+        all_openie_info, _ = self.load_existing_openie(chunk_ids_to_delete)
+        triples_to_delete: list[Sequence[Triple]] = []
+
+        all_openie_info_with_deletes: list[OpenIEDocItem] = []
+
+        for openie_doc in all_openie_info:
+            if openie_doc.idx in chunk_ids_to_delete:
+                triples_to_delete.append(openie_doc.extracted_triples)
+            else:
+                all_openie_info_with_deletes.append(openie_doc)
+
+        flat_triples_to_delete = flatten_facts(triples_to_delete)
+
+        # Filter out triples that appear in unaltered chunks
+        true_triples_to_delete: list[Triple] = []
+
+        for triple in flat_triples_to_delete:
+            proc_triple = tuple(text_processing(list(triple)))
+
+            doc_ids = self.proc_triples_to_docs[str(proc_triple)]
+
+            non_deleted_docs = doc_ids.difference(chunk_ids_to_delete)
+
+            if len(non_deleted_docs) == 0:
+                true_triples_to_delete.append(triple)
+
+        processed_true_triples_to_delete = [[text_processing(list(triple)) for triple in true_triples_to_delete]]
+        entities_to_delete, _ = extract_entity_nodes(processed_true_triples_to_delete)  # type: ignore
+        processed_true_triples_to_delete = flatten_facts(processed_true_triples_to_delete)  # type: ignore
+
+        all_facts = self.fact_embedding_store.get_all_id_to_rows()
+        triple_ids_to_delete = set([
+            fact_id
+            for fact_id, fact in all_facts.items()
+            if fact["content"] in list(map(str, processed_true_triples_to_delete))
+        ])
+
+        # Filter out entities that appear in unaltered chunks
+        all_entities = self.entity_embedding_store.get_all_id_to_rows()
+        ent_ids_to_delete = set([
+            entity_id for entity_id, entity in all_entities.items() if entity["content"] in entities_to_delete
+        ])
+
+        filtered_ent_ids_to_delete = []
+
+        for ent_node in ent_ids_to_delete:
+            doc_ids = self.ent_node_to_chunk_ids[ent_node]
+
+            non_deleted_docs = doc_ids.difference(chunk_ids_to_delete)
+
+            if len(non_deleted_docs) == 0:
+                filtered_ent_ids_to_delete.append(ent_node)
+
+        # Find atomic queries to delete
+        all_queries = self.query_embedding_store.get_all_id_to_rows()
+        all_query_to_query_ids: dict[str, list[str]] = {}
+        for query_id, query in all_queries.items():
+            if query["content"] not in self.query_to_chunk_ids:
+                all_query_to_query_ids[query["content"]] = []
+            all_query_to_query_ids[query["content"]].append(query_id)
+
+        all_query_ids_to_delete: list[str] = []
+        for q, chunk_id_list in self.query_to_chunk_ids.items():
+            if any(chunk_id in chunk_ids_to_delete for chunk_id in chunk_id_list):
+                all_query_ids_to_delete.extend(all_query_to_query_ids[q])
+
+        logger.info(f"Deleting {len(chunk_ids_to_delete)} Chunks")
+        logger.info(f"Deleting {len(triple_ids_to_delete)} Triples")
+        logger.info(f"Deleting {len(filtered_ent_ids_to_delete)} Entities")
+        logger.info(f"Deleting {len(all_query_ids_to_delete)} Queries")
+
+        self.save_openie_results(all_openie_info_with_deletes)
+
+        self.entity_embedding_store.delete(filtered_ent_ids_to_delete)
+        self.fact_embedding_store.delete(list(triple_ids_to_delete))
+        self.chunk_embedding_store.delete(chunk_ids_to_delete)
+        self.query_embedding_store.delete(all_query_ids_to_delete)
+
+        # Delete Nodes from Graph
+        self.graph.delete_vertices(list(filtered_ent_ids_to_delete) + list(chunk_ids_to_delete))
+        self.save_igraph()
+
+        self.ready_to_retrieve = False
 
     def retrieve(
         self,
@@ -419,7 +540,11 @@ class HippoRAG:
 
         return retrieval_results
 
-    def add_fact_edges(self, chunk_ids: list[str], chunk_triples: list[list[Sequence[str] | tuple[str, str, str]]]):
+    def add_fact_edges(
+        self,
+        chunk_ids: list[str],
+        chunk_triples: Sequence[Sequence[Sequence[str] | tuple[str, str, str]]],
+    ):
         """
         Adds fact edges from given triples to the graph.
 
@@ -568,7 +693,7 @@ class HippoRAG:
 
             synonym_candidates.append((node_key, synonyms))
 
-    def load_existing_openie(self, chunk_keys: Sequence[str]) -> tuple[list[dict], set[str]]:
+    def load_existing_openie(self, chunk_keys: Sequence[str]) -> tuple[list[OpenIEDocItem], set[str]]:
         """
         Loads existing OpenIE results from the specified file if it exists and combines
         them with new content while standardizing indices. If the file does not exist or
@@ -580,7 +705,7 @@ class HippoRAG:
                                      for the content to be processed.
 
         Returns:
-            Tuple[List[dict], Set[str]]: A tuple where the first element is the existing OpenIE
+            Tuple[List[OpenIEDocItem], Set[str]]: A tuple where the first element is the existing OpenIE
                                          information (if any) loaded from the file, and the
                                          second element is a set of chunk keys that still need to
                                          be saved or processed.
@@ -590,19 +715,19 @@ class HippoRAG:
         chunk_keys_to_save = set[str]()
 
         if not self.global_config.force_openie_from_scratch and Path(self.openie_results_path).is_file():
-            openie_results: dict = json.loads(self.openie_results_path.read_bytes())
-            all_openie_info = openie_results.get("docs", [])
+            openie_results = OpenIEResult.model_validate_json(self.openie_results_path.read_bytes())
+            all_openie_info = openie_results.docs
 
             # Standardizing indices for OpenIE Files.
 
             renamed_openie_info = []
             for openie_info in all_openie_info:
-                openie_info["idx"] = compute_mdhash_id(openie_info["passage"], "chunk-")
+                openie_info.idx = compute_mdhash_id(openie_info.passage, "chunk-")
                 renamed_openie_info.append(openie_info)
 
             all_openie_info = renamed_openie_info
 
-            existing_openie_keys = set([info["idx"] for info in all_openie_info])
+            existing_openie_keys = set([info.idx for info in all_openie_info])
 
             for chunk_key in chunk_keys:
                 if chunk_key not in existing_openie_keys:
@@ -615,11 +740,11 @@ class HippoRAG:
 
     def merge_openie_results(
         self,
-        all_openie_info: list[dict],
+        all_openie_info: list[OpenIEDocItem],
         chunks_to_save: dict[str, dict],
         ner_results_dict: dict[str, NerRawOutput],
         triple_results_dict: dict[str, TripleRawOutput],
-    ) -> list[dict]:
+    ) -> list[OpenIEDocItem]:
         """
         Merges OpenIE extraction results with corresponding passage and metadata.
 
@@ -640,24 +765,24 @@ class HippoRAG:
                 keys to their corresponding OpenIE triple extraction results.
 
         Returns:
-            List[dict]: The `all_openie_info` list containing dictionaries with merged
+            List[OpenIEDocItem]: The `all_openie_info` list containing dictionaries with merged
             OpenIE results, metadata, and the passage content for each chunk.
 
         """
 
         for chunk_key, row in chunks_to_save.items():
             passage = row["content"]
-            chunk_openie_info = {
-                "idx": chunk_key,
-                "passage": passage,
-                "extracted_entities": ner_results_dict[chunk_key].unique_entities,
-                "extracted_triples": triple_results_dict[chunk_key].triples,
-            }
+            chunk_openie_info = OpenIEDocItem(
+                idx=chunk_key,
+                passage=passage,
+                extracted_entities=ner_results_dict[chunk_key].unique_entities,
+                extracted_triples=triple_results_dict[chunk_key].triples,
+            )
             all_openie_info.append(chunk_openie_info)
 
         return all_openie_info
 
-    def save_openie_results(self, all_openie_info: list[dict]):
+    def save_openie_results(self, all_openie_info: list[OpenIEDocItem]):
         """
         Computes statistics on extracted entities from OpenIE results and saves the aggregated data in a
         JSON file. The function calculates the average character and word lengths of the extracted entities
@@ -669,9 +794,9 @@ class HippoRAG:
                 extracted entities.
         """
 
-        sum_phrase_chars = sum([len(e) for chunk in all_openie_info for e in chunk["extracted_entities"]])
-        sum_phrase_words = sum([len(e.split()) for chunk in all_openie_info for e in chunk["extracted_entities"]])
-        num_phrases = sum([len(chunk["extracted_entities"]) for chunk in all_openie_info])
+        sum_phrase_chars = sum([len(e) for chunk in all_openie_info for e in chunk.extracted_entities])
+        sum_phrase_words = sum([len(e.split()) for chunk in all_openie_info for e in chunk.extracted_entities])
+        num_phrases = sum([len(chunk.extracted_entities) for chunk in all_openie_info])
 
         if len(all_openie_info) > 0:
             # Avoid division by zero if there are no phrases
@@ -682,13 +807,13 @@ class HippoRAG:
                 avg_ent_chars = 0
                 avg_ent_words = 0
 
-            openie_dict = {
-                "docs": all_openie_info,
-                "avg_ent_chars": avg_ent_chars,
-                "avg_ent_words": avg_ent_words,
-            }
+            openie_res = OpenIEResult(
+                docs=all_openie_info,
+                avg_ent_chars=avg_ent_chars,
+                avg_ent_words=avg_ent_words,
+            )
 
-            self.openie_results_path.write_bytes(json.dumps(openie_dict, ensure_ascii=False).encode())
+            self.openie_results_path.write_bytes(openie_res.model_dump_json().encode())
             logger.info(f"OpenIE results saved to {self.openie_results_path}")
 
     def augment_graph(self):
@@ -830,7 +955,7 @@ class HippoRAG:
 
         return graph_info
 
-    def prepare_retrieval_objects(self):
+    def prepare_retrieval_objects(self) -> None:
         """
         Prepares various in-memory objects and attributes necessary for fast retrieval processes, such as embedding data and graph relationships, ensuring consistency
         and alignment with the underlying graph structure.
@@ -901,16 +1026,16 @@ class HippoRAG:
 
         all_openie_info, _chunk_keys_to_process = self.load_existing_openie([])
 
-        self.proc_triples_to_docs = {}
+        self.proc_triples_to_docs: dict[str, set[str]] = {}
 
         for doc in all_openie_info:
-            triples = flatten_facts([doc["extracted_triples"]])
+            triples = flatten_facts([doc.extracted_triples])
             for triple in triples:
                 if len(triple) == 3:
                     proc_triple = tuple(text_processing(list(triple)))
                     self.proc_triples_to_docs[str(proc_triple)] = self.proc_triples_to_docs.get(
                         str(proc_triple), set()
-                    ).union(set([doc["idx"]]))
+                    ).union(set([doc.idx]))
 
         if self.ent_node_to_chunk_ids is None:
             ner_results_dict, triple_results_dict = reformat_openie_results(all_openie_info)

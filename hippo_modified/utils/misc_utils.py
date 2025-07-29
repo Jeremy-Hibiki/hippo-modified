@@ -1,15 +1,17 @@
 import itertools
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass
 from hashlib import md5
 from pathlib import Path
 from typing import Any, TypeVar
+from typing_extensions import overload
 
 import numpy as np
 import regex
 
 from .llm_utils import filter_invalid_triples
-from .typing import Triple
+from .typing import ListTriple, Triple, TupleTriple
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +31,7 @@ class NerRawOutput:
 class TripleRawOutput:
     chunk_id: str
     response: str | None
-    triples: list[list[str]]
+    triples: list[ListTriple]
     metadata: dict[str, Any]
 
 
@@ -50,6 +52,14 @@ class QuerySolution:
 
 
 NON_ALPHA_NUM_CJK_PATTERN = regex.compile(r"[^a-zA-Z0-9\p{Han}]")
+
+
+@overload
+def text_processing(text: str) -> str: ...
+
+
+@overload
+def text_processing(text: list[str]) -> list[str]: ...
 
 
 def text_processing(text: str | list[str]) -> list[str] | str:
@@ -98,12 +108,12 @@ def extract_entity_nodes(chunk_triples: list[list[Triple]]) -> tuple[list[str], 
     return graph_nodes, chunk_triple_entities
 
 
-def flatten_facts(chunk_triples: list[Triple]) -> list[Triple]:
-    graph_triples = []  # a list of unique relation triple (in tuple) from all chunks
+def flatten_facts(chunk_triples: Sequence[Sequence[Triple]]) -> list[TupleTriple]:
+    graph_triples: list[TupleTriple] = []  # a list of unique relation triple (in tuple) from all chunks
     for triples in chunk_triples:
-        graph_triples.extend([tuple(t) for t in triples])
+        graph_triples.extend([tuple(t) for t in triples])  # type: ignore
     graph_triples = list(set(graph_triples))
-    return graph_triples  # type: ignore
+    return graph_triples
 
 
 def min_max_normalize(x):

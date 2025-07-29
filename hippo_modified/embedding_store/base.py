@@ -36,6 +36,10 @@ class BaseEmbeddingStore(ABC):
         pass
 
     @abstractmethod
+    def delete(self, hash_ids: Sequence[str]):
+        pass
+
+    @abstractmethod
     def search(
         self,
         query_text: str,
