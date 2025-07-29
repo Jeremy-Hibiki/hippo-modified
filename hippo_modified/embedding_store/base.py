@@ -39,6 +39,9 @@ class BaseEmbeddingStore(ABC):
     def delete(self, hash_ids: Sequence[str]):
         pass
 
+    async def async_delete(self, hash_ids: Sequence[str]):
+        return self.delete(hash_ids)
+
     @abstractmethod
     def search(
         self,

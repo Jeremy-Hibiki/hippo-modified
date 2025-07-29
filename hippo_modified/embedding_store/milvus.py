@@ -390,3 +390,21 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             results[query_id] = (query_topk_key_ids, topk_scores.tolist())
 
         return results
+
+    def delete(self, hash_ids: Sequence[str]):
+        if not hash_ids:
+            return
+
+        self.client.delete(
+            collection_name=self._collection_name,
+            ids=list(hash_ids),
+        )
+
+    async def async_delete(self, hash_ids: Sequence[str]):
+        if not hash_ids:
+            return
+
+        await self.async_client.delete(
+            collection_name=self._collection_name,
+            ids=list(hash_ids),
+        )

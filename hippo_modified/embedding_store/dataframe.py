@@ -196,3 +196,41 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
             results[query_id] = (query_topk_key_ids, topk_scores.tolist())
 
         return results
+
+    def delete(self, hash_ids: Sequence[str]):
+        if not hash_ids:
+            return
+
+        # 将输入的hash_ids转换为集合，便于快速查找
+        hash_ids_to_delete = set(hash_ids)
+
+        # 找出实际存在的要删除的hash_ids
+        existing_hash_ids = set(self.hash_ids)
+        actual_deletions = hash_ids_to_delete.intersection(existing_hash_ids)
+
+        if not actual_deletions:
+            logger.info("No matching records found for deletion.")
+            return
+
+        logger.info(f"Deleting {len(actual_deletions)} records.")
+
+        # 找出要保留的记录的索引
+        indices_to_keep = [i for i, hash_id in enumerate(self.hash_ids) if hash_id not in actual_deletions]
+
+        # 1. 使用保留的索引重建主要列表
+        self.hash_ids = [self.hash_ids[i] for i in indices_to_keep]
+        self.texts = [self.texts[i] for i in indices_to_keep]
+        self.embeddings = [self.embeddings[i] for i in indices_to_keep]
+
+        # 2. 重建所有查找字典
+        self.hash_id_to_idx = {h: idx for idx, h in enumerate(self.hash_ids)}
+        self.hash_id_to_text = {h: self.texts[idx] for idx, h in enumerate(self.hash_ids)}
+        self.text_to_hash_id = {self.texts[idx]: h for idx, h in enumerate(self.hash_ids)}
+        self.hash_id_to_row = {
+            h: {"hash_id": h, "content": t} for h, t in zip(self.hash_ids, self.texts, strict=False)
+        }
+
+        # 3. 保存更新后的数据到文件
+        self._save_data()
+
+        logger.info(f"Successfully deleted {len(actual_deletions)} records. Remaining records: {len(self.hash_ids)}")

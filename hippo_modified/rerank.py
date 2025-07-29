@@ -16,8 +16,7 @@ from .prompts.filter_default_prompt import best_dspy_prompt
 from .utils.misc_utils import flatten_list
 
 if TYPE_CHECKING:
-    from .AsyncHippoRAG import AsyncHippoRAG
-    from .HippoRAG import HippoRAG
+    from .client.base import BaseHippoRAG
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ class Fact(BaseModel):
 
 
 class DSPyFilter:
-    def __init__(self, hipporag: HippoRAG | AsyncHippoRAG):
+    def __init__(self, hipporag: BaseHippoRAG):
         """
         Initializes the object with the necessary configurations and templates for processing input and output messages.
 

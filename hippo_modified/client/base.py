@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import ast
-import asyncio
 import json
 import logging
-import time
 from collections import defaultdict
 from dataclasses import asdict
 from pathlib import Path
@@ -15,26 +12,22 @@ import numpy as np
 import regex as re
 from tqdm import tqdm
 
-from .embedding_model import get_embedding_model_class
-from .embedding_store import create_embedding_store
-from .information_extraction import OpenIE
-from .llm import get_llm_class
-from .prompts.linking import get_query_instruction
-from .prompts.prompt_template_manager import PromptTemplateManager
-from .rerank import DSPyFilter
-from .utils.config_utils import BaseConfig
-from .utils.misc_utils import (
+from ..embedding_model import get_embedding_model_class
+from ..embedding_store import create_embedding_store
+from ..information_extraction import OpenIE
+from ..llm import get_llm_class
+from ..prompts.prompt_template_manager import PromptTemplateManager
+from ..rerank import DSPyFilter
+from ..utils.config_utils import BaseConfig
+from ..utils.misc_utils import (
     NerRawOutput,
-    QuerySolution,
     TripleRawOutput,
     compute_mdhash_id,
-    extract_entity_nodes,
     flatten_facts,
-    min_max_normalize,
     reformat_openie_results,
     text_processing,
 )
-from .utils.typing import NOT_GIVEN, NotGiven
+from ..utils.typing import NOT_GIVEN, NotGiven, OpenIEDocItem, OpenIEResult
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -42,7 +35,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class AsyncHippoRAG:
+class BaseHippoRAG:
     def __init__(
         self,
         global_config: BaseConfig | None = None,
@@ -188,11 +181,10 @@ class AsyncHippoRAG:
         self.pike_patch()
 
         self.rerank_filter = DSPyFilter(self)
-        self.rerank_filter_fn = self.rerank_filter.async_rerank
 
-        self._prepare_lock = asyncio.Lock()
         self.ready_to_retrieve = False
 
+        self.node_to_node_stats: dict[tuple[str, str], float] = {}
         self.ent_node_to_chunk_ids: dict[str, set[str]] | None = None
 
     def initialize_graph(self) -> ig.Graph:
@@ -244,191 +236,13 @@ class AsyncHippoRAG:
             chunk_ids = old_queries[query]
             query_chunk_ids = [chunk_id for chunk_id in chunk_ids if chunk_id in all_ids]
             query_to_chunk_ids[query] = query_chunk_ids
-        self.query_to_chunk_ids = query_to_chunk_ids
+        self.query_to_chunk_ids: dict[str, list[str]] = query_to_chunk_ids
 
-    async def index(self, docs: list[str]):
-        """
-        Indexes the given documents based on the HippoRAG 2 framework which generates an OpenIE knowledge graph
-        based on the given documents and encodes passages, entities and facts separately for later retrieval.
-
-        Parameters:
-            docs : List[str]
-                A list of documents to be indexed.
-        """
-
-        logger.info("Indexing Documents")
-
-        logger.info("Performing OpenIE")
-
-        await self.chunk_embedding_store.async_insert_strings(docs)
-        chunk_to_rows = self.chunk_embedding_store.get_all_id_to_rows()
-
-        all_openie_info, chunk_keys_to_process = self.load_existing_openie(list(chunk_to_rows.keys()))
-        new_openie_rows: dict[str, dict] = {k: chunk_to_rows[k] for k in chunk_keys_to_process}
-
-        if len(chunk_keys_to_process) > 0:
-            new_ner_results_dict, new_triple_results_dict = self.openie.batch_openie(new_openie_rows)  # type: ignore
-            self.merge_openie_results(
-                all_openie_info,
-                new_openie_rows,
-                new_ner_results_dict,
-                new_triple_results_dict,
-            )
-
-        if self.global_config.save_openie:
-            self.save_openie_results(all_openie_info)
-
-        ner_results_dict, triple_results_dict = reformat_openie_results(all_openie_info)
-
-        assert len(chunk_to_rows) == len(ner_results_dict) == len(triple_results_dict), (
-            f"{len(chunk_to_rows)}, {len(ner_results_dict)}, {len(triple_results_dict)}"
-        )
-
-        # prepare data_store
-        chunk_ids = list(chunk_to_rows.keys())
-
-        chunk_triples = [[text_processing(t) for t in triple_results_dict[chunk_id].triples] for chunk_id in chunk_ids]
-        entity_nodes, chunk_triple_entities = extract_entity_nodes(chunk_triples)  # type: ignore
-        facts = flatten_facts(chunk_triples)  # type: ignore
-
-        logger.info("Encoding Entities")
-        await self.entity_embedding_store.async_insert_strings(entity_nodes)
-
-        logger.info("Encoding Facts")
-        await self.fact_embedding_store.async_insert_strings([str(fact) for fact in facts])
-
-        logger.info("Constructing Graph")
-
-        self.node_to_node_stats: dict[tuple[str, str], float] = {}
-        self.ent_node_to_chunk_ids = {}
-
-        self.add_fact_edges(chunk_ids, chunk_triples)  # type: ignore
-        num_new_chunks = self.add_passage_edges(chunk_ids, chunk_triple_entities)
-
-        if num_new_chunks > 0:
-            logger.info(f"Found {num_new_chunks} new chunks to save into graph.")
-            self.add_synonymy_edges()
-
-            self.augment_graph()
-            self.save_igraph()
-
-    async def retrieve(
+    def add_fact_edges(
         self,
-        queries: list[str],
-        num_to_retrieve: int | NotGiven = NOT_GIVEN,
-        num_to_link: int | NotGiven = NOT_GIVEN,
-        passage_node_weight: float | NotGiven = NOT_GIVEN,
-        pike_node_weight: float | NotGiven = NOT_GIVEN,
-        rerank_batch_num: int = 10,
-        rerank_file_path: str | NotGiven = NOT_GIVEN,
-        atom_query_num: int = 5,
-    ) -> list[QuerySolution]:
-        """
-        Performs retrieval using the HippoRAG 2 framework, which consists of several steps:
-        - Fact Retrieval
-        - Recognition Memory for improved fact selection
-        - Dense passage scoring
-        - Personalized PageRank based re-ranking
-
-        Parameters:
-            queries: List[str]
-                A list of query strings for which documents are to be retrieved.
-            num_to_retrieve: int, optional
-                The maximum number of documents to retrieve for each query. If not specified, defaults to
-                the `retrieval_top_k` value defined in the global configuration.
-
-        Returns:
-            List[QuerySolution]
-                A list of QuerySolution objects, each containing
-                the retrieved documents and their scores for the corresponding query.
-
-        Notes
-        -----
-        - Long queries with no relevant facts after reranking will default to results from dense passage retrieval.
-        """
-        retrieve_start_time = time.time()  # Record start time
-
-        if isinstance(num_to_retrieve, NotGiven):
-            num_to_retrieve = self.global_config.retrieval_top_k
-
-        if not isinstance(num_to_link, NotGiven):
-            self.global_config.linking_top_k = num_to_link
-
-        if not isinstance(passage_node_weight, NotGiven):
-            self.passage_node_weight = passage_node_weight
-        else:
-            self.passage_node_weight = self.global_config.passage_node_weight
-
-        if not isinstance(pike_node_weight, NotGiven):
-            self.pike_node_weight = pike_node_weight
-        else:
-            self.pike_node_weight = self.global_config.passage_node_weight
-
-        if not isinstance(rerank_file_path, NotGiven):
-            self.global_config.rerank_dspy_file_path = rerank_file_path
-
-        if not isinstance(atom_query_num, NotGiven):
-            self.atom_query_num = atom_query_num
-
-        if not self.ready_to_retrieve:
-            async with self._prepare_lock:
-                if not self.ready_to_retrieve:
-                    self.prepare_retrieval_objects()
-
-        retrieval_results = []
-
-        for q_idx, query in enumerate(queries):
-            rerank_start = time.time()
-            top_k_facts, fact_scores_dict, _rerank_log = await self.rerank_facts(
-                query,
-                batch_size=rerank_batch_num,
-            )
-            rerank_end = time.time()
-
-            rerank_time = rerank_end - rerank_start
-
-            if len(top_k_facts) == 0:
-                logger.info("No facts found after reranking")
-                sorted_doc_ids, sorted_doc_scores, ppr_time = np.array([]), np.array([]), 0.0
-            else:
-                sorted_doc_ids, sorted_doc_scores, ppr_time = await self.graph_search_with_fact_entities(
-                    query=query,
-                    link_top_k=self.global_config.linking_top_k,
-                    top_k_facts=top_k_facts,
-                    fact_scores_dict=fact_scores_dict,
-                    passage_node_weight=self.passage_node_weight,
-                    pike_node_weight=self.pike_node_weight,
-                )
-
-            top_k_docs = [
-                v["content"]
-                for v in (
-                    await self.chunk_embedding_store.async_get_rows(
-                        [self.passage_node_keys[idx] for idx in sorted_doc_ids[:num_to_retrieve]],
-                    )
-                ).values()
-            ]
-
-            retrieval_results.append(
-                QuerySolution(
-                    question=query,
-                    docs=top_k_docs,
-                    doc_scores=sorted_doc_scores[:num_to_retrieve],
-                )
-            )
-
-            retrieve_end_time = time.time()  # Record end time
-
-            retrieval_time = retrieve_end_time - retrieve_start_time
-
-            logger.info(f"Retrieval Time {retrieval_time:.2f}s")
-            logger.info(f"  LLM Rerank Time {rerank_time:.2f}s")
-            logger.info(f"  PPR Time {ppr_time:.2f}s")
-            logger.info(f"  Misc Time {retrieval_time - (rerank_time + ppr_time):.2f}s")
-
-        return retrieval_results
-
-    def add_fact_edges(self, chunk_ids: list[str], chunk_triples: list[list[Sequence[str] | tuple[str, str, str]]]):
+        chunk_ids: list[str],
+        chunk_triples: Sequence[Sequence[Sequence[str] | tuple[str, str, str]]],
+    ):
         """
         Adds fact edges from given triples to the graph.
 
@@ -577,7 +391,7 @@ class AsyncHippoRAG:
 
             synonym_candidates.append((node_key, synonyms))
 
-    def load_existing_openie(self, chunk_keys: Sequence[str]) -> tuple[list[dict], set[str]]:
+    def load_existing_openie(self, chunk_keys: Sequence[str]) -> tuple[list[OpenIEDocItem], set[str]]:
         """
         Loads existing OpenIE results from the specified file if it exists and combines
         them with new content while standardizing indices. If the file does not exist or
@@ -589,29 +403,29 @@ class AsyncHippoRAG:
                                      for the content to be processed.
 
         Returns:
-            Tuple[List[dict], Set[str]]: A tuple where the first element is the existing OpenIE
+            Tuple[List[OpenIEDocItem], Set[str]]: A tuple where the first element is the existing OpenIE
                                          information (if any) loaded from the file, and the
                                          second element is a set of chunk keys that still need to
                                          be saved or processed.
         """
 
         # combine openie_results with contents already in file, if file exists
-        chunk_keys_to_save = set()
+        chunk_keys_to_save = set[str]()
 
         if not self.global_config.force_openie_from_scratch and Path(self.openie_results_path).is_file():
-            openie_results: dict = json.loads(self.openie_results_path.read_bytes())
-            all_openie_info = openie_results.get("docs", [])
+            openie_results = OpenIEResult.model_validate_json(self.openie_results_path.read_bytes())
+            all_openie_info = openie_results.docs
 
             # Standardizing indices for OpenIE Files.
 
             renamed_openie_info = []
             for openie_info in all_openie_info:
-                openie_info["idx"] = compute_mdhash_id(openie_info["passage"], "chunk-")
+                openie_info.idx = compute_mdhash_id(openie_info.passage, "chunk-")
                 renamed_openie_info.append(openie_info)
 
             all_openie_info = renamed_openie_info
 
-            existing_openie_keys = set([info["idx"] for info in all_openie_info])
+            existing_openie_keys = set([info.idx for info in all_openie_info])
 
             for chunk_key in chunk_keys:
                 if chunk_key not in existing_openie_keys:
@@ -624,11 +438,11 @@ class AsyncHippoRAG:
 
     def merge_openie_results(
         self,
-        all_openie_info: list[dict],
+        all_openie_info: list[OpenIEDocItem],
         chunks_to_save: dict[str, dict],
         ner_results_dict: dict[str, NerRawOutput],
         triple_results_dict: dict[str, TripleRawOutput],
-    ) -> list[dict]:
+    ) -> list[OpenIEDocItem]:
         """
         Merges OpenIE extraction results with corresponding passage and metadata.
 
@@ -649,24 +463,24 @@ class AsyncHippoRAG:
                 keys to their corresponding OpenIE triple extraction results.
 
         Returns:
-            List[dict]: The `all_openie_info` list containing dictionaries with merged
+            List[OpenIEDocItem]: The `all_openie_info` list containing dictionaries with merged
             OpenIE results, metadata, and the passage content for each chunk.
 
         """
 
         for chunk_key, row in chunks_to_save.items():
             passage = row["content"]
-            chunk_openie_info = {
-                "idx": chunk_key,
-                "passage": passage,
-                "extracted_entities": ner_results_dict[chunk_key].unique_entities,
-                "extracted_triples": triple_results_dict[chunk_key].triples,
-            }
+            chunk_openie_info = OpenIEDocItem(
+                idx=chunk_key,
+                passage=passage,
+                extracted_entities=ner_results_dict[chunk_key].unique_entities,
+                extracted_triples=triple_results_dict[chunk_key].triples,
+            )
             all_openie_info.append(chunk_openie_info)
 
         return all_openie_info
 
-    def save_openie_results(self, all_openie_info: list[dict]):
+    def save_openie_results(self, all_openie_info: list[OpenIEDocItem]):
         """
         Computes statistics on extracted entities from OpenIE results and saves the aggregated data in a
         JSON file. The function calculates the average character and word lengths of the extracted entities
@@ -678,9 +492,9 @@ class AsyncHippoRAG:
                 extracted entities.
         """
 
-        sum_phrase_chars = sum([len(e) for chunk in all_openie_info for e in chunk["extracted_entities"]])
-        sum_phrase_words = sum([len(e.split()) for chunk in all_openie_info for e in chunk["extracted_entities"]])
-        num_phrases = sum([len(chunk["extracted_entities"]) for chunk in all_openie_info])
+        sum_phrase_chars = sum([len(e) for chunk in all_openie_info for e in chunk.extracted_entities])
+        sum_phrase_words = sum([len(e.split()) for chunk in all_openie_info for e in chunk.extracted_entities])
+        num_phrases = sum([len(chunk.extracted_entities) for chunk in all_openie_info])
 
         if len(all_openie_info) > 0:
             # Avoid division by zero if there are no phrases
@@ -691,13 +505,13 @@ class AsyncHippoRAG:
                 avg_ent_chars = 0
                 avg_ent_words = 0
 
-            openie_dict = {
-                "docs": all_openie_info,
-                "avg_ent_chars": avg_ent_chars,
-                "avg_ent_words": avg_ent_words,
-            }
+            openie_res = OpenIEResult(
+                docs=all_openie_info,
+                avg_ent_chars=avg_ent_chars,
+                avg_ent_words=avg_ent_words,
+            )
 
-            self.openie_results_path.write_bytes(json.dumps(openie_dict, ensure_ascii=False).encode())
+            self.openie_results_path.write_bytes(openie_res.model_dump_json().encode())
             logger.info(f"OpenIE results saved to {self.openie_results_path}")
 
     def augment_graph(self):
@@ -839,7 +653,7 @@ class AsyncHippoRAG:
 
         return graph_info
 
-    def prepare_retrieval_objects(self):
+    def prepare_retrieval_objects(self) -> None:
         """
         Prepares various in-memory objects and attributes necessary for fast retrieval processes, such as embedding data and graph relationships, ensuring consistency
         and alignment with the underlying graph structure.
@@ -910,16 +724,16 @@ class AsyncHippoRAG:
 
         all_openie_info, _chunk_keys_to_process = self.load_existing_openie([])
 
-        self.proc_triples_to_docs = {}
+        self.proc_triples_to_docs: dict[str, set[str]] = {}
 
         for doc in all_openie_info:
-            triples = flatten_facts([doc["extracted_triples"]])
+            triples = flatten_facts([doc.extracted_triples])
             for triple in triples:
                 if len(triple) == 3:
                     proc_triple = tuple(text_processing(list(triple)))
                     self.proc_triples_to_docs[str(proc_triple)] = self.proc_triples_to_docs.get(
                         str(proc_triple), set()
-                    ).union(set([doc["idx"]]))
+                    ).union(set([doc.idx]))
 
         if self.ent_node_to_chunk_ids is None:
             ner_results_dict, triple_results_dict = reformat_openie_results(all_openie_info)
@@ -1000,191 +814,6 @@ class AsyncHippoRAG:
 
         assert np.count_nonzero(all_phrase_weights) == len(linking_score_map.keys())
         return all_phrase_weights, linking_score_map
-
-    async def graph_search_with_fact_entities(
-        self,
-        query: str,
-        link_top_k: int,
-        top_k_facts: list[tuple[str, str, str]],
-        fact_scores_dict: dict[str, float],
-        passage_node_weight: float = 0.05,
-        pike_node_weight: float = 1.0,
-    ) -> tuple[np.ndarray, np.ndarray, float]:
-        """
-        Computes document scores based on fact-based similarity and relevance using personalized
-        PageRank (PPR) and dense retrieval models. This function combines the signal from the relevant
-        facts identified with passage similarity and graph-based search for enhanced result ranking.
-
-        Parameters:
-            query (str): The input query string for which similarity and relevance computations
-                need to be performed.
-            link_top_k (int): The number of top phrases to include from the linking score map for
-                downstream processing.
-            top_k_facts (List[Tuple]): A list of top-ranked facts, where each fact is represented
-                as a tuple of its subject, predicate, and object.
-            fact_scores_dict (Dict[str, float]): A dictionary mapping fact string to its score.
-            passage_node_weight (float): Default weight to scale passage scores in the graph.
-
-        Returns:
-            Tuple[np.ndarray, np.ndarray]: A tuple containing two arrays:
-                - The first array corresponds to document IDs sorted based on their scores.
-                - The second array consists of the PPR scores associated with the sorted document IDs.
-        """
-        if TYPE_CHECKING:
-            assert self.ent_node_to_chunk_ids is not None
-
-        # Assigning phrase weights based on selected facts from previous steps.
-        linking_score_map = {}  # from phrase to the average scores of the facts that contain the phrase
-        phrase_scores: dict[
-            str, list[float]
-        ] = {}  # store all fact scores for each phrase regardless of whether they exist in the knowledge graph or not
-        phrase_weights = np.zeros(len(self.graph.vs["name"]))
-        passage_weights = np.zeros(len(self.graph.vs["name"]))
-        pike_passage_weights = np.zeros(len(self.graph.vs["name"]))
-
-        for rank, f in enumerate(top_k_facts):
-            subject_phrase = f[0].lower()
-            object_phrase = f[2].lower()
-            fact_score = fact_scores_dict.get(str(f), 0.0)
-            for phrase in [subject_phrase, object_phrase]:
-                phrase_key = compute_mdhash_id(content=phrase, prefix="entity-")
-                phrase_id = self.node_name_to_vertex_idx.get(phrase_key, None)
-
-                if phrase_id is not None:
-                    phrase_weights[phrase_id] = fact_score
-
-                    if len(self.ent_node_to_chunk_ids.get(phrase_key, set())) > 0:
-                        phrase_weights[phrase_id] /= len(self.ent_node_to_chunk_ids[phrase_key])
-
-                if phrase not in phrase_scores:
-                    phrase_scores[phrase] = []
-                phrase_scores[phrase].append(fact_score)
-
-        # calculate average fact score for each phrase
-        for phrase, scores in phrase_scores.items():
-            linking_score_map[phrase] = float(np.mean(scores))
-
-        if link_top_k:
-            phrase_weights, linking_score_map = self.get_top_k_weights(
-                link_top_k, phrase_weights, linking_score_map
-            )  # at this stage, the length of linking_scope_map is determined by link_top_k
-
-        # Get pike chunk according to chosen atom query
-        atom_query_results = await self.query_embedding_store.async_search(query, top_k=self.atom_query_num)
-        query_sorted_scores = [score for _, score in atom_query_results]
-        normalized_query_sorted_scores = min_max_normalize(np.array(query_sorted_scores))
-        if len(atom_query_results) != 0:
-            for i, (query_dict, _) in enumerate(atom_query_results):
-                query_dpr_score = normalized_query_sorted_scores[i]
-                atom_query = query_dict["content"]
-                chunk_ids = self.query_to_chunk_ids.get(atom_query, [])
-                for chunk_id in chunk_ids:
-                    # passage_node_key = self.passage_node_keys[chunk_id]
-                    passage_node_id = self.node_name_to_vertex_idx[chunk_id]
-                    pike_passage_weights[passage_node_id] = query_dpr_score * pike_node_weight
-
-        # Get passage scores according to chosen dense retrieval model
-        dpr_top_passages = await self.chunk_embedding_store.async_search(
-            query_text=query,
-            instruction=get_query_instruction("query_to_passage"),
-            top_k=len(self.passage_node_keys),
-        )
-        passage_scores_list = [score for _, score in dpr_top_passages]
-        normalized_dpr_sorted_scores = min_max_normalize(np.array(passage_scores_list))
-
-        for i, (passage_dict, _) in enumerate(dpr_top_passages):
-            passage_dpr_score = normalized_dpr_sorted_scores[i]
-            passage_node_id = self.node_name_to_vertex_idx[passage_dict["hash_id"]]
-            passage_weights[passage_node_id] = passage_dpr_score * passage_node_weight
-            passage_node_text = passage_dict["content"]
-            linking_score_map[passage_node_text] = passage_dpr_score * passage_node_weight
-
-        # Combining phrase and passage scores into one array for PPR
-        # Combining pike passage scores
-        node_weights = phrase_weights + passage_weights + pike_passage_weights
-
-        # Recording top 30 facts in linking_score_map
-        if len(linking_score_map) > 30:
-            linking_score_map = dict(sorted(linking_score_map.items(), key=lambda x: x[1], reverse=True)[:30])
-
-        assert sum(node_weights) > 0, f"No phrases found in the graph for the given facts: {top_k_facts}"
-
-        # Running PPR algorithm based on the passage and phrase weights previously assigned
-        ppr_start = time.time()
-        ppr_sorted_doc_ids, ppr_sorted_doc_scores = self.run_ppr(node_weights, damping=self.global_config.damping)
-        ppr_end = time.time()
-
-        ppr_time = ppr_end - ppr_start
-
-        assert len(ppr_sorted_doc_ids) == len(self.passage_node_idxs), (
-            f"Doc prob length {len(ppr_sorted_doc_ids)} != corpus length {len(self.passage_node_idxs)}"
-        )
-
-        return ppr_sorted_doc_ids, ppr_sorted_doc_scores, ppr_time
-
-    async def rerank_facts(
-        self,
-        query: str,
-        batch_size: int = 10,
-    ) -> tuple[list[tuple[str, str, str]], dict[str, float], dict]:
-        """
-        Args:
-
-        Returns:
-            top_k_facts:
-            fact_scores (dict):
-            rerank_log (dict): {'facts_before_rerank': candidate_facts, 'facts_after_rerank': top_k_facts}
-                - candidate_facts (list): list of link_top_k facts (each fact is a relation triple in tuple data type).
-                - top_k_facts:
-        """
-        # load args
-        link_top_k: int = self.global_config.linking_top_k
-
-        try:
-            # Get the top k facts by score
-            top_facts_from_search = await self.fact_embedding_store.async_search(
-                query_text=query,
-                instruction=get_query_instruction("query_to_fact"),
-                top_k=link_top_k,
-            )
-            if not top_facts_from_search:
-                logger.warning("No facts available for reranking. Returning empty lists.")
-                return [], {}, {"facts_before_rerank": [], "facts_after_rerank": []}
-
-            fact_row_dict = [fact_dict for fact_dict, score in top_facts_from_search]
-            candidate_facts: list[tuple] = [ast.literal_eval(f["content"]) for f in fact_row_dict]
-            initial_fact_scores = {f["content"]: score for f, score in top_facts_from_search}
-
-            logger.info(f"query: {query}")
-            logger.info(f"candidate_facts: {candidate_facts}")
-            # Rerank the facts
-            top_k_facts: list[tuple] = (
-                await self.rerank_filter_fn(
-                    query,
-                    candidate_facts,
-                    list(range(len(candidate_facts))),
-                    len_after_rerank=link_top_k,
-                    batch_size=batch_size,
-                )
-            )[1]
-            logger.info(f"top_k_facts: {top_k_facts}")
-            rerank_log = {
-                "facts_before_rerank": candidate_facts,
-                "facts_after_rerank": top_k_facts,
-            }
-
-            # The scores are not reranked, we use the original scores from vector search
-            fact_scores = {str(fact): initial_fact_scores.get(str(fact), 0.0) for fact in top_k_facts}
-
-            return top_k_facts, fact_scores, rerank_log
-
-        except Exception as e:
-            logger.error(f"Error in rerank_facts: {e!s}")
-            return (
-                [],
-                {},
-                {"facts_before_rerank": [], "facts_after_rerank": [], "error": str(e)},
-            )
 
     def run_ppr(self, reset_prob: np.ndarray, damping: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
         """
