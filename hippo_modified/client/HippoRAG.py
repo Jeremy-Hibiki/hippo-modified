@@ -6,6 +6,7 @@ import time
 from typing import TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 
 from ..prompts.linking import get_query_instruction
 from ..utils.misc_utils import (
@@ -361,7 +362,7 @@ class HippoRAG(BaseHippoRAG):
         fact_scores_dict: dict[str, float],
         passage_node_weight: float = 0.05,
         pike_node_weight: float = 1.0,
-    ) -> tuple[np.ndarray, np.ndarray, float]:
+    ) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.float64], float]:
         """
         Computes document scores based on fact-based similarity and relevance using personalized
         PageRank (PPR) and dense retrieval models. This function combines the signal from the relevant

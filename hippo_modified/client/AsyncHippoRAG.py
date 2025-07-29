@@ -7,6 +7,7 @@ import time
 from typing import TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 
 from ..prompts.linking import get_query_instruction
 from ..utils.misc_utils import (
@@ -321,7 +322,11 @@ class AsyncHippoRAG(BaseHippoRAG):
 
             if len(top_k_facts) == 0:
                 logger.info("No facts found after reranking")
-                sorted_doc_ids, sorted_doc_scores, ppr_time = np.array([]), np.array([]), 0.0
+                sorted_doc_ids, sorted_doc_scores, ppr_time = (
+                    np.array([], dtype=np.intp),
+                    np.array([], dtype=np.float64),
+                    0.0,
+                )
             else:
                 sorted_doc_ids, sorted_doc_scores, ppr_time = await self.graph_search_with_fact_entities(
                     query=query,
@@ -368,7 +373,7 @@ class AsyncHippoRAG(BaseHippoRAG):
         fact_scores_dict: dict[str, float],
         passage_node_weight: float = 0.05,
         pike_node_weight: float = 1.0,
-    ) -> tuple[np.ndarray, np.ndarray, float]:
+    ) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.float64], float]:
         """
         Computes document scores based on fact-based similarity and relevance using personalized
         PageRank (PPR) and dense retrieval models. This function combines the signal from the relevant

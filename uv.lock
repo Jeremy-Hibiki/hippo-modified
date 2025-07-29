@@ -256,7 +256,7 @@ wheels = [
 
 [[package]]
 name = "hippo-modified"
-version = "2.4.0"
+version = "2.4.1"
 source = { editable = "." }
 dependencies = [
     { name = "aiosqlite", marker = "platform_machine == 'x86_64' or (extra == 'extra-14-hippo-modified-cpu' and extra == 'extra-14-hippo-modified-cu126')" },

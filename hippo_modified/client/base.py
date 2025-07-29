@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, cast
 
 import igraph as ig
 import numpy as np
+import numpy.typing as npt
 import regex as re
 from tqdm import tqdm
 
@@ -815,7 +816,11 @@ class BaseHippoRAG:
         assert np.count_nonzero(all_phrase_weights) == len(linking_score_map.keys())
         return all_phrase_weights, linking_score_map
 
-    def run_ppr(self, reset_prob: np.ndarray, damping: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
+    def run_ppr(
+        self,
+        reset_prob: npt.NDArray[np.float64],
+        damping: float = 0.5,
+    ) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.float64]]:
         """
         Runs Personalized PageRank (PPR) on a graph and computes relevance scores for
         nodes corresponding to document passages. The method utilizes a damping
@@ -841,7 +846,7 @@ class BaseHippoRAG:
         if damping is None:
             damping = 0.5  # for potential compatibility
         reset_prob = np.where(np.isnan(reset_prob) | (reset_prob < 0), 0, reset_prob)
-        pagerank_scores = self.graph.personalized_pagerank(
+        pagerank_scores: list[float] = self.graph.personalized_pagerank(
             vertices=range(len(self.node_name_to_vertex_idx)),
             damping=damping,
             directed=False,
@@ -850,7 +855,7 @@ class BaseHippoRAG:
             implementation="prpack",
         )
 
-        doc_scores = np.array([pagerank_scores[idx] for idx in self.passage_node_idxs])
+        doc_scores: npt.NDArray[np.float64] = np.array([pagerank_scores[idx] for idx in self.passage_node_idxs])
         sorted_doc_ids = np.argsort(doc_scores)[::-1]
         sorted_doc_scores = doc_scores[sorted_doc_ids.tolist()]
 

@@ -8,6 +8,7 @@ from typing import Any, TypeVar
 from typing_extensions import overload
 
 import numpy as np
+import numpy.typing as npt
 import regex
 
 from .llm_utils import filter_invalid_triples
@@ -39,15 +40,13 @@ class TripleRawOutput:
 class QuerySolution:
     question: str
     docs: list[str]
-    doc_scores: np.ndarray | None = None
-    answer: str | None = None
+    doc_scores: npt.NDArray[np.float64]
 
     def to_dict(self):
         return {
             "question": self.question,
-            "answer": self.answer,
             "docs": self.docs[:5],
-            "doc_scores": [round(v, 4) for v in self.doc_scores.tolist()[:5]] if self.doc_scores is not None else None,
+            "doc_scores": [round(v, 4) for v in self.doc_scores.tolist()[:5]],
         }
 
 
