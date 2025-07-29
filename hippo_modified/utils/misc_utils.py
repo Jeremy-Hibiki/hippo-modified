@@ -11,7 +11,7 @@ import numpy as np
 import regex
 
 from .llm_utils import filter_invalid_triples
-from .typing import ListTriple, Triple, TupleTriple
+from .typing import ListTriple, OpenIEDocItem, Triple, TupleTriple
 
 logger = logging.getLogger(__name__)
 
@@ -71,22 +71,24 @@ def text_processing(text: str | list[str]) -> list[str] | str:
     return NON_ALPHA_NUM_CJK_PATTERN.sub("", text.lower()).strip()
 
 
-def reformat_openie_results(corpus_openie_results) -> tuple[dict[str, NerRawOutput], dict[str, TripleRawOutput]]:
+def reformat_openie_results(
+    corpus_openie_results: list[OpenIEDocItem],
+) -> tuple[dict[str, NerRawOutput], dict[str, TripleRawOutput]]:
     ner_output_dict = {
-        chunk_item["idx"]: NerRawOutput(
-            chunk_id=chunk_item["idx"],
+        chunk_item.idx: NerRawOutput(
+            chunk_id=chunk_item.idx,
             response=None,
             metadata={},
-            unique_entities=list(np.unique(chunk_item["extracted_entities"])),
+            unique_entities=list(np.unique(chunk_item.extracted_entities)),
         )
         for chunk_item in corpus_openie_results
     }
     triple_output_dict = {
-        chunk_item["idx"]: TripleRawOutput(
-            chunk_id=chunk_item["idx"],
+        chunk_item.idx: TripleRawOutput(
+            chunk_id=chunk_item.idx,
             response=None,
             metadata={},
-            triples=filter_invalid_triples(triples=chunk_item["extracted_triples"]),
+            triples=filter_invalid_triples(triples=chunk_item.extracted_triples),
         )
         for chunk_item in corpus_openie_results
     }

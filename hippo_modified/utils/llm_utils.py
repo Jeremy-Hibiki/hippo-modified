@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import json
-from string import Template
-from typing import Any, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import regex as re
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from string import Template
 
 
 class TextChatMessage(TypedDict):
@@ -71,7 +76,7 @@ def fix_broken_generated_json(json_str: str) -> str:
         str: The corrected JSON string.
     """
 
-    def find_unclosed(json_str):
+    def find_unclosed(json_str: str) -> list[str]:
         """
         Identifies the unclosed braces and brackets in the JSON string.
 
@@ -127,7 +132,7 @@ def fix_broken_generated_json(json_str: str) -> str:
     return json_str
 
 
-def filter_invalid_triples(triples: list[list[str]]) -> list[list[str]]:
+def filter_invalid_triples(triples: Sequence[Sequence[str]]) -> list[list[str]]:
     """
     Filters out invalid and duplicate triples from a list of triples.
 
@@ -149,7 +154,7 @@ def filter_invalid_triples(triples: list[list[str]]) -> list[list[str]]:
             A list of unique, valid triples, each represented as a list of strings.
     """
     unique_triples = set()
-    valid_triples = []
+    valid_triples: list[list[str]] = []
 
     for triple in triples:
         if len(triple) != 3:
@@ -158,7 +163,7 @@ def filter_invalid_triples(triples: list[list[str]]) -> list[list[str]]:
         valid_triple = [str(item) for item in triple]
         if tuple(valid_triple) not in unique_triples:
             unique_triples.add(tuple(valid_triple))
-            valid_triples.append(valid_triple)
+            valid_triples.append(list(valid_triple))
 
     return valid_triples
 
