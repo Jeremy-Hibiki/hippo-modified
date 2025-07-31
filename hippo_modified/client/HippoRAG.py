@@ -19,6 +19,7 @@ from ..utils.misc_utils import (
     text_processing,
 )
 from ..utils.typing import NOT_GIVEN, NotGiven, OpenIEDocItem, Triple
+from ._abc import HippoRAGProtocol
 from .base import BaseHippoRAG
 
 if TYPE_CHECKING:
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class HippoRAG(BaseHippoRAG):
+class HippoRAG(BaseHippoRAG, HippoRAGProtocol):
     def __init__(
         self,
         global_config: BaseConfig | None = None,

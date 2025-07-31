@@ -1,6 +1,6 @@
 [project]
 name = "hippo-modified"
-version = "2.4.1"
+version = "2.4.2"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -124,7 +124,7 @@ runtime-evaluated-decorators = [
 extra-standard-library = ["typing_extensions"]
 
 [tool.mypy]
-plugins = ["pydantic.mypy"]
+plugins = ["pydantic.mypy", "numpy.typing.mypy_plugin"]
 disable_error_code = "import-untyped"
 
 [tool.pydantic-mypy]

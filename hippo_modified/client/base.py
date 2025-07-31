@@ -5,11 +5,10 @@ import logging
 from collections import defaultdict
 from dataclasses import asdict
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, cast
 
 import igraph as ig
 import numpy as np
-import numpy.typing as npt
 import regex as re
 from tqdm import tqdm
 
@@ -33,6 +32,12 @@ from ..utils.typing import NOT_GIVEN, NotGiven, OpenIEDocItem, OpenIEResult
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    import numpy.typing as npt
+
+    _SCT = TypeVar("_SCT", bound=np.generic)
+    _Array1D: TypeAlias = np.ndarray[tuple[int], np.dtype[_SCT]]
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,7 +52,7 @@ class BaseHippoRAG:
         embedding_base_url: str | NotGiven = NOT_GIVEN,
         azure_endpoint: str | NotGiven = NOT_GIVEN,
         azure_embedding_endpoint: str | NotGiven = NOT_GIVEN,
-    ):
+    ) -> None:
         """
         Initializes an async version of the class and its related components.
 
@@ -218,7 +223,7 @@ class BaseHippoRAG:
             )
             return preloaded_graph
 
-    def pike_patch(self, queries: dict | None = None):
+    def pike_patch(self, queries: dict | None = None) -> None:
         if queries is None:
             queries = {}
         logger.info("Indexing PIKE queriers")
@@ -243,7 +248,7 @@ class BaseHippoRAG:
         self,
         chunk_ids: list[str],
         chunk_triples: Sequence[Sequence[Sequence[str] | tuple[str, str, str]]],
-    ):
+    ) -> None:
         """
         Adds fact edges from given triples to the graph.
 
@@ -297,7 +302,7 @@ class BaseHippoRAG:
                         set([chunk_key])
                     )
 
-    def add_passage_edges(self, chunk_ids: list[str], chunk_triple_entities: list[list[str]]):
+    def add_passage_edges(self, chunk_ids: list[str], chunk_triple_entities: list[list[str]]) -> int:
         """
         Adds edges connecting passage nodes to phrase nodes in the graph.
 
@@ -337,7 +342,7 @@ class BaseHippoRAG:
 
         return num_new_chunks
 
-    def add_synonymy_edges(self):
+    def add_synonymy_edges(self) -> None:
         """
         Adds synonymy edges between similar nodes in the graph to enhance connectivity by identifying and linking synonym entities.
 
@@ -515,7 +520,7 @@ class BaseHippoRAG:
             self.openie_results_path.write_bytes(openie_res.model_dump_json().encode())
             logger.info(f"OpenIE results saved to {self.openie_results_path}")
 
-    def augment_graph(self):
+    def augment_graph(self) -> None:
         """
         Provides utility functions to augment a graph by adding new nodes and edges.
         It ensures that the graph structure is extended to include additional components,
@@ -528,7 +533,7 @@ class BaseHippoRAG:
         logger.info("Graph construction completed!")
         logger.info(self.get_graph_info())
 
-    def add_new_nodes(self):
+    def add_new_nodes(self) -> None:
         """
         Adds new nodes to the graph from entity and passage embedding stores based on their attributes.
 
@@ -546,7 +551,7 @@ class BaseHippoRAG:
         node_to_rows = entity_to_row
         node_to_rows.update(passage_to_row)
 
-        new_nodes = {}
+        new_nodes: dict[str, list[Any]] = {}
         for node_id, node in node_to_rows.items():
             node["name"] = node_id
             if node_id not in existing_nodes:
@@ -558,14 +563,14 @@ class BaseHippoRAG:
         if len(new_nodes) > 0:
             self.graph.add_vertices(n=len(next(iter(new_nodes.values()))), attributes=new_nodes)
 
-    def add_new_edges(self):
+    def add_new_edges(self) -> None:
         """
         Processes edges from `node_to_node_stats` to add them into a graph object while
         managing adjacency lists, validating edges, and logging invalid edge cases.
         """
 
-        graph_adj_list = defaultdict(dict)
-        graph_inverse_adj_list = defaultdict(dict)
+        graph_adj_list = defaultdict[str, dict[str, float]](dict)
+        graph_inverse_adj_list = defaultdict[str, dict[str, float]](dict)
         edge_source_node_keys = []
         edge_target_node_keys = []
         edge_metadata = []
@@ -579,7 +584,7 @@ class BaseHippoRAG:
             edge_target_node_keys.append(edge[1])
             edge_metadata.append({"weight": weight})
 
-        valid_edges, valid_weights = [], {"weight": []}
+        valid_edges, valid_weights = [], {"weight": []}  # type: ignore
         current_node_ids = set(self.graph.vs["name"])
         for source_node_id, target_node_id, edge_d in zip(
             edge_source_node_keys, edge_target_node_keys, edge_metadata, strict=False
@@ -592,7 +597,7 @@ class BaseHippoRAG:
                 logger.warning(f"Edge {source_node_id} -> {target_node_id} is not valid.")
         self.graph.add_edges(valid_edges, attributes=valid_weights)
 
-    def save_igraph(self):
+    def save_igraph(self) -> None:
         logger.info(f"Writing graph with {len(self.graph.vs())} nodes, {len(self.graph.es())} edges")
         self.graph.write_pickle(self._graph_pickle_filename)
         logger.info("Saving graph completed!")
@@ -777,9 +782,9 @@ class BaseHippoRAG:
     def get_top_k_weights(
         self,
         link_top_k: int,
-        all_phrase_weights: np.ndarray,
+        all_phrase_weights: _Array1D[np.float64],
         linking_score_map: dict[str, float],
-    ) -> tuple[np.ndarray, dict[str, float]]:
+    ) -> tuple[_Array1D[np.float64], dict[str, float]]:
         """
         This function filters the all_phrase_weights to retain only the weights for the
         top-ranked phrases in terms of the linking_score_map. It also filters linking scores
