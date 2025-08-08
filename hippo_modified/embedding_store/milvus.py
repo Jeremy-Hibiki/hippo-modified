@@ -251,7 +251,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             nodes_dict[hash_id]["hash_id"] = hash_id
             nodes_dict[hash_id]["embedding"] = embedding.tolist()
         data = list(nodes_dict.values())
-        self.async_client.upsert(
+        await self.async_client.upsert(
             collection_name=self._collection_name,
             data=data,
         )
