@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import itertools
 import logging
-from collections.abc import Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from hashlib import md5
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 from typing_extensions import overload
 
 import numpy as np
@@ -12,7 +14,9 @@ import numpy.typing as npt
 import regex
 
 from .llm_utils import filter_invalid_triples
-from .typing import ListTriple, OpenIEDocItem, Triple, TupleTriple
+
+if TYPE_CHECKING:
+    from .typing import ListTriple, OpenIEDocItem, Triple, TupleTriple
 
 logger = logging.getLogger(__name__)
 
@@ -141,3 +145,11 @@ def load_hit_stopwords():
 
 def flatten_list(a: list[list[_T]]) -> list[_T]:
     return list(itertools.chain.from_iterable(a))
+
+
+def batched(iterable: Iterable[_T], batch_size: int) -> Iterator[list[_T]]:
+    if batch_size <= 0:
+        raise ValueError("batch_size must be a positive integer")
+    it = iter(iterable)
+    while batch := list(itertools.islice(it, batch_size)):
+        yield batch

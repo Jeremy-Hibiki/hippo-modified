@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from typing_extensions import override
 from uuid import uuid4
 
 import numpy as np
 
-from ..utils.misc_utils import compute_mdhash_id, load_hit_stopwords
+from ..utils.misc_utils import batched, compute_mdhash_id, load_hit_stopwords
 from .base import BaseEmbeddingStore
 
 if TYPE_CHECKING:
@@ -230,15 +230,16 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             nodes_dict[hash_id]["hash_id"] = hash_id
             nodes_dict[hash_id]["embedding"] = embedding.tolist()
         data = list(nodes_dict.values())
-        self.client.upsert(
-            collection_name=self._collection_name,
-            data=data,
-        )
+        for batched_data in batched(data, 500):
+            self.client.upsert(
+                collection_name=self._collection_name,
+                data=batched_data,
+            )
         return None
 
     @override
     async def async_insert_strings(self, texts: Sequence[str]) -> dict | None:
-        nodes_dict = {}
+        nodes_dict: dict[str, dict[str, Any]] = {}
         for text in texts:
             nodes_dict[compute_mdhash_id(text, prefix=self._namespace + "-")] = {"content": text}
 
@@ -251,10 +252,11 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             nodes_dict[hash_id]["hash_id"] = hash_id
             nodes_dict[hash_id]["embedding"] = embedding.tolist()
         data = list(nodes_dict.values())
-        await self.async_client.upsert(
-            collection_name=self._collection_name,
-            data=data,
-        )
+        for batched_data in batched(data, 500):
+            await self.async_client.upsert(
+                collection_name=self._collection_name,
+                data=batched_data,
+            )
         return None
 
     def search(
