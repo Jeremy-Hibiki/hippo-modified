@@ -1,9 +1,14 @@
-import os
+from __future__ import annotations
 
-from ..utils.config_utils import BaseConfig
+import os
+from typing import TYPE_CHECKING
+
 from ..utils.logging_utils import get_logger
 from .base import BaseLLM
 from .openai_gpt import CacheOpenAI
+
+if TYPE_CHECKING:
+    from ..utils.config_utils import BaseConfig
 
 logger = get_logger(__name__)
 

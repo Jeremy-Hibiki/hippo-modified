@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -99,7 +101,7 @@ class PromptTemplateManager:
                     logger.info(f"Successfully loaded template '{script_name}' from '{module_name}.py'.")
 
                 except Exception as e:
-                    logger.error(f"Failed to load template from '{module_name}.py': {e}")
+                    logger.error(f"Failed to load template: {e}")
                     raise
 
     def render(self, name: str, **kwargs) -> str | list[dict[str, Any]]:

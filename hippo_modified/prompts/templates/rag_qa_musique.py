@@ -1,4 +1,5 @@
 # from `gold_with_3_distractors_context_cot_qa_codex.txt`
+from __future__ import annotations
 
 one_shot_rag_qa_docs = (
     """维基百科标题:最后一匹马\n《最后一匹马》(西班牙语:El último caballo)是一部1950年由埃德加·内维尔执导的西班牙喜剧电影,费尔南多·费尔南·戈麦斯主演。\n"""

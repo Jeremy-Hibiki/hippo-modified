@@ -1,15 +1,20 @@
+from __future__ import annotations
+
 import logging
 from collections.abc import Sequence
 from copy import deepcopy
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 
-from ..embedding_model import BaseEmbeddingModel
-from ..utils.config_utils import BaseConfig
 from ..utils.misc_utils import compute_mdhash_id
 from .base import BaseEmbeddingStore
+
+if TYPE_CHECKING:
+    from ..embedding_model import BaseEmbeddingModel
+    from ..utils.config_utils import BaseConfig
 
 logger = logging.getLogger(__name__)
 

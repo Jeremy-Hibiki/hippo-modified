@@ -1,18 +1,22 @@
+from __future__ import annotations
+
 import ast
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from typing import Any, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
 from pydantic import BaseModel, Field
 from tqdm import tqdm
 
-from ..llm.openai_gpt import CacheOpenAI
 from ..prompts import PromptTemplateManager
 from ..utils.llm_utils import filter_invalid_triples, fix_broken_generated_json
 from ..utils.logging_utils import get_logger
 from ..utils.misc_utils import NerRawOutput, TripleRawOutput
+
+if TYPE_CHECKING:
+    from ..llm.openai_gpt import CacheOpenAI
 
 logger = get_logger(__name__)
 

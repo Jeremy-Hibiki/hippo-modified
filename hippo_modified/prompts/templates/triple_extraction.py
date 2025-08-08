@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ...utils.llm_utils import convert_format_to_template
 
 # from .ner import one_shot_ner_output, one_shot_ner_paragraph

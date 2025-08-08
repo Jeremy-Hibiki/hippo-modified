@@ -67,7 +67,7 @@ def text_processing(text: list[str]) -> list[str]: ...
 
 def text_processing(text: str | list[str]) -> list[str] | str:
     if isinstance(text, list):
-        return [text_processing(t) for t in text]  # type: ignore
+        return [text_processing(t) for t in text]
     if not isinstance(text, str):
         text = str(text)
     # return re.sub("[^A-Za-z0-9 ]", " ", text.lower()).strip()

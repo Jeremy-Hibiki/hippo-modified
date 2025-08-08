@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 import inspect
 import json
@@ -5,7 +7,7 @@ import sqlite3
 from collections.abc import Callable, Coroutine
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 from typing_extensions import overload
 
 import aiosqlite
@@ -17,10 +19,12 @@ from openai import AsyncAzureOpenAI, AsyncOpenAI, AzureOpenAI, OpenAI
 from packaging import version
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from ..utils.config_utils import BaseConfig
-from ..utils.llm_utils import TextChatMessage
 from ..utils.logging_utils import get_logger
 from .base import BaseLLM, LLMConfig
+
+if TYPE_CHECKING:
+    from ..utils.config_utils import BaseConfig
+    from ..utils.llm_utils import TextChatMessage
 
 logger = get_logger(__name__)
 
@@ -219,7 +223,7 @@ class CacheOpenAI(BaseLLM):
     """OpenAI LLM implementation."""
 
     @classmethod
-    def from_experiment_config(cls, global_config: BaseConfig) -> "CacheOpenAI":
+    def from_experiment_config(cls, global_config: BaseConfig) -> CacheOpenAI:
         config_dict = global_config.__dict__
         config_dict["max_retries"] = global_config.max_retry_attempts
         cache_dir = Path(global_config.save_dir) / "llm_cache"

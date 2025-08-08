@@ -1,8 +1,14 @@
-from ..embedding_model.base import BaseEmbeddingModel
-from ..utils.config_utils import BaseConfig
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from .base import BaseEmbeddingStore
 from .dataframe import DataFrameEmbeddingStore
 from .milvus import MilvusEmbeddingStore
+
+if TYPE_CHECKING:
+    from ..embedding_model.base import BaseEmbeddingModel
+    from ..utils.config_utils import BaseConfig
 
 
 def create_embedding_store(

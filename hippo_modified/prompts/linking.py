@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 def get_query_instruction(linking_method):
     instructions = {
         "ner_to_node": "Given a phrase, retrieve synonymous or relevant phrases that best match this phrase.",

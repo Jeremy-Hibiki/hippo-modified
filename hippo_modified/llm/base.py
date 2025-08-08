@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import json
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..utils.config_utils import BaseConfig
-from ..utils.llm_utils import TextChatMessage
 from ..utils.logging_utils import get_logger
+
+if TYPE_CHECKING:
+    from ..utils.llm_utils import TextChatMessage
 
 logger = get_logger(__name__)
 
@@ -75,14 +79,14 @@ class LLMConfig:
         return json.dumps(self._data)
 
     @classmethod
-    def from_dict(cls, config_dict: dict[str, Any]) -> "LLMConfig":
+    def from_dict(cls, config_dict: dict[str, Any]) -> LLMConfig:
         """Create an LLMConfig instance from a dictionary."""
         instance = cls()
         instance.batch_upsert(config_dict)
         return instance
 
     @classmethod
-    def from_json(cls, json_str: str) -> "LLMConfig":
+    def from_json(cls, json_str: str) -> LLMConfig:
         """Create an LLMConfig instance from a JSON string."""
         instance = cls()
         instance.batch_upsert(json.loads(json_str))

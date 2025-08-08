@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 ner_system = """Your task is to extract named entities from the given paragraph. 
 Respond with a JSON list of entities.
 You must respond with this JSON format: {{"named_entities": ["named_entity1", "named_entity2", "named_entity3",  "named_entity4",...]}} 

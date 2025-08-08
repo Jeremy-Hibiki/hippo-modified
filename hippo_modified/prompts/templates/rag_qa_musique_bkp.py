@@ -1,4 +1,5 @@
 # from `gold_with_3_distractors_context_cot_qa_codex.txt`
+from __future__ import annotations
 
 one_shot_rag_qa_docs = (
     """Wikipedia Title: The Last Horse\nThe Last Horse (Spanish:El último caballo) is a 1950 Spanish comedy film directed by Edgar Neville starring Fernando Fernán Gómez.\n"""

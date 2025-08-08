@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 best_dspy_prompt = {
     "prog": {
         "lm": None,

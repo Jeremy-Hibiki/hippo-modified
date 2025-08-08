@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 ner_system = """You're a very effective entity extraction system.
 """
 

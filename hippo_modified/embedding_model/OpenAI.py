@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
 from openai import AsyncAzureOpenAI, AsyncOpenAI, AzureOpenAI, OpenAI
 from tqdm import tqdm
 
-from ..utils.config_utils import BaseConfig
 from ..utils.logging_utils import get_logger
 from .base import BaseEmbeddingModel, EmbeddingConfig
+
+if TYPE_CHECKING:
+    from ..utils.config_utils import BaseConfig
 
 logger = get_logger(__name__)
 

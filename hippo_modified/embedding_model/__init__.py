@@ -1,4 +1,6 @@
 # from .TextEmbeddingsInference import TextEmbeddingsInferenceModel
+from __future__ import annotations
+
 from typing import Literal
 
 from ..utils.logging_utils import get_logger

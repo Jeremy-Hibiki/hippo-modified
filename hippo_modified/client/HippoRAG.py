@@ -97,7 +97,7 @@ class HippoRAG(BaseHippoRAG, HippoRAGProtocol):
 
         chunk_triples = [[text_processing(t) for t in triple_results_dict[chunk_id].triples] for chunk_id in chunk_ids]
         entity_nodes, chunk_triple_entities = extract_entity_nodes(chunk_triples)  # type: ignore
-        facts = flatten_facts(chunk_triples)  # type: ignore
+        facts = flatten_facts(chunk_triples)
 
         logger.info("Encoding Entities")
         self.entity_embedding_store.insert_strings(entity_nodes)
@@ -110,7 +110,7 @@ class HippoRAG(BaseHippoRAG, HippoRAGProtocol):
         self.node_to_node_stats: dict[tuple[str, str], float] = {}
         self.ent_node_to_chunk_ids = {}
 
-        self.add_fact_edges(chunk_ids, chunk_triples)  # type: ignore
+        self.add_fact_edges(chunk_ids, chunk_triples)
         num_new_chunks = self.add_passage_edges(chunk_ids, chunk_triple_entities)
 
         if num_new_chunks > 0:
