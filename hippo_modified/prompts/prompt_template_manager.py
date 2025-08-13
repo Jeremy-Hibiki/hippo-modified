@@ -123,7 +123,7 @@ class PromptTemplateManager:
             # Render a single string template
             try:
                 result = template.substitute(**kwargs)
-                logger.info(f"Successfully rendered template '{name}' with variables: {kwargs}.")
+                logger.debug(f"Successfully rendered template '{name}' with variables: {kwargs}.")
                 return result
             except KeyError as e:
                 logger.error(f"Missing variable for template '{name}': {e}")
@@ -134,7 +134,7 @@ class PromptTemplateManager:
                 rendered_list = [
                     {"role": item["role"], "content": item["content"].substitute(**kwargs)} for item in template
                 ]
-                logger.info(f"Successfully rendered chat history template '{name}' with variables: {kwargs}.")
+                logger.debug(f"Successfully rendered chat history template '{name}' with variables: {kwargs}.")
                 return rendered_list
             except KeyError as e:
                 logger.error(f"Missing variable in chat history template '{name}': {e}")

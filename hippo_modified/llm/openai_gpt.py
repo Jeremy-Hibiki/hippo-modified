@@ -45,7 +45,7 @@ def cache_response(
 def cache_response(
     func: Callable[_P, tuple[str, dict]] | Callable[_P, Coroutine[Any, Any, tuple[str, dict]]],
 ) -> Callable[_P, tuple[str, dict, bool]] | Callable[_P, Coroutine[Any, Any, tuple[str, dict, bool]]]:
-    def _build_cache_key(instance, args, kwargs):
+    def _build_cache_key(instance: CacheOpenAI, args, kwargs):
         messages = args[0] if args else kwargs.get("messages")
         if messages is None:
             raise ValueError("Missing required 'messages' parameter for caching.")
@@ -68,7 +68,7 @@ def cache_response(
         return key_hash
 
     @wrapt.decorator
-    def sync_wrapper(wrapped, instance, args, kwargs):
+    def sync_wrapper(wrapped, instance: CacheOpenAI, args, kwargs):
         if not instance.cache_llm_response:
             message, metadata = wrapped(*args, **kwargs)
             return message, metadata, False
@@ -130,7 +130,7 @@ def cache_response(
         return message, metadata, False
 
     @wrapt.decorator
-    async def async_wrapper(wrapped, instance, args, kwargs):
+    async def async_wrapper(wrapped, instance: CacheOpenAI, args, kwargs):
         if not instance.cache_llm_response:
             message, metadata = await wrapped(*args, **kwargs)
             return message, metadata, False
@@ -248,7 +248,7 @@ class CacheOpenAI(BaseLLM):
         Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
         if cache_filename is None:
             cache_filename = f"{self.llm_name.replace('/', '_')}_cache.sqlite"
-        self.cache_file_name = Path(self.cache_dir) / cache_filename
+        self.cache_file_name = (Path(self.cache_dir) / cache_filename).resolve().as_posix()
 
         self._init_llm_config()
         if high_throughput:
