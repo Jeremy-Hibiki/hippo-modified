@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64'",
@@ -287,17 +287,17 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiosqlite", specifier = ">=0.21.0" },
+    { name = "aiosqlite", specifier = ">=0.15" },
     { name = "filelock" },
     { name = "openai", specifier = ">=1.58.1" },
     { name = "pandas" },
-    { name = "pydantic", specifier = ">=2.10.4" },
+    { name = "pydantic", specifier = ">=2.8" },
     { name = "pymilvus", marker = "extra == 'milvus'", specifier = ">=2.5" },
     { name = "python-igraph", specifier = "==0.11.8" },
-    { name = "tenacity", specifier = ">=8.5.0" },
+    { name = "tenacity", specifier = ">=8.1" },
     { name = "tqdm" },
-    { name = "transformers", specifier = ">=4.51" },
-    { name = "wrapt", specifier = ">=1.17.2" },
+    { name = "transformers", specifier = ">=4.40" },
+    { name = "wrapt", specifier = ">=1.10" },
 ]
 provides-extras = ["milvus"]
 
@@ -1033,6 +1033,7 @@ wheels = [
 name = "regex"
 version = "2025.7.34"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0b/de/e13fa6dc61d78b30ba47481f99933a3b49a57779d625c392d8036770a60d/regex-2025.7.34.tar.gz", hash = "sha256:9ead9765217afd04a86822dfcd4ed2747dfe426e887da413b15ff0ac2457e21a", size = 400714, upload-time = "2025-07-31T00:21:16.262Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/50/d2/0a44a9d92370e5e105f16669acf801b215107efea9dea4317fe96e9aad67/regex-2025.7.34-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:d856164d25e2b3b07b779bfed813eb4b6b6ce73c2fd818d46f47c1eb5cd79bd6", size = 484591, upload-time = "2025-07-31T00:18:46.675Z" },
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/2e/b1/00c4f83aa902f1048495de9f2f33638ce970ce1cf9447b477d272a0e22bb/regex-2025.7.34-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:2d15a9da5fad793e35fb7be74eec450d968e05d2e294f3e0e77ab03fa7234a83", size = 289293, upload-time = "2025-07-31T00:18:53.069Z" },
