@@ -4,6 +4,7 @@ import ast
 import asyncio
 import logging
 import time
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -11,7 +12,9 @@ import numpy.typing as npt
 
 from ..prompts.linking import get_query_instruction
 from ..utils.misc_utils import (
+    NerRawOutput,
     QuerySolution,
+    TripleRawOutput,
     compute_mdhash_id,
     extract_entity_nodes,
     flatten_facts,
@@ -19,7 +22,7 @@ from ..utils.misc_utils import (
     reformat_openie_results,
     text_processing,
 )
-from ..utils.typing import NOT_GIVEN, NotGiven, OpenIEDocItem, Triple
+from ..utils.typing import NOT_GIVEN, NotGiven, OpenIEDocItem, OpenIEResult, Triple
 from ._abc import HippoRAGProtocol
 from .base import BaseHippoRAG
 
@@ -57,6 +60,173 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
 
         self._prepare_lock = asyncio.Lock()
 
+    async def load_existing_openie(self, chunk_keys: Sequence[str]) -> tuple[list[OpenIEDocItem], set[str]]:
+        """
+        Loads existing OpenIE results from the specified file if it exists and combines
+        them with new content while standardizing indices. If the file does not exist or
+        is configured to be re-initialized from scratch with the flag `force_openie_from_scratch`,
+        it prepares new entries for processing.
+
+        Args:
+            chunk_keys (List[str]): A list of chunk keys that represent identifiers
+                                     for the content to be processed.
+
+        Returns:
+            Tuple[List[OpenIEDocItem], Set[str]]: A tuple where the first element is the existing OpenIE
+                                         information (if any) loaded from the file, and the
+                                         second element is a set of chunk keys that still need to
+                                         be saved or processed.
+        """
+        import aiofiles
+
+        # combine openie_results with contents already in file, if file exists
+        chunk_keys_to_save = set[str]()
+
+        if not self.global_config.force_openie_from_scratch and Path(self.openie_results_path).is_file():
+            async with aiofiles.open(self.openie_results_path, "rb") as f:
+                openie_results = OpenIEResult.model_validate_json(await f.read())
+            all_openie_info = openie_results.docs
+
+            # Standardizing indices for OpenIE Files.
+
+            renamed_openie_info = []
+            for openie_info in all_openie_info:
+                openie_info.idx = compute_mdhash_id(openie_info.passage, "chunk-")
+                renamed_openie_info.append(openie_info)
+
+            all_openie_info = renamed_openie_info
+
+            existing_openie_keys = set([info.idx for info in all_openie_info])
+
+            for chunk_key in chunk_keys:
+                if chunk_key not in existing_openie_keys:
+                    chunk_keys_to_save.add(chunk_key)
+        else:
+            all_openie_info = []
+            chunk_keys_to_save = set(chunk_keys)
+
+        return all_openie_info, chunk_keys_to_save
+
+    async def prepare_retrieval_objects(self) -> None:
+        """
+        Prepares various in-memory objects and attributes necessary for fast retrieval processes, such as embedding data and graph relationships, ensuring consistency
+        and alignment with the underlying graph structure.
+        """
+
+        logger.info("Preparing for fast retrieval.")
+
+        logger.info("Loading keys.")
+
+        self.entity_node_keys = list(self.entity_embedding_store.get_all_ids())  # a list of phrase node keys
+        self.passage_node_keys = list(self.chunk_embedding_store.get_all_ids())  # a list of passage node keys
+        self.fact_node_keys = list(self.fact_embedding_store.get_all_ids())
+        # pike_patch prepare
+        self.query_node_keys = list(self.query_embedding_store.get_all_ids())
+
+        # Check if the graph has the expected number of nodes
+        expected_node_count = len(self.entity_node_keys) + len(self.passage_node_keys)
+        actual_node_count = self.graph.vcount()
+
+        if expected_node_count != actual_node_count:
+            logger.warning(f"Graph node count mismatch: expected {expected_node_count}, got {actual_node_count}")
+            # If the graph is empty but we have nodes, we need to add them
+            if actual_node_count == 0 and expected_node_count > 0:
+                logger.info(f"Initializing graph with {expected_node_count} nodes")
+                self.add_new_nodes()
+                self.save_igraph()
+
+        # Create mapping from node name to vertex index
+        try:
+            igraph_name_to_idx = {
+                node["name"]: idx for idx, node in enumerate(self.graph.vs)
+            }  # from node key to the index in the backbone graph
+            self.node_name_to_vertex_idx = igraph_name_to_idx
+
+            # Check if all entity and passage nodes are in the graph
+            missing_entity_nodes = [
+                node_key for node_key in self.entity_node_keys if node_key not in igraph_name_to_idx
+            ]
+            missing_passage_nodes = [
+                node_key for node_key in self.passage_node_keys if node_key not in igraph_name_to_idx
+            ]
+
+            if missing_entity_nodes or missing_passage_nodes:
+                logger.warning(
+                    f"Missing nodes in graph: {len(missing_entity_nodes)} entity nodes, {len(missing_passage_nodes)} passage nodes"
+                )
+                # If nodes are missing, rebuild the graph
+                self.add_new_nodes()
+                self.save_igraph()
+                # Update the mapping
+                igraph_name_to_idx = {node["name"]: idx for idx, node in enumerate(self.graph.vs)}
+                self.node_name_to_vertex_idx = igraph_name_to_idx
+
+            self.entity_node_idxs = [
+                igraph_name_to_idx[node_key] for node_key in self.entity_node_keys
+            ]  # a list of backbone graph node index
+            self.passage_node_idxs = [
+                igraph_name_to_idx[node_key] for node_key in self.passage_node_keys
+            ]  # a list of backbone passage node index
+        except Exception as e:
+            logger.error(f"Error creating node index mapping: {e!s}")
+            # Initialize with empty lists if mapping fails
+            self.node_name_to_vertex_idx = {}
+            self.entity_node_idxs = []
+            self.passage_node_idxs = []
+
+        logger.info("Loading embeddings.")
+
+        all_openie_info, _chunk_keys_to_process = await self.load_existing_openie([])
+
+        self.proc_triples_to_docs: dict[str, set[str]] = {}
+
+        for doc in all_openie_info:
+            triples = flatten_facts([doc.extracted_triples])
+            for triple in triples:
+                if len(triple) == 3:
+                    proc_triple = tuple(text_processing(list(triple)))
+                    self.proc_triples_to_docs[str(proc_triple)] = self.proc_triples_to_docs.get(
+                        str(proc_triple), set()
+                    ).union(set([doc.idx]))
+
+        if self.ent_node_to_chunk_ids is None:
+            ner_results_dict, triple_results_dict = reformat_openie_results(all_openie_info)
+
+            # Check if the lengths match
+            if not (len(self.passage_node_keys) == len(ner_results_dict) == len(triple_results_dict)):
+                logger.warning(
+                    f"Length mismatch: passage_node_keys={len(self.passage_node_keys)}, ner_results_dict={len(ner_results_dict)}, triple_results_dict={len(triple_results_dict)}"
+                )
+
+                # If there are missing keys, create empty entries for them
+                for chunk_id in self.passage_node_keys:
+                    if chunk_id not in ner_results_dict:
+                        ner_results_dict[chunk_id] = NerRawOutput(
+                            chunk_id=chunk_id,
+                            response=None,
+                            metadata={},
+                            unique_entities=[],
+                        )
+                    if chunk_id not in triple_results_dict:
+                        triple_results_dict[chunk_id] = TripleRawOutput(
+                            chunk_id=chunk_id,
+                            response=None,
+                            metadata={},
+                            triples=[],
+                        )
+
+            # prepare data_store
+            chunk_triples = [
+                [text_processing(t) for t in triple_results_dict[chunk_id].triples]
+                for chunk_id in self.passage_node_keys
+            ]
+
+            self.node_to_node_stats = {}
+            self.ent_node_to_chunk_ids = {}
+            self.add_fact_edges(self.passage_node_keys, chunk_triples)
+
+        self.ready_to_retrieve = True
+
     async def index(self, docs: list[str]):
         """
         Indexes the given documents based on the HippoRAG 2 framework which generates an OpenIE knowledge graph
@@ -74,7 +244,7 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
         await self.chunk_embedding_store.async_insert_strings(docs)
         chunk_to_rows = self.chunk_embedding_store.get_all_id_to_rows()
 
-        all_openie_info, chunk_keys_to_process = self.load_existing_openie(list(chunk_to_rows.keys()))
+        all_openie_info, chunk_keys_to_process = await self.load_existing_openie(list(chunk_to_rows.keys()))
         new_openie_rows: dict[str, dict] = {k: chunk_to_rows[k] for k in chunk_keys_to_process}
 
         if len(chunk_keys_to_process) > 0:
@@ -139,7 +309,7 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
 
         # Making sure that all the necessary structures have been built.
         if not self.ready_to_retrieve:
-            self.prepare_retrieval_objects()
+            await self.prepare_retrieval_objects()
 
         if TYPE_CHECKING:
             assert self.ent_node_to_chunk_ids is not None
@@ -160,7 +330,7 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
         ]
 
         # Find triples in chunks to delete
-        all_openie_info, _ = self.load_existing_openie(chunk_ids_to_delete)
+        all_openie_info, _ = await self.load_existing_openie(chunk_ids_to_delete)
         triples_to_delete: list[Sequence[Triple]] = []
 
         all_openie_info_with_deletes: list[OpenIEDocItem] = []
@@ -307,7 +477,7 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
         if not self.ready_to_retrieve:
             async with self._prepare_lock:
                 if not self.ready_to_retrieve:
-                    self.prepare_retrieval_objects()
+                    await self.prepare_retrieval_objects()
 
         retrieval_results = []
 
