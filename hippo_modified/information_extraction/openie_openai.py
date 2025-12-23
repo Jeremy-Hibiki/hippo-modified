@@ -7,11 +7,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, TypedDict
 
+import json_repair
 from pydantic import BaseModel, Field
 from tqdm import tqdm
 
 from ..prompts import PromptTemplateManager
-from ..utils.llm_utils import filter_invalid_triples, fix_broken_generated_json
+from ..utils.llm_utils import filter_invalid_triples
 from ..utils.logging_utils import get_logger
 from ..utils.misc_utils import NerRawOutput, TripleRawOutput
 
@@ -79,10 +80,7 @@ class OpenIE:
                     temperature=temperature,
                 )
                 metadata["cache_hit"] = cache_hit
-                if metadata["finish_reason"] == "length":
-                    real_response = fix_broken_generated_json(raw_response)
-                else:
-                    real_response = raw_response
+                real_response = json_repair.repair_json(raw_response)
                 extracted_entities = _extract_ner_from_response(real_response)
                 unique_entities = list(dict.fromkeys(extracted_entities))
                 for entity in unique_entities:
@@ -120,7 +118,7 @@ class OpenIE:
         messages = self.prompt_template_manager.render(
             name="triple_extraction",
             passage=passage,
-            named_entity_json=json.dumps({"named_entities": named_entities}),
+            named_entity_json=json.dumps({"named_entities": named_entities}, ensure_ascii=False),
         )
 
         raw_response = ""
@@ -138,10 +136,7 @@ class OpenIE:
                     # response_format={"type": "json_schema", "json_schema": TriplesList.model_json_schema()},
                 )
                 metadata["cache_hit"] = cache_hit
-                if metadata["finish_reason"] == "length":
-                    real_response = fix_broken_generated_json(raw_response)
-                else:
-                    real_response = raw_response
+                real_response = json_repair.repair_json(raw_response)
                 extracted_triples = _extract_triples_from_response(real_response)
                 valid_triples = filter_invalid_triples(triples=extracted_triples)
                 if len(valid_triples) > 0:

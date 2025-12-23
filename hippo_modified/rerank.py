@@ -7,10 +7,10 @@ import json
 import logging
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import regex as re
-from pydantic import BaseModel, Field, TypeAdapter
+from pydantic import BaseModel, Field
 
 from .prompts.filter_default_prompt import best_dspy_prompt
 from .utils.misc_utils import flatten_list
@@ -56,15 +56,15 @@ class DSPyFilter:
 
     def make_template(self, dspy_file_path: str | None, num: int = 5) -> list[dict[str, str]]:
         if dspy_file_path is not None:
-            dspy_saved: dict = json.loads(Path(dspy_file_path).read_bytes())
+            dspy_saved: dict[str, dict[str, Any]] = json.loads(Path(dspy_file_path).read_bytes())
         else:
             dspy_saved = best_dspy_prompt
 
         system_prompt = dspy_saved["prog"]["system"]
-        message_template = [
+        message_template: list[dict[str, Any]] = [
             {"role": "system", "content": system_prompt},
         ]
-        demos = dspy_saved["prog"]["demos"]
+        demos = cast("list[dict[str, str]]", dspy_saved["prog"]["demos"])
         for demo in demos:
             message_template.append({
                 "role": "user",
@@ -101,7 +101,7 @@ class DSPyFilter:
                             parsed_value = ast.literal_eval(value)
                         except (ValueError, SyntaxError):
                             parsed_value = value
-                    parsed = TypeAdapter(Fact).validate_python(parsed_value).fact
+                    parsed = Fact.model_validate_json(parsed_value).fact
                 except Exception as e:
                     logger.error(
                         f"Error parsing field {k}: {e}.\n\n\t\tOn attempting to parse the value\n```\n{value}\n```"
@@ -166,7 +166,7 @@ class DSPyFilter:
             fact_before_filter = {"fact": batch_candidate}
             try:
                 # prediction = self.program(question=query, fact_before_filter=json.dumps(fact_before_filter))
-                response = self.llm_call(query, json.dumps(fact_before_filter))
+                response = self.llm_call(query, json.dumps(fact_before_filter, ensure_ascii=False))
                 # logger.info(response, sep='\r\n')
                 generated_facts = self.parse_filter(response)
                 candidate = candidate[batch_size:]
@@ -221,7 +221,7 @@ class DSPyFilter:
                 fact_before_filter = {"fact": batch[:local_batch_size]}
                 try:
                     async with semaphore:
-                        response = await self.async_llm_call(query, json.dumps(fact_before_filter))
+                        response = await self.async_llm_call(query, json.dumps(fact_before_filter, ensure_ascii=False))
                     generated_facts = self.parse_filter(response)
                 except Exception as e:
                     logger.error("exception", e)

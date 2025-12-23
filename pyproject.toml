@@ -9,8 +9,10 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "aiofiles>=25",
     "aiosqlite>=0.15",
     "filelock",
+    "json-repair==0.*",
     "openai>=1.58.1",
     "pandas",
     "pydantic>=2.8",
@@ -25,14 +27,14 @@ dependencies = [
 dev = [
     "mypy==1.18.2",
     "ruff==0.14.5",
-    "ty==0.0.1a26",
+    "ty==0.0.5",
     "hippo-modified[milvus]",
     "pre-commit==4.2.0",
+    "types-regex>=2025.11.3.20251106",
 ]
 
 [project.optional-dependencies]
 milvus = ["pymilvus>=2.5"]
-aio = ["aiofiles>=25"]
 
 [build-system]
 requires = ["hatchling"]
