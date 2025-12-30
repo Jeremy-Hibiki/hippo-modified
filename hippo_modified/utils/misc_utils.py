@@ -4,6 +4,7 @@ import itertools
 import logging
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
+from functools import lru_cache
 from hashlib import md5
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -125,6 +126,7 @@ def min_max_normalize(x):
     return (x - np.min(x)) / (np.max(x) - np.min(x))
 
 
+@lru_cache
 def compute_mdhash_id(content: str, prefix: str = "") -> str:
     """
     Compute the MD5 hash of the given content string and optionally prepend a prefix.

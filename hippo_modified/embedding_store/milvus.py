@@ -13,6 +13,8 @@ from .base import BaseEmbeddingStore
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    import numpy.typing as npt
+
     from ..embedding_model import BaseEmbeddingModel
     from ..utils.config_utils import BaseConfig
 
@@ -89,6 +91,15 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             datatype=DataType.FLOAT_VECTOR,
             dim=self.global_config.milvus_dense_embedding_dim,
         )
+        if self._namespace == "query":
+            schema.add_field(
+                field_name="chunk_ids",
+                data_type=DataType.ARRAY,  # Data type can differ from dynamic field key
+                element_type=DataType.VARCHAR,  # Element type must match dynamic field key
+                max_capacity=4096,
+                max_length=128,
+                default=[],
+            )
         index_params.add_index(field_name="embedding", metric_type="IP", index_type="FLAT")
 
         try:
@@ -160,7 +171,11 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         if not hash_ids:
             return {}
 
-        results = self.client.get(ids=list(hash_ids), collection_name=self._collection_name)
+        results = self.client.get(
+            ids=list(hash_ids),
+            collection_name=self._collection_name,
+            output_fields=["*"],
+        )
 
         return {result["hash_id"]: result for result in results}
 
@@ -189,10 +204,13 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         return list({result["hash_id"] for result in results})
 
     def get_all_id_to_rows(self) -> dict:
+        output_fields = ["hash_id", "content"]
+        if self._namespace == "query":
+            output_fields.append("chunk_ids")
         iterator = self._col.query_iterator(
             batch_size=2048,
             expr="hash_id is not null",
-            output_fields=["hash_id", "content"],
+            output_fields=output_fields,
         )
         results = []
         while result := iterator.next():
@@ -201,7 +219,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
 
         return {result["hash_id"]: result for result in results}
 
-    def get_embeddings(self, hash_ids: Sequence[str], dtype=np.float32) -> list[np.ndarray]:
+    def get_embeddings(self, hash_ids: Sequence[str], dtype: npt.DTypeLike = np.float32) -> list[np.ndarray]:
         if not hash_ids:
             return []
 
@@ -259,6 +277,71 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
             )
         return None
 
+    @override
+    def get_query_id_to_chunk_ids(self) -> dict[str, list[str]]:
+        if self._namespace != "query":
+            raise ValueError("Only query namespace supports chunk_ids")
+        it = self._col.query_iterator(
+            batch_size=2048,
+            expr="hash_id is not null",
+            output_fields=["content", "chunk_ids"],
+        )
+        results: list[dict] = []
+        while result := it.next():
+            results += result
+        it.close()
+        query_to_chunks = {row["hash_id"]: row.get("chunk_ids", []) for row in results}
+        return query_to_chunks
+
+    def upsert_query_mappings(self, query_to_chunk_ids: dict[str, list[str]]) -> None:
+        if self._namespace != "query":
+            raise ValueError("Only query namespace supports chunk_ids")
+        if not query_to_chunk_ids:
+            return
+
+        texts = list(query_to_chunk_ids.keys())
+        embeddings = self._embedding_model.batch_encode(texts)
+        payload = []
+        for text, embedding in zip(texts, embeddings, strict=True):
+            payload.append({
+                "hash_id": compute_mdhash_id(text, prefix=self._namespace + "-"),
+                "content": text,
+                "embedding": embedding.tolist(),
+                "chunk_ids": query_to_chunk_ids[text],
+            })
+
+        for batched_data in batched(payload, 500):
+            self.client.upsert(
+                self._collection_name,
+                batched_data,
+                partial_update=True,
+            )
+
+    @override
+    async def async_upsert_query_mappings(self, query_to_chunk_ids: dict[str, list[str]]) -> None:
+        if self._namespace != "query":
+            raise ValueError("Only query namespace supports chunk_ids")
+        if not query_to_chunk_ids:
+            return
+
+        texts = list(query_to_chunk_ids.keys())
+        embeddings = await self._embedding_model.async_batch_encode(texts)
+        payload: list[dict[str, Any]] = []
+        for text, embedding in zip(texts, embeddings, strict=True):
+            payload.append({
+                "hash_id": compute_mdhash_id(text, prefix=self._namespace + "-"),
+                "content": text,
+                "embedding": embedding.tolist(),
+                "chunk_ids": query_to_chunk_ids[text],
+            })
+
+        for batched_data in batched(payload, 500):
+            await self.async_client.upsert(
+                self._collection_name,
+                batched_data,
+                partial_update=True,
+            )
+
     def search(
         self,
         query_text: str,
@@ -278,7 +361,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                 data=[query_embedding],
                 anns_field="embedding",
                 limit=top_k,
-                output_fields=["hash_id", "content", "embedding"],
+                output_fields=["*"],
             )
         else:
             try:
@@ -304,7 +387,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                     [dense_req, sparse_req],
                     ranker=RRFRanker(),
                     limit=top_k,
-                    output_fields=["hash_id", "content", "embedding"],
+                    output_fields=["*"],
                 )
             except Exception as e:
                 logger.error(f"Hybrid search failed: {e}")
@@ -331,7 +414,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                 data=[query_embedding],
                 anns_field="embedding",
                 limit=top_k,
-                output_fields=["hash_id", "content", "embedding"],
+                output_fields=["*"],
             )
         else:
             try:
@@ -357,7 +440,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                     [dense_req, sparse_req],
                     ranker=RRFRanker(),
                     limit=top_k,
-                    output_fields=["hash_id", "content", "embedding"],
+                    output_fields=["*"],
                 )
             except Exception as e:
                 logger.error(f"Hybrid search failed: {e}")

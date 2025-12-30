@@ -115,8 +115,6 @@ class HippoRAG(BaseHippoRAG, HippoRAGProtocol):
         self.entity_node_keys = list(self.entity_embedding_store.get_all_ids())  # a list of phrase node keys
         self.passage_node_keys = list(self.chunk_embedding_store.get_all_ids())  # a list of passage node keys
         self.fact_node_keys = list(self.fact_embedding_store.get_all_ids())
-        # pike_patch prepare
-        self.query_node_keys = list(self.query_embedding_store.get_all_ids())
 
         # Check if the graph has the expected number of nodes
         expected_node_count = len(self.entity_node_keys) + len(self.passage_node_keys)
@@ -378,30 +376,17 @@ class HippoRAG(BaseHippoRAG, HippoRAGProtocol):
             if len(non_deleted_docs) == 0:
                 filtered_ent_ids_to_delete.append(ent_node)
 
-        # Find atomic queries to delete
-        all_queries = self.query_embedding_store.get_all_id_to_rows()
-        all_query_to_query_ids: dict[str, list[str]] = {}
-        for query_id, query in all_queries.items():
-            if query["content"] not in self.query_to_chunk_ids:
-                all_query_to_query_ids[query["content"]] = []
-            all_query_to_query_ids[query["content"]].append(query_id)
-
-        all_query_ids_to_delete: list[str] = []
-        for q, chunk_id_list in self.query_to_chunk_ids.items():
-            if any(chunk_id in chunk_ids_to_delete for chunk_id in chunk_id_list):
-                all_query_ids_to_delete.extend(all_query_to_query_ids[q])
-
         logger.info(f"Deleting {len(chunk_ids_to_delete)} Chunks")
         logger.info(f"Deleting {len(triple_ids_to_delete)} Triples")
         logger.info(f"Deleting {len(filtered_ent_ids_to_delete)} Entities")
-        logger.info(f"Deleting {len(all_query_ids_to_delete)} Queries")
 
         self.save_openie_results(all_openie_info_with_deletes)
 
         self.entity_embedding_store.delete(filtered_ent_ids_to_delete)
         self.fact_embedding_store.delete(list(triple_ids_to_delete))
         self.chunk_embedding_store.delete(chunk_ids_to_delete)
-        self.query_embedding_store.delete(all_query_ids_to_delete)
+
+        self.cleanup_invalid_pike_mappings()
 
         # Delete Nodes from Graph
         self.graph.delete_vertices(list(filtered_ent_ids_to_delete) + list(chunk_ids_to_delete))
@@ -598,8 +583,7 @@ class HippoRAG(BaseHippoRAG, HippoRAGProtocol):
         if len(atom_query_results) != 0:
             for i, (query_dict, _) in enumerate(atom_query_results):
                 query_dpr_score = normalized_query_sorted_scores[i]
-                atom_query = query_dict["content"]
-                chunk_ids = self.query_to_chunk_ids.get(atom_query, [])
+                chunk_ids = query_dict["chunk_ids"]
                 for chunk_id in chunk_ids:
                     # passage_node_key = self.passage_node_keys[chunk_id]
                     passage_node_id = self.node_name_to_vertex_idx[chunk_id]
@@ -705,3 +689,60 @@ class HippoRAG(BaseHippoRAG, HippoRAGProtocol):
                 {},
                 {"facts_before_rerank": [], "facts_after_rerank": [], "error": str(e)},
             )
+
+    def cleanup_invalid_pike_mappings(self) -> None:
+        logger.info("Cleaning up invalid PIKE mappings")
+        query_mapping_in_db = self.query_embedding_store.get_all_id_to_rows()
+        valid_chunk_ids = set(self.chunk_embedding_store.get_all_ids())
+        mappings_to_delete: list[str] = []
+        for query_hash_id, row in query_mapping_in_db.items():
+            chunk_ids = set(row.get("chunk_ids", []))
+            valid_existing_chunks = {cid for cid in chunk_ids if cid in valid_chunk_ids}
+            if valid_existing_chunks != chunk_ids:
+                mappings_to_delete.append(query_hash_id)
+        if mappings_to_delete:
+            self.query_embedding_store.delete(mappings_to_delete)
+            logger.info(f"Deleted {len(mappings_to_delete)} invalid PIKE mappings")
+
+    def add_pike_mappings(self, query_mappings: dict[str, list[str]] | None = None) -> None:
+        if not query_mappings:
+            return
+
+        self.cleanup_invalid_pike_mappings()
+
+        logger.info(f"Indexing {len(query_mappings)} PIKE queries")
+
+        # 读取已有的原子查询映射，顺便清理掉已不存在的 chunk 引用
+        query_mapping_in_db = self.query_embedding_store.get_all_id_to_rows()
+        valid_chunk_ids = set(self.chunk_embedding_store.get_all_ids())
+
+        existing_query_hash_id_to_chunk_ids: dict[str, set[str]] = {}
+        for row in query_mapping_in_db.values():
+            query_hash_id = row["hash_id"]
+            chunk_ids = {cid for cid in row.get("chunk_ids", []) if cid in valid_chunk_ids}
+            if not chunk_ids:
+                continue
+            existing_query_hash_id_to_chunk_ids[query_hash_id] = (
+                existing_query_hash_id_to_chunk_ids.get(query_hash_id, set()) | chunk_ids
+            )
+
+        upsert_payload: dict[str, list[str]] = {}
+        for query_hash_id, chunk_ids in query_mappings.items():
+            if not chunk_ids:
+                continue
+
+            valid_new_chunk_ids = {cid for cid in chunk_ids if cid in valid_chunk_ids}
+            if not valid_new_chunk_ids:
+                logger.debug(f"Skip PIKE query with no valid chunks: {query_hash_id}")
+                continue
+
+            merged_chunk_ids = existing_query_hash_id_to_chunk_ids.get(query_hash_id, set()) | valid_new_chunk_ids
+            if merged_chunk_ids != existing_query_hash_id_to_chunk_ids.get(query_hash_id, set()):
+                upsert_payload[query_hash_id] = sorted(merged_chunk_ids)
+                existing_query_hash_id_to_chunk_ids[query_hash_id] = merged_chunk_ids
+
+        if upsert_payload:
+            self.query_embedding_store.upsert_query_mappings(upsert_payload)
+            logger.info(f"Upserted {len(upsert_payload)} PIKE queries")
+        else:
+            logger.info("No PIKE query mappings need upsert.")

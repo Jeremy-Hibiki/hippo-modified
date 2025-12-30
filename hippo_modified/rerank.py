@@ -9,6 +9,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
+import json_repair
 import regex as re
 from pydantic import BaseModel, Field
 
@@ -95,13 +96,13 @@ class DSPyFilter:
                 try:
                     # fields[k] = parse_value(v, signature.output_fields[k].annotation) if _parse_values else v
                     try:
-                        parsed_value = json.loads(value)
+                        parsed_value = json_repair.loads(value)
                     except json.JSONDecodeError:
                         try:
                             parsed_value = ast.literal_eval(value)
                         except (ValueError, SyntaxError):
-                            parsed_value = value
-                    parsed = Fact.model_validate_json(parsed_value).fact
+                            raise
+                    parsed = Fact.model_validate(parsed_value).fact
                 except Exception as e:
                     logger.error(
                         f"Error parsing field {k}: {e}.\n\n\t\tOn attempting to parse the value\n```\n{value}\n```"

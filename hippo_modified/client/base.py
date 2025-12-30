@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 from collections import defaultdict
 from dataclasses import asdict
@@ -183,9 +182,6 @@ class BaseHippoRAG:
             f"openie_results_ner_{self.global_config.llm_name.replace('/', '_')}.json",
         )
 
-        self.pike_patch_path = Path(self.global_config.save_dir) / "pike_patch.json"
-        self.pike_patch()
-
         self.rerank_filter = DSPyFilter(self)
 
         self.ready_to_retrieve = False
@@ -222,27 +218,6 @@ class BaseHippoRAG:
                 f"Loaded graph from {self._graph_pickle_filename} with {preloaded_graph.vcount()} nodes, {preloaded_graph.ecount()} edges"
             )
             return preloaded_graph
-
-    def pike_patch(self, queries: dict | None = None) -> None:
-        if queries is None:
-            queries = {}
-        logger.info("Indexing PIKE queriers")
-        if Path(self.pike_patch_path).exists():
-            old_queries: dict = json.loads(self.pike_patch_path.read_bytes())
-            old_queries.update(queries)
-        else:
-            old_queries = queries.copy()
-
-        # for query in list(old_queries.keys()):
-        self.query_embedding_store.insert_strings(list(old_queries.keys()))
-        self.pike_patch_path.write_bytes(json.dumps(old_queries, ensure_ascii=False).encode())
-        query_to_chunk_ids = {}
-        all_ids = set(self.chunk_embedding_store.get_all_ids())
-        for query in old_queries:
-            chunk_ids = old_queries[query]
-            query_chunk_ids = [chunk_id for chunk_id in chunk_ids if chunk_id in all_ids]
-            query_to_chunk_ids[query] = query_chunk_ids
-        self.query_to_chunk_ids: dict[str, list[str]] = query_to_chunk_ids
 
     def add_fact_edges(
         self,

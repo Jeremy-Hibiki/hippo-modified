@@ -99,3 +99,9 @@ class BaseEmbeddingStore(ABC):
             字典，键为query_id，值为(top_k_key_ids, top_k_scores)的元组
         """
         pass
+
+    def upsert_query_mappings(self, query_to_chunk_ids: dict[str, list[str]]) -> None:
+        raise NotImplementedError
+
+    async def async_upsert_query_mappings(self, query_to_chunk_ids: dict[str, list[str]]) -> None:
+        raise NotImplementedError

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from .base import BaseEmbeddingStore
 from .dataframe import DataFrameEmbeddingStore
@@ -16,19 +16,22 @@ def create_embedding_store(
     db_name: str,
     global_config: BaseConfig,
     batch_size: int,
-    namespace: str = "default",
+    namespace: Literal["default", "chunk", "entity", "fact", "query"] = "default",
     enable_hybrid_search: bool = False,
 ) -> BaseEmbeddingStore:
     """
     根据配置创建相应的嵌入存储实例
 
-    参数:
-    embedding_model: 嵌入模型实例
-    config: 配置对象
-    namespace: 命名空间（默认为"default"）
+    Args:
+        embedding_model: 嵌入模型实例
+        db_name: 数据库名称或文件名
+        global_config: 配置对象
+        batch_size: 批处理大小
+        namespace: 命名空间（默认为"default"）
+        enable_hybrid_search: 是否启用混合搜索（仅适用于某些存储类型）
 
-    返回:
-    BaseEmbeddingStore: 嵌入存储实例
+    Returns:
+        BaseEmbeddingStore: 嵌入存储实例
     """
     if global_config.embedding_store_type == "dataframe":
         return DataFrameEmbeddingStore(
