@@ -711,11 +711,20 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
         query_mapping_in_db = self.query_embedding_store.get_all_id_to_rows()
         valid_chunk_ids = set(self.chunk_embedding_store.get_all_ids())
         mappings_to_delete: list[str] = []
+        mappings_to_update: dict[str, list[str]] = {}
         for query_hash_id, row in query_mapping_in_db.items():
             chunk_ids = set(row.get("chunk_ids", []))
             valid_existing_chunks = {cid for cid in chunk_ids if cid in valid_chunk_ids}
             if valid_existing_chunks != chunk_ids:
-                mappings_to_delete.append(query_hash_id)
+                if valid_existing_chunks:
+                    # Has some valid chunks, update the mapping instead of deleting
+                    mappings_to_update[query_hash_id] = sorted(valid_existing_chunks)
+                else:
+                    # All chunks are invalid, delete the entire mapping
+                    mappings_to_delete.append(query_hash_id)
+        if mappings_to_update:
+            await self.query_embedding_store.async_upsert_query_mappings(mappings_to_update)
+            logger.info(f"Updated {len(mappings_to_update)} PIKE mappings with invalid chunks removed")
         if mappings_to_delete:
             await self.query_embedding_store.async_delete(mappings_to_delete)
             logger.info(f"Deleted {len(mappings_to_delete)} invalid PIKE mappings")
