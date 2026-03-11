@@ -6,6 +6,7 @@ from typing_extensions import override
 from uuid import uuid4
 
 import numpy as np
+from pymilvus import connections
 
 from ..utils.misc_utils import batched, compute_mdhash_id, load_hit_stopwords
 from .base import BaseEmbeddingStore
@@ -50,7 +51,9 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
 
         self._setup_collection()
 
-        self._col = Collection(self._collection_name, using=self._client._using)
+        new_using = uuid4().hex
+        connections.connect(alias=new_using, uri=uri, token=token, db_name=db_name)
+        self._col = Collection(self._collection_name, using=new_using)
 
         logger.info(f"Initialized MilvusEmbeddingStore for namespace: {namespace}")
 
@@ -94,7 +97,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         if self._namespace == "query":
             schema.add_field(
                 field_name="chunk_ids",
-                data_type=DataType.ARRAY,  # Data type can differ from dynamic field key
+                datatype=DataType.ARRAY,  # Data type can differ from dynamic field key
                 element_type=DataType.VARCHAR,  # Element type must match dynamic field key
                 max_capacity=4096,
                 max_length=128,
