@@ -237,10 +237,17 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
 
         return [id_to_embedding[hash_id] for hash_id in hash_ids if hash_id in id_to_embedding]
 
-    def insert_strings(self, texts: Sequence[str]) -> dict | None:
+    def insert_strings(self, texts: Sequence[str], metadatas: Sequence[dict[str, Any]] | None = None) -> dict | None:
+        # Normalize metadatas to match texts length
+        if metadatas is None:
+            metadatas = [{}] * len(texts)
+        elif len(metadatas) != len(texts):
+            raise ValueError(f"Length mismatch: {len(texts)} texts vs {len(metadatas)} metadatas")
+
         nodes_dict = {}
-        for text in texts:
-            nodes_dict[compute_mdhash_id(text, prefix=self._namespace + "-")] = {"content": text}
+        for text, metadata in zip(texts, metadatas, strict=True):
+            hash_id = compute_mdhash_id(text, prefix=self._namespace + "-")
+            nodes_dict[hash_id] = {"content": text, **metadata}  # Spread metadata for dynamic fields
 
         all_hash_ids = list(nodes_dict.keys())
         if not all_hash_ids:
@@ -259,10 +266,19 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         return None
 
     @override
-    async def async_insert_strings(self, texts: Sequence[str]) -> dict | None:
+    async def async_insert_strings(
+        self, texts: Sequence[str], metadatas: Sequence[dict[str, Any]] | None = None
+    ) -> dict | None:
+        # Normalize metadatas to match texts length
+        if metadatas is None:
+            metadatas = [{}] * len(texts)
+        elif len(metadatas) != len(texts):
+            raise ValueError(f"Length mismatch: {len(texts)} texts vs {len(metadatas)} metadatas")
+
         nodes_dict: dict[str, dict[str, Any]] = {}
-        for text in texts:
-            nodes_dict[compute_mdhash_id(text, prefix=self._namespace + "-")] = {"content": text}
+        for text, metadata in zip(texts, metadatas, strict=True):
+            hash_id = compute_mdhash_id(text, prefix=self._namespace + "-")
+            nodes_dict[hash_id] = {"content": text, **metadata}  # Spread metadata for dynamic fields
 
         all_hash_ids = list(nodes_dict.keys())
         if not all_hash_ids:
@@ -350,6 +366,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         query_text: str,
         instruction: str = "",
         top_k: int = 10,
+        metadata_filters: dict[str, Any] | None = None,
     ) -> list[tuple[dict, float]]:
         if self.global_config.embedding_use_instruction:
             text_to_embed = self.global_config.embedding_instruction_format.format(
@@ -358,6 +375,10 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         else:
             text_to_embed = query_text
         query_embedding = self._embedding_model.batch_encode([text_to_embed])[0]
+
+        # Build filter expression for Milvus
+        filter_expr = self._build_milvus_filter_expr(metadata_filters) if metadata_filters else ""
+
         if not self._enable_hybrid_search:
             results = self.client.search(
                 self._collection_name,
@@ -365,6 +386,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                 anns_field="embedding",
                 limit=top_k,
                 output_fields=["*"],
+                filter=filter_expr,
             )
         else:
             try:
@@ -391,11 +413,29 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                     ranker=RRFRanker(),
                     limit=top_k,
                     output_fields=["*"],
+                    filter=filter_expr,
                 )
             except Exception as e:
                 logger.error(f"Hybrid search failed: {e}")
                 raise e
         return [(hit["entity"], float(hit["distance"])) for hit in results[0]]
+
+    def _build_milvus_filter_expr(self, filters: dict[str, Any]) -> str:
+        """Build Milvus filter expression from metadata filters."""
+        expr_parts = []
+        for key, value in filters.items():
+            if isinstance(value, str):
+                expr_parts.append(f'{key} == "{value}"')
+            elif isinstance(value, (int, float, bool)):
+                expr_parts.append(f"{key} == {value}")
+            elif isinstance(value, list):
+                # Handle list values with 'in' operator
+                str_values = ", ".join(f'"{v}"' if isinstance(v, str) else str(v) for v in value)
+                expr_parts.append(f"{key} in [{str_values}]")
+            else:
+                logger.warning(f"Unsupported filter type for {key}: {type(value)}")
+
+        return " and ".join(expr_parts) if expr_parts else ""
 
     @override
     async def async_search(
@@ -403,6 +443,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         query_text: str,
         instruction: str = "",
         top_k: int = 10,
+        metadata_filters: dict[str, Any] | None = None,
     ) -> list[tuple[dict, float]]:
         if self.global_config.embedding_use_instruction:
             text_to_embed = self.global_config.embedding_instruction_format.format(
@@ -411,6 +452,10 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
         else:
             text_to_embed = query_text
         query_embedding = (await self._embedding_model.async_batch_encode([text_to_embed]))[0]
+
+        # Build filter expression for Milvus
+        filter_expr = self._build_milvus_filter_expr(metadata_filters) if metadata_filters else ""
+
         if not self._enable_hybrid_search:
             results = await self.async_client.search(
                 self._collection_name,
@@ -418,6 +463,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                 anns_field="embedding",
                 limit=top_k,
                 output_fields=["*"],
+                filter=filter_expr,
             )
         else:
             try:
@@ -444,6 +490,7 @@ class MilvusEmbeddingStore(BaseEmbeddingStore):
                     ranker=RRFRanker(),
                     limit=top_k,
                     output_fields=["*"],
+                    filter=filter_expr,
                 )
             except Exception as e:
                 logger.error(f"Hybrid search failed: {e}")

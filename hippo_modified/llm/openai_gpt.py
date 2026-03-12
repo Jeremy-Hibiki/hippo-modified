@@ -197,7 +197,17 @@ def cache_response(
         return sync_wrapper(func)
 
 
-def dynamic_retry_decorator(func: Callable[_P, _R]) -> Callable[_P, _R]:
+@overload
+def dynamic_retry_decorator(func: Callable[_P, _R]) -> Callable[_P, _R]: ...
+
+
+@overload
+def dynamic_retry_decorator(func: Callable[_P, Coroutine[Any, Any, _R]]) -> Callable[_P, Coroutine[Any, Any, _R]]: ...
+
+
+def dynamic_retry_decorator(
+    func: Callable[_P, _R] | Callable[_P, Coroutine[Any, Any, _R]],
+) -> Callable[_P, _R] | Callable[_P, Coroutine[Any, Any, _R]]:
     @wrapt.decorator
     def sync_wrapper(wrapped, instance, args, kwargs):
         max_retries = getattr(instance, "max_retries", 5)
@@ -291,6 +301,7 @@ class CacheOpenAI(BaseLLM):
             "seed": config_dict.get("seed", 0),
             "temperature": config_dict.get("temperature", 0.0),
         }
+        config_dict["generate_params"].update(self.global_config.llm_generate_params)
 
         self.llm_config = LLMConfig.from_dict(config_dict=config_dict)
         logger.info(f"Init {self.__class__.__name__}'s llm_config: {self.llm_config}")

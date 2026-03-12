@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-ner_system = """Your task is to extract named entities from the given paragraph. 
+ner_system = """Your task is to extract named entities from the given paragraph.
 Respond with a JSON list of entities.
-You must respond with this JSON format: {{"named_entities": ["named_entity1", "named_entity2", "named_entity3",  "named_entity4",...]}} 
+You must respond with this JSON format: {{"named_entities": ["named_entity1", "named_entity2", "named_entity3",  "named_entity4",...]}}
+
+**ONLY** extract named entities from the paragraph content.
+**DON'T** extract any named entity from the paragraph title..
 """
 
 one_shot_ner_paragraph = """Radio City

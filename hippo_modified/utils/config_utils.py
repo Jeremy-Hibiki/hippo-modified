@@ -17,6 +17,10 @@ class BaseConfig:
     llm_base_url: str | None = field(
         default=None, metadata={"help": "Base URL for the LLM model, if none, means using OPENAI service."}
     )
+    llm_generate_params: dict = field(
+        default_factory=dict,
+        metadata={"help": "Additional parameters for LLM generation, e.g., {'max_tokens': 2048}."},
+    )
     cache_llm_response: bool = field(default=True, metadata={"help": "Whether to cache the LLM response."})
     embedding_base_url: str | None = field(
         default=None,

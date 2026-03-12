@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Annotated, Literal, TypeVar
+from typing import Annotated, Any, Literal, TypeVar
 from typing_extensions import override
 
 from pydantic import BaseModel, Field
@@ -42,11 +42,18 @@ class NotGiven:
 NOT_GIVEN = NotGiven()
 
 
+# Document input types for indexing with metadata support
+DocumentWithMetadata = dict[str, Any]  # Must have "content" and optional "metadata"
+DocumentInput = str | DocumentWithMetadata  # Input format for index()
+MetadataFilter = dict[str, Any]  # Filter criteria for search operations
+
+
 class OpenIEDocItem(BaseModel):
     idx: str
     passage: str
     extracted_triples: Sequence[Triple] = Field(default_factory=list)
     extracted_entities: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class OpenIEResult(BaseModel):

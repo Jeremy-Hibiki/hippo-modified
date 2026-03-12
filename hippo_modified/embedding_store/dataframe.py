@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Sequence
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -55,13 +56,17 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         self.filename = Path(db_filename) / f"vdb_{self.namespace}.parquet"
         self._load_data()
 
-    def insert_strings(self, texts: Sequence[str]) -> dict | None:
+    def insert_strings(self, texts: Sequence[str], metadatas: Sequence[dict[str, Any]] | None = None) -> dict | None:
         nodes_dict = {}
 
-        for text in texts:
-            # if text == "":
-            #    continue
-            nodes_dict[compute_mdhash_id(text, prefix=self.namespace + "-")] = {"content": text}
+        # Normalize metadatas to match texts length
+        if metadatas is None:
+            metadatas = [{}] * len(texts)
+        elif len(metadatas) != len(texts):
+            raise ValueError(f"Length mismatch: {len(texts)} texts vs {len(metadatas)} metadatas")
+
+        for text, metadata in zip(texts, metadatas, strict=True):
+            nodes_dict[compute_mdhash_id(text, prefix=self.namespace + "-")] = {"content": text, "metadata": metadata}
 
         # Get all hash_ids from the input dictionary.
         all_hash_ids = list(nodes_dict.keys())
@@ -82,12 +87,13 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
 
         # Prepare the texts to encode from the "content" field.
         texts_to_encode = [nodes_dict[hash_id]["content"] for hash_id in missing_ids]
+        metadatas_to_encode = [nodes_dict[hash_id]["metadata"] for hash_id in missing_ids]
 
         assert self.embedding_model is not None, "Embedding model is not initialized."
 
         missing_embeddings = self.embedding_model.batch_encode(texts_to_encode)
 
-        self._upsert(missing_ids, texts_to_encode, missing_embeddings)
+        self._upsert(missing_ids, texts_to_encode, missing_embeddings, metadatas_to_encode)
 
         return None
 
@@ -99,34 +105,49 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
                 df["content"].values.tolist(),
                 df["embedding"].values.tolist(),
             )
+
+            # Load metadata column if it exists (backward compatibility)
+            if "metadata" in df.columns:
+                self.metadatas = df["metadata"].apply(lambda x: json.loads(x) if pd.notna(x) else {}).tolist()
+            else:
+                self.metadatas = [{}] * len(self.hash_ids)  # Backward compat
+
             self.hash_id_to_idx = {h: idx for idx, h in enumerate(self.hash_ids)}
             self.hash_id_to_row = {
-                h: {"hash_id": h, "content": t} for h, t in zip(self.hash_ids, self.texts, strict=False)
+                h: {"hash_id": h, "content": t, "metadata": m}
+                for h, t, m in zip(self.hash_ids, self.texts, self.metadatas, strict=False)
             }
             self.hash_id_to_text = {h: self.texts[idx] for idx, h in enumerate(self.hash_ids)}
             self.text_to_hash_id = {self.texts[idx]: h for idx, h in enumerate(self.hash_ids)}
             assert len(self.hash_ids) == len(self.texts) == len(self.embeddings)
             logger.info(f"Loaded {len(self.hash_ids)} records from {self.filename}")
         else:
-            self.hash_ids, self.texts, self.embeddings = [], [], []
+            self.hash_ids, self.texts, self.embeddings, self.metadatas = [], [], [], []
             self.hash_id_to_idx, self.hash_id_to_row = {}, {}
 
     def _save_data(self) -> None:
-        data_to_save = pd.DataFrame({"hash_id": self.hash_ids, "content": self.texts, "embedding": self.embeddings})
+        # Serialize metadata to JSON strings for parquet storage
+        data_to_save = pd.DataFrame({
+            "hash_id": self.hash_ids,
+            "content": self.texts,
+            "embedding": self.embeddings,
+            "metadata": [json.dumps(m) for m in self.metadatas],
+        })
         data_to_save.to_parquet(self.filename, index=False)
         self.hash_id_to_row = {
-            h: {"hash_id": h, "content": t}
-            for h, t, e in zip(self.hash_ids, self.texts, self.embeddings, strict=False)
+            h: {"hash_id": h, "content": t, "metadata": m}
+            for h, t, m in zip(self.hash_ids, self.texts, self.metadatas, strict=False)
         }
         self.hash_id_to_idx = {h: idx for idx, h in enumerate(self.hash_ids)}
         self.hash_id_to_text = {h: self.texts[idx] for idx, h in enumerate(self.hash_ids)}
         self.text_to_hash_id = {self.texts[idx]: h for idx, h in enumerate(self.hash_ids)}
         logger.info(f"Saved {len(self.hash_ids)} records to {self.filename}")
 
-    def _upsert(self, hash_ids, texts, embeddings) -> None:
+    def _upsert(self, hash_ids, texts, embeddings, metadatas=None) -> None:
         self.embeddings.extend(embeddings)
         self.hash_ids.extend(hash_ids)
         self.texts.extend(texts)
+        self.metadatas.extend(metadatas if metadatas else [{}] * len(hash_ids))
 
         logger.info("Saving new records.")
         self._save_data()
@@ -156,6 +177,7 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         query_text: str,
         instruction: str = "",
         top_k: int = 10,
+        metadata_filters: dict[str, Any] | None = None,
     ):
         if self.global_config.embedding_use_instruction:
             text_to_embed = self.global_config.embedding_instruction_format.format(
@@ -165,13 +187,36 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
             text_to_embed = query_text
         query_embedding = self.embedding_model.batch_encode([text_to_embed])[0]
         similarity = np.dot(query_embedding, np.array(self.embeddings).T)
-        topk_indices = np.argsort(similarity)[-top_k:][::-1]
+
+        # Apply metadata filters before ranking
+        if metadata_filters:
+            filtered_indices = [
+                idx for idx, metadata in enumerate(self.metadatas) if self._matches_filters(metadata, metadata_filters)
+            ]
+            if not filtered_indices:
+                return []  # No matches after filtering
+            # Only compute similarity for filtered items
+            similarity = np.array([similarity[idx] for idx in filtered_indices])
+            topk_indices_in_filtered = np.argsort(similarity)[-min(top_k, len(filtered_indices)) :][::-1]
+            topk_indices = [filtered_indices[idx] for idx in topk_indices_in_filtered]
+        else:
+            topk_indices = np.argsort(similarity)[-top_k:][::-1]
+
         topk_scores = similarity[topk_indices]
         topk_key_ids = [self.hash_ids[idx] for idx in topk_indices]
         return [
             (self.hash_id_to_row[key_id], float(score))
             for key_id, score in zip(topk_key_ids, topk_scores, strict=True)
         ]
+
+    def _matches_filters(self, metadata: dict[str, Any], filters: dict[str, Any]) -> bool:
+        """Check if metadata matches all filter criteria."""
+        for key, value in filters.items():
+            if key not in metadata:
+                return False
+            if metadata[key] != value:
+                return False
+        return True
 
     def internal_cross_knn(self, top_k: int) -> dict[str, tuple[list[str], list[float]]]:
         all_ids = self.get_all_ids()
@@ -226,13 +271,15 @@ class DataFrameEmbeddingStore(BaseEmbeddingStore):
         self.hash_ids = [self.hash_ids[i] for i in indices_to_keep]
         self.texts = [self.texts[i] for i in indices_to_keep]
         self.embeddings = [self.embeddings[i] for i in indices_to_keep]
+        self.metadatas = [self.metadatas[i] for i in indices_to_keep]
 
         # 2. 重建所有查找字典
         self.hash_id_to_idx = {h: idx for idx, h in enumerate(self.hash_ids)}
         self.hash_id_to_text = {h: self.texts[idx] for idx, h in enumerate(self.hash_ids)}
         self.text_to_hash_id = {self.texts[idx]: h for idx, h in enumerate(self.hash_ids)}
         self.hash_id_to_row = {
-            h: {"hash_id": h, "content": t} for h, t in zip(self.hash_ids, self.texts, strict=False)
+            h: {"hash_id": h, "content": t, "metadata": m}
+            for h, t, m in zip(self.hash_ids, self.texts, self.metadatas, strict=False)
         }
 
         # 3. 保存更新后的数据到文件

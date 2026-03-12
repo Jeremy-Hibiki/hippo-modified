@@ -5,7 +5,7 @@ import asyncio
 import logging
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import aiofiles
 import numpy as np
@@ -23,7 +23,7 @@ from ..utils.misc_utils import (
     reformat_openie_results,
     text_processing,
 )
-from ..utils.typing import NOT_GIVEN, NotGiven, OpenIEDocItem, OpenIEResult, Triple
+from ..utils.typing import NOT_GIVEN, DocumentInput, NotGiven, OpenIEDocItem, OpenIEResult, Triple
 from ._abc import HippoRAGProtocol
 from .base import BaseHippoRAG
 
@@ -227,21 +227,37 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
 
         self.ready_to_retrieve = True
 
-    async def index(self, docs: list[str]):
+    async def index(self, docs: list[DocumentInput]):
         """
         Indexes the given documents based on the HippoRAG 2 framework which generates an OpenIE knowledge graph
         based on the given documents and encodes passages, entities and facts separately for later retrieval.
 
         Parameters:
-            docs : List[str]
-                A list of documents to be indexed.
+            docs : List[Union[str, dict]]
+                A list of documents to be indexed. Can be plain strings or dicts with:
+                - "content": str (required)
+                - "metadata": dict[str, Any] (optional)
         """
 
         logger.info("Indexing Documents")
 
         logger.info("Performing OpenIE")
 
-        await self.chunk_embedding_store.async_insert_strings(docs)
+        # Normalize input to extract content and metadata
+        normalized_docs: list[str] = []
+        metadatas: list[dict[str, Any]] = []
+
+        for doc in docs:
+            if isinstance(doc, str):
+                normalized_docs.append(doc)
+                metadatas.append({})
+            elif isinstance(doc, dict):
+                normalized_docs.append(doc["content"])
+                metadatas.append(doc.get("metadata", {}))
+            else:
+                raise TypeError(f"Document must be str or dict, got {type(doc)}")
+
+        await self.chunk_embedding_store.async_insert_strings(normalized_docs, metadatas)
         chunk_to_rows = self.chunk_embedding_store.get_all_id_to_rows()
 
         all_openie_info, chunk_keys_to_process = await self.load_existing_openie(list(chunk_to_rows.keys()))
@@ -283,8 +299,11 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
         self.node_to_node_stats = {}
         self.ent_node_to_chunk_ids = {}
 
-        self.add_fact_edges(chunk_ids, chunk_triples)
-        num_new_chunks = self.add_passage_edges(chunk_ids, chunk_triple_entities)
+        # Extract metadata for chunks
+        chunk_metadatas = [chunk_to_rows[cid].get("metadata", {}) for cid in chunk_ids]
+
+        self.add_fact_edges(chunk_ids, chunk_triples, chunk_metadatas)
+        num_new_chunks = self.add_passage_edges(chunk_ids, chunk_triple_entities, chunk_metadatas)
 
         if num_new_chunks > 0:
             logger.info(f"Found {num_new_chunks} new chunks to save into graph.")
@@ -358,7 +377,7 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
 
         processed_true_triples_to_delete = [[text_processing(list(triple)) for triple in true_triples_to_delete]]
         entities_to_delete, _ = extract_entity_nodes(processed_true_triples_to_delete)  # type: ignore
-        processed_true_triples_to_delete = flatten_facts(processed_true_triples_to_delete)  # type: ignore
+        processed_true_triples_to_delete = flatten_facts(processed_true_triples_to_delete)
 
         all_facts = self.fact_embedding_store.get_all_id_to_rows()
         triple_ids_to_delete = set([
@@ -413,6 +432,7 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
         rerank_batch_num: int = 10,
         rerank_file_path: str | NotGiven = NOT_GIVEN,
         atom_query_num: int = 5,
+        metadata_filters: dict[str, Any] | None = None,
     ) -> list[QuerySolution]:
         """
         Performs retrieval using the HippoRAG 2 framework, which consists of several steps:
@@ -493,16 +513,28 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
                     fact_scores_dict=fact_scores_dict,
                     passage_node_weight=self.passage_node_weight,
                     pike_node_weight=self.pike_node_weight,
+                    metadata_filters=metadata_filters,
                 )
 
-            top_k_docs = [
-                v["content"]
-                for v in (
-                    await self.chunk_embedding_store.async_get_rows(
-                        [self.passage_node_keys[idx] for idx in sorted_doc_ids[:num_to_retrieve]],
-                    )
-                ).values()
-            ]
+            # Apply metadata filters when retrieving passages
+            chunk_ids_to_retrieve = [self.passage_node_keys[idx] for idx in sorted_doc_ids[:num_to_retrieve]]
+            if metadata_filters:
+                filtered_chunk_ids = [
+                    cid for cid in chunk_ids_to_retrieve if self._matches_metadata_filters(cid, metadata_filters)
+                ]
+                if not filtered_chunk_ids:
+                    logger.warning(f"No chunks match metadata filters: {metadata_filters}")
+                    chunk_ids_to_retrieve = []
+                else:
+                    chunk_ids_to_retrieve = filtered_chunk_ids
+
+            if chunk_ids_to_retrieve:
+                top_k_docs = [
+                    v["content"]
+                    for v in (await self.chunk_embedding_store.async_get_rows(chunk_ids_to_retrieve)).values()
+                ]
+            else:
+                top_k_docs = []
 
             retrieval_results.append(
                 QuerySolution(
@@ -531,6 +563,7 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
         fact_scores_dict: dict[str, float],
         passage_node_weight: float = 0.05,
         pike_node_weight: float = 1.0,
+        metadata_filters: dict[str, Any] | None = None,
     ) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.float64], float]:
         """
         Computes document scores based on fact-based similarity and relevance using personalized
@@ -609,6 +642,7 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
             query_text=query,
             instruction=get_query_instruction("query_to_passage"),
             top_k=len(self.passage_node_keys),
+            metadata_filters=metadata_filters,
         )
         passage_scores_list = [score for _, score in dpr_top_passages]
         normalized_dpr_sorted_scores = min_max_normalize(np.array(passage_scores_list))
@@ -632,14 +666,14 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
 
         # Running PPR algorithm based on the passage and phrase weights previously assigned
         ppr_start = time.time()
-        ppr_sorted_doc_ids, ppr_sorted_doc_scores = self.run_ppr(node_weights, damping=self.global_config.damping)
+        ppr_sorted_doc_ids, ppr_sorted_doc_scores = self.run_ppr(
+            node_weights,
+            damping=self.global_config.damping,
+            metadata_filters=metadata_filters,
+        )
         ppr_end = time.time()
 
         ppr_time = ppr_end - ppr_start
-
-        assert len(ppr_sorted_doc_ids) == len(self.passage_node_idxs), (
-            f"Doc prob length {len(ppr_sorted_doc_ids)} != corpus length {len(self.passage_node_idxs)}"
-        )
 
         return ppr_sorted_doc_ids, ppr_sorted_doc_scores, ppr_time
 
@@ -771,3 +805,12 @@ class AsyncHippoRAG(BaseHippoRAG, HippoRAGProtocol):
             logger.info(f"Upserted {len(upsert_payload)} PIKE queries")
         else:
             logger.info("No PIKE query mappings need upsert.")
+
+    def _matches_metadata_filters(self, chunk_id: str, filters: dict[str, Any]) -> bool:
+        """Check if chunk matches metadata filters."""
+        try:
+            chunk_row = self.chunk_embedding_store.get_row(chunk_id)
+            metadata = chunk_row.get("metadata", {})
+            return all(metadata.get(key) == value for key, value in filters.items())
+        except KeyError:
+            return False

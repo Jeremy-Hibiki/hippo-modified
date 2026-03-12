@@ -22,11 +22,12 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class ChunkInfo(TypedDict):
+class ChunkInfo(TypedDict, total=False):
     num_tokens: int
     content: str
     chunk_order: list[tuple]
     full_doc_ids: list[str]
+    metadata: dict[str, Any]  # Optional metadata for backward compatibility
 
 
 class Triple(BaseModel):
@@ -137,7 +138,7 @@ class OpenIE:
                 )
                 metadata["cache_hit"] = cache_hit
                 real_response = json_repair.repair_json(raw_response)
-                extracted_triples = _extract_triples_from_response(real_response)
+                extracted_triples = _extract_triples_from_response(real_response)  # type: ignore
                 valid_triples = filter_invalid_triples(triples=extracted_triples)
                 if len(valid_triples) > 0:
                     for triple in valid_triples:

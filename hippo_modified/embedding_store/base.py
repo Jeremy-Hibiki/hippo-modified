@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -9,11 +10,13 @@ import numpy.typing as npt
 
 class BaseEmbeddingStore(ABC):
     @abstractmethod
-    def insert_strings(self, texts: Sequence[str]) -> dict | None:
+    def insert_strings(self, texts: Sequence[str], metadatas: Sequence[dict[str, Any]] | None = None) -> dict | None:
         pass
 
-    async def async_insert_strings(self, texts: Sequence[str]) -> dict | None:
-        return self.insert_strings(texts)
+    async def async_insert_strings(
+        self, texts: Sequence[str], metadatas: Sequence[dict[str, Any]] | None = None
+    ) -> dict | None:
+        return self.insert_strings(texts, metadatas)
 
     @abstractmethod
     def get_row(self, hash_id: str) -> dict:
@@ -50,6 +53,7 @@ class BaseEmbeddingStore(ABC):
         query_text: str,
         instruction: str = "",
         top_k: int = 10,
+        metadata_filters: dict[str, Any] | None = None,
     ) -> list[tuple[dict, float]]:
         """
         Searches for the top_k most similar texts to the query_text.
@@ -58,6 +62,7 @@ class BaseEmbeddingStore(ABC):
             query_text: The text to search for.
             instruction: An optional instruction for the embedding model.
             top_k: The number of results to return.
+            metadata_filters: Optional dict of metadata key-value pairs to filter results.
 
         Returns:
             A list of tuples, where each tuple contains the a document and
@@ -70,6 +75,7 @@ class BaseEmbeddingStore(ABC):
         query_text: str,
         instruction: str = "",
         top_k: int = 10,
+        metadata_filters: dict[str, Any] | None = None,
     ) -> list[tuple[dict, float]]:
         """
         Async version of search method.
@@ -80,12 +86,13 @@ class BaseEmbeddingStore(ABC):
             query_text: The text to search for.
             instruction: An optional instruction for the embedding model.
             top_k: The number of results to return.
+            metadata_filters: Optional dict of metadata key-value pairs to filter results.
 
         Returns:
             A list of tuples, where each tuple contains the a document and
             its similarity score. The list is sorted by score in descending order.
         """
-        return self.search(query_text, instruction, top_k)
+        return self.search(query_text, instruction, top_k, metadata_filters)
 
     @abstractmethod
     def internal_cross_knn(self, top_k: int) -> dict[str, tuple[list[str], list[float]]]:
@@ -99,6 +106,12 @@ class BaseEmbeddingStore(ABC):
             字典，键为query_id，值为(top_k_key_ids, top_k_scores)的元组
         """
         pass
+
+    def get_query_id_to_chunk_ids(self) -> dict[str, list[str]]:
+        raise NotImplementedError
+
+    async def async_get_query_id_to_chunk_ids(self) -> dict[str, list[str]]:
+        raise NotImplementedError
 
     def upsert_query_mappings(self, query_to_chunk_ids: dict[str, list[str]]) -> None:
         raise NotImplementedError

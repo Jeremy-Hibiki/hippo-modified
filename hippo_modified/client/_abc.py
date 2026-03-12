@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, TypeAlias, TypeVar, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, TypeVar, runtime_checkable
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     import numpy.typing as npt
 
     from ..utils.misc_utils import QuerySolution
-    from ..utils.typing import NotGiven
+    from ..utils.typing import DocumentInput, NotGiven
 
     _T = TypeVar("_T")
     MaybeAwaitable: TypeAlias = _T | Awaitable[_T]
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 @runtime_checkable
 class HippoRAGProtocol(Protocol):
-    def index(self, docs: list[str]) -> MaybeAwaitable[None]: ...
+    def index(self, docs: list[DocumentInput]) -> MaybeAwaitable[None]: ...
 
     def delete(
         self,
@@ -34,6 +34,7 @@ class HippoRAGProtocol(Protocol):
         rerank_batch_num: int = 10,
         rerank_file_path: str | NotGiven = ...,
         atom_query_num: int = 5,
+        metadata_filters: dict[str, Any] | None = None,
     ) -> MaybeAwaitable[list[QuerySolution]]: ...
 
     def graph_search_with_fact_entities(
@@ -44,6 +45,7 @@ class HippoRAGProtocol(Protocol):
         fact_scores_dict: dict[str, float],
         passage_node_weight: float = 0.05,
         pike_node_weight: float = 1.0,
+        metadata_filters: dict[str, Any] | None = None,
     ) -> MaybeAwaitable[tuple[npt.NDArray, npt.NDArray, float]]: ...
 
     def rerank_facts(

@@ -4,13 +4,14 @@ from ...utils.llm_utils import convert_format_to_template
 
 # from .ner import one_shot_ner_output, one_shot_ner_paragraph
 
-ner_conditioned_re_system = """Your task is to construct an RDF (Resource Description Framework) graph from the given passages and named entity jsons. 
-Respond with a JSON dict of triples, with each triple representing a relationship in the RDF graph. 
+ner_conditioned_re_system = """Your task is to construct an RDF (Resource Description Framework) graph from the given passages and named entity jsons.
+Respond with a JSON dict of triples, with each triple representing a relationship in the RDF graph.
 
 Pay attention to the following requirements:
 - Each triple should contain at least one, but preferably two, of the named entities in the list for each passage.
 - Clearly resolve pronouns to their specific names to maintain clarity.
 - You must respond with this JSON format: {{"triples": [["named_entity1_1", "relation1", "named_entity1_2"],["named_entity2_1", "relation2", "named_entity2_2"],["named_entity3_1", "relation3", "named_entity3_2"], ["named_entity4_1", "relation4", "named_entity4_2"], ...]}}
+- You MUST ONLY describe the relationships between named entities, BUT NOT document structure.
 """
 
 # """Your task is to construct an RDF (Resource Description Framework) graph from the given passages and named entity lists.

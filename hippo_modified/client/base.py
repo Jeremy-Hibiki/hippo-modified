@@ -223,6 +223,7 @@ class BaseHippoRAG:
         self,
         chunk_ids: list[str],
         chunk_triples: Sequence[Sequence[Sequence[str] | tuple[str, str, str]]],
+        chunk_metadatas: Sequence[dict[str, Any]] | None = None,
     ) -> None:
         """
         Adds fact edges from given triples to the graph.
@@ -238,12 +239,29 @@ class BaseHippoRAG:
             chunk_triples: List[Tuple]
                 A list of tuples representing triples to process. Each triple
                 consists of a subject, predicate, and object.
+            chunk_metadatas: Optional[List[Dict]]
+                Metadata for each chunk.
 
         Raises:
             Does not explicitly raise exceptions within the provided function logic.
         """
         if TYPE_CHECKING:
             assert self.ent_node_to_chunk_ids is not None
+
+        # Normalize metadatas
+        if chunk_metadatas is None:
+            chunk_metadatas = [{}] * len(chunk_ids)
+
+        # Store chunk metadata for later use in graph
+        if not hasattr(self, "chunk_metadata_map"):
+            self.chunk_metadata_map = {}
+
+        for chunk_id, metadata in zip(chunk_ids, chunk_metadatas, strict=False):
+            if chunk_id in self.chunk_metadata_map:
+                # Merge metadata if chunk already exists
+                self.chunk_metadata_map[chunk_id].update(metadata)
+            else:
+                self.chunk_metadata_map[chunk_id] = metadata.copy()
 
         current_graph_nodes = set(self.graph.vs["name"]) if "name" in self.graph.vs else set()
 
@@ -277,7 +295,12 @@ class BaseHippoRAG:
                         set([chunk_key])
                     )
 
-    def add_passage_edges(self, chunk_ids: list[str], chunk_triple_entities: list[list[str]]) -> int:
+    def add_passage_edges(
+        self,
+        chunk_ids: list[str],
+        chunk_triple_entities: list[list[str]],
+        chunk_metadatas: Sequence[dict[str, Any]] | None = None,
+    ) -> int:
         """
         Adds edges connecting passage nodes to phrase nodes in the graph.
 
@@ -294,11 +317,28 @@ class BaseHippoRAG:
             chunk_triple_entities : List[List[str]]
                 A list of lists where each sublist contains entities (strings) associated
                 with the corresponding chunk in the chunk_ids list.
+            chunk_metadatas: Optional[List[Dict]]
+                Metadata for each chunk.
 
         Returns:
             int
                 The number of new passage nodes added to the graph.
         """
+
+        # Normalize metadatas
+        if chunk_metadatas is None:
+            chunk_metadatas = [{}] * len(chunk_ids)
+
+        # Store metadata for passage nodes
+        if not hasattr(self, "chunk_metadata_map"):
+            self.chunk_metadata_map = {}
+
+        for chunk_id, metadata in zip(chunk_ids, chunk_metadatas, strict=False):
+            if chunk_id in self.chunk_metadata_map:
+                # Merge metadata if chunk already exists
+                self.chunk_metadata_map[chunk_id].update(metadata)
+            else:
+                self.chunk_metadata_map[chunk_id] = metadata.copy()
 
         current_graph_nodes = set(self.graph.vs["name"]) if "name" in self.graph.vs.attribute_names() else set()
 
@@ -406,11 +446,13 @@ class BaseHippoRAG:
 
         for chunk_key, row in chunks_to_save.items():
             passage = row["content"]
+            metadata = row.get("metadata", {})  # Extract metadata
             chunk_openie_info = OpenIEDocItem(
                 idx=chunk_key,
                 passage=passage,
                 extracted_entities=ner_results_dict[chunk_key].unique_entities,
                 extracted_triples=triple_results_dict[chunk_key].triples,
+                metadata=metadata,  # Include metadata
             )
             all_openie_info.append(chunk_openie_info)
 
@@ -484,6 +526,18 @@ class BaseHippoRAG:
         new_nodes: dict[str, list[Any]] = {}
         for node_id, node in node_to_rows.items():
             node["name"] = node_id
+            # Ensure metadata field exists
+            if "metadata" not in node:
+                node["metadata"] = {}
+
+            # Add chunk_metadata_map metadata to passage nodes
+            if (
+                node_id.startswith("chunk-")
+                and hasattr(self, "chunk_metadata_map")
+                and node_id in self.chunk_metadata_map
+            ):
+                node["metadata"].update(self.chunk_metadata_map[node_id])
+
             if node_id not in existing_nodes:
                 for k, v in node.items():
                     if k not in new_nodes:
@@ -514,7 +568,7 @@ class BaseHippoRAG:
             edge_target_node_keys.append(edge[1])
             edge_metadata.append({"weight": weight})
 
-        valid_edges, valid_weights = [], {"weight": []}  # type: ignore
+        valid_edges, valid_weights = [], {"weight": []}
         current_node_ids = set(self.graph.vs["name"])
         for source_node_id, target_node_id, edge_d in zip(
             edge_source_node_keys, edge_target_node_keys, edge_metadata, strict=False
@@ -635,6 +689,7 @@ class BaseHippoRAG:
         self,
         reset_prob: npt.NDArray[np.float64],
         damping: float = 0.5,
+        metadata_filters: dict[str, Any] | None = None,
     ) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.float64]]:
         """
         Runs Personalized PageRank (PPR) on a graph and computes relevance scores for
@@ -649,6 +704,8 @@ class BaseHippoRAG:
                 within the array are replaced with zeros.
             damping (float): A scalar specifying the damping factor for the
                 computation. Defaults to 0.5 if not provided or set to `None`.
+            metadata_filters (dict, optional): Metadata filters to create a subgraph
+                for PPR. Only nodes matching the filters will be included.
 
         Returns:
             Tuple[np.ndarray, np.ndarray]: A tuple containing two numpy arrays. The
@@ -661,6 +718,68 @@ class BaseHippoRAG:
         if damping is None:
             damping = 0.5  # for potential compatibility
         reset_prob = np.where(np.isnan(reset_prob) | (reset_prob < 0), 0, reset_prob)
+
+        # Determine if we need to create a subgraph based on metadata filters
+        if metadata_filters:
+            subgraph_result = self._create_subgraph_by_metadata(metadata_filters)
+            if subgraph_result is not None:
+                valid_passage_idxs, valid_entity_idxs, valid_chunk_ids = subgraph_result
+                valid_node_idxs = valid_passage_idxs | valid_entity_idxs
+
+                # Use igraph's induced_subgraph API to create an induced subgraph
+                # Use 'auto' to let igraph choose the best implementation
+                logger.info(
+                    f"Creating subgraph for PPR: {len(valid_passage_idxs)} passages, "
+                    f"{len(valid_entity_idxs)} entities from {len(valid_chunk_ids)} chunks "
+                    f"(total nodes: {len(valid_node_idxs)})"
+                )
+
+                subgraph: ig.Graph = self.graph.induced_subgraph(list(valid_node_idxs), implementation="auto")
+
+                # Map original node indices to subgraph indices
+                original_to_subgraph_idx = {orig_idx: i for i, orig_idx in enumerate(valid_node_idxs)}
+
+                # Filter reset_prob to only include nodes in subgraph
+                subgraph_reset_prob = np.array([
+                    reset_prob[orig_idx] if orig_idx < len(reset_prob) else 0.0 for orig_idx in valid_node_idxs
+                ])
+
+                # Run PPR on the subgraph
+                pagerank_scores: list[float] = subgraph.personalized_pagerank(
+                    vertices=range(len(subgraph.vs)),
+                    damping=damping,
+                    directed=False,
+                    weights="weight",
+                    reset=subgraph_reset_prob,
+                    implementation="prpack",
+                )
+
+                # Get passage indices that are in the subgraph
+                subgraph_passage_idxs = [idx for idx in self.passage_node_idxs if idx in valid_passage_idxs]
+
+                # Map passage indices to subgraph indices
+                subgraph_passage_to_subgraph_idx = {
+                    orig_idx: original_to_subgraph_idx[orig_idx] for orig_idx in subgraph_passage_idxs
+                }
+
+                # Extract scores for passage nodes in the correct order
+                doc_scores: npt.NDArray[np.float64] = np.array([
+                    pagerank_scores[subgraph_passage_to_subgraph_idx[idx]] for idx in subgraph_passage_idxs
+                ])
+
+                # Get the original indices in the full passage_node_idxs array
+                sorted_doc_indices = np.argsort(doc_scores)[::-1]
+                sorted_doc_ids = np.array(
+                    [self.passage_node_idxs.index(subgraph_passage_idxs[idx]) for idx in sorted_doc_indices],
+                    dtype=np.intp,
+                )
+                sorted_doc_scores = doc_scores[sorted_doc_indices]
+
+                logger.info(f"PPR on subgraph returned {len(sorted_doc_ids)} results")
+
+                return sorted_doc_ids, sorted_doc_scores
+
+        # Run PPR on the full graph (no metadata filters or no matching chunks)
         pagerank_scores: list[float] = self.graph.personalized_pagerank(
             vertices=range(len(self.node_name_to_vertex_idx)),
             damping=damping,
@@ -675,3 +794,64 @@ class BaseHippoRAG:
         sorted_doc_scores = doc_scores[sorted_doc_ids.tolist()]
 
         return sorted_doc_ids, sorted_doc_scores
+
+    def _create_subgraph_by_metadata(
+        self,
+        metadata_filters: dict[str, Any] | None,
+    ) -> tuple[set[int], set[int], set[str]] | None:
+        """
+        Creates a subgraph based on metadata filters.
+
+        Args:
+            metadata_filters: Dict of metadata key-value pairs to filter by
+
+        Returns:
+            Tuple of (valid_passage_idxs, valid_entity_idxs, valid_chunk_ids) if filters provided,
+            None if no filters (use full graph)
+        """
+        if not metadata_filters:
+            return None
+
+        # Filter chunk IDs by metadata
+        all_chunk_ids = list(self.chunk_embedding_store.get_all_ids())
+        valid_chunk_ids = {
+            chunk_id for chunk_id in all_chunk_ids if self._chunk_matches_metadata(chunk_id, metadata_filters)
+        }
+
+        if not valid_chunk_ids:
+            logger.warning(f"No chunks match metadata filters: {metadata_filters}")
+            return None
+
+        # Get passage node indices for valid chunks
+        valid_passage_idxs = {
+            self.node_name_to_vertex_idx[chunk_id]
+            for chunk_id in valid_chunk_ids
+            if chunk_id in self.node_name_to_vertex_idx
+        }
+
+        # Find all entity nodes connected to valid passage nodes
+        valid_entity_idxs = set()
+        for passage_idx in valid_passage_idxs:
+            # Get neighbors of this passage node
+            neighbors = self.graph.neighbors(passage_idx)
+            for neighbor_idx in neighbors:
+                neighbor_name = self.graph.vs[neighbor_idx]["name"]
+                # Only include entity nodes (starting with "entity-")
+                if neighbor_name.startswith("entity-"):
+                    valid_entity_idxs.add(neighbor_idx)
+
+        logger.info(
+            f"Created subgraph: {len(valid_passage_idxs)} passages, "
+            f"{len(valid_entity_idxs)} entities from {len(valid_chunk_ids)} chunks"
+        )
+
+        return valid_passage_idxs, valid_entity_idxs, valid_chunk_ids
+
+    def _chunk_matches_metadata(self, chunk_id: str, filters: dict[str, Any]) -> bool:
+        """Check if a chunk matches metadata filters."""
+        try:
+            chunk_row = self.chunk_embedding_store.get_row(chunk_id)
+            metadata = chunk_row.get("metadata", {})
+            return all(metadata.get(key) == value for key, value in filters.items())
+        except KeyError:
+            return False

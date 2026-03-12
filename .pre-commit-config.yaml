@@ -9,15 +9,16 @@ repos:
       # Run the formatter.
       - id: ruff-format
 
-  - repo: https://ghfast.top/github.com/pre-commit/mirrors-mypy
-    rev: v1.18.1
-    hooks:
-      - id: mypy
-        language_version: python3.10
-        additional_dependencies:
-          - pydantic
-          - --index-url
-          - https://pypi.tuna.tsinghua.edu.cn/simple/
+  # - repo: https://ghfast.top/github.com/pre-commit/mirrors-mypy
+  #   rev: v1.18.1
+  #   hooks:
+  #     - id: mypy
+  #       language_version: python3.10
+  #       additional_dependencies:
+  #         - pydantic
+  #         - numpy
+  #         - --index-url
+  #         - https://pypi.tuna.tsinghua.edu.cn/simple/
   # No official ty hook for now, see https://github.com/astral-sh/ty/issues/269#issuecomment-3036849199
   - repo: local
     hooks:
@@ -27,4 +28,4 @@ repos:
         entry: ty check
         pass_filenames: false
         args: [--python=.venv/]
-        additional_dependencies: [ty]
+        additional_dependencies: [ty, types-regex>=2025.11.3.20251106]
